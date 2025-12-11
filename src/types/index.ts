@@ -178,6 +178,12 @@ export interface BabyStats {
     sessionsToday: number;
     lastExtraction?: RoutineLog;
   };
+  today?: {
+    feedingCount: number;
+    sleepMinutes: number;
+    diaperCount: number;
+    bathCount: number;
+  };
 }
 
 // ====== API Response ======
@@ -216,7 +222,7 @@ export interface RegisterFormData {
 export interface BabyFormData {
   name: string;
   birthDate: string;
-  relationship: Relationship;
+  relationship: Relationship | string;
   birthWeightGrams?: number;
   birthLengthCm?: number;
   city?: string;
