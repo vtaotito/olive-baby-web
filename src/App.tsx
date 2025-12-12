@@ -35,6 +35,9 @@ import {
   ExtractionTracker,
 } from './components/routines';
 
+// Feeding Dashboard
+import { FeedingDashboardPage } from './pages/feeding/FeedingDashboardPage';
+
 // Placeholder Pages (to be implemented)
 const RoutinesHistoryPage = () => (
   <DashboardLayout>
@@ -109,6 +112,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <FeedingTracker />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feeding/dashboard"
+              element={
+                <ProtectedRoute>
+                  <FeedingDashboardPage />
                 </ProtectedRoute>
               }
             />
