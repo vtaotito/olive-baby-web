@@ -52,12 +52,19 @@ export function FeedingTracker() {
 
   // Verificar se há rotina aberta ao carregar
   const checkOpenRoutine = useCallback(async () => {
-    if (!selectedBaby) return;
+    if (!selectedBaby) {
+      setIsCheckingOpen(false);
+      return;
+    }
     
     setIsCheckingOpen(true);
     try {
+      console.log('[FeedingTracker] Verificando rotina aberta para baby:', selectedBaby.id);
       const response = await routineService.getOpenFeeding(selectedBaby.id);
+      console.log('[FeedingTracker] Resposta:', response);
+      
       if (response.success && response.data) {
+        console.log('[FeedingTracker] Rotina aberta encontrada:', response.data);
         // Há uma rotina aberta - configurar estado
         setOpenRoutineData(response.data);
         setActiveRoutine('feeding', response.data);
@@ -69,11 +76,15 @@ export function FeedingTracker() {
         
         // Iniciar timer com tempo decorrido
         const elapsed = calculateElapsed(new Date(response.data.startTime));
+        console.log('[FeedingTracker] Tempo decorrido:', elapsed, 'segundos');
         setSeconds(elapsed);
         start(elapsed);
+      } else {
+        console.log('[FeedingTracker] Nenhuma rotina aberta');
       }
     } catch (err) {
       // Sem rotina aberta - tudo ok
+      console.log('[FeedingTracker] Erro ou sem rotina:', err);
     } finally {
       setIsCheckingOpen(false);
     }
@@ -83,9 +94,10 @@ export function FeedingTracker() {
     checkOpenRoutine();
   }, [checkOpenRoutine]);
 
-  // Resume timer if there's an active feeding
+  // Resume timer if there's an active feeding (apenas se não estiver verificando)
   useEffect(() => {
-    if (activeFeeding && !isCheckingOpen) {
+    if (activeFeeding && !isCheckingOpen && !isRunning) {
+      console.log('[FeedingTracker] Retomando timer para rotina ativa');
       const elapsed = calculateElapsed(new Date(activeFeeding.startTime));
       setSeconds(elapsed);
       start(elapsed);
@@ -95,7 +107,7 @@ export function FeedingTracker() {
       if (meta?.feedingType) setFeedingType(meta.feedingType as FeedingType);
       if (meta?.breastSide) setBreastSide(meta.breastSide as BreastSide);
     }
-  }, [activeFeeding, calculateElapsed, setSeconds, start, isCheckingOpen]);
+  }, [activeFeeding, calculateElapsed, setSeconds, start, isCheckingOpen, isRunning]);
 
   const handleStart = async () => {
     if (!selectedBaby) return;
