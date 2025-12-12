@@ -38,15 +38,8 @@ import {
 // Feeding Dashboard
 import { FeedingDashboardPage } from './pages/feeding/FeedingDashboardPage';
 
-// Placeholder Pages (to be implemented)
-const RoutinesHistoryPage = () => (
-  <DashboardLayout>
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Histórico de Rotinas</h1>
-      <p className="text-gray-500">Página em desenvolvimento...</p>
-    </div>
-  </DashboardLayout>
-);
+// Routines Dashboard
+import { RoutinesDashboardPage } from './pages/routines';
 
 // Placeholder for other settings pages
 const PlaceholderSettingsPage = ({ title }: { title: string }) => (
@@ -103,7 +96,7 @@ function App() {
               path="/routines"
               element={
                 <ProtectedRoute>
-                  <RoutinesHistoryPage />
+                  <RoutinesDashboardPage />
                 </ProtectedRoute>
               }
             />

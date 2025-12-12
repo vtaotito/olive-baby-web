@@ -1,0 +1,311 @@
+// Olive Baby Web - Routines List Component
+// Lista de rotinas do dia/semana
+
+import { useState, useEffect, useCallback } from 'react';
+import { format, parseISO, isToday, isYesterday, startOfDay, subDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Moon, Utensils, Droplets, Bath, Baby, ChevronRight, Clock, Filter } from 'lucide-react';
+import { Card, CardBody, Button, Spinner } from '../../ui';
+import { routineService } from '../../../services/api';
+import { cn } from '../../../lib/utils';
+import type { RoutineLog } from '../../../types';
+
+interface RoutinesListProps {
+  babyId: number;
+}
+
+const routineConfig = {
+  FEEDING: {
+    icon: Utensils,
+    label: 'Alimentação',
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-100',
+  },
+  SLEEP: {
+    icon: Moon,
+    label: 'Sono',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-100',
+  },
+  BATH: {
+    icon: Bath,
+    label: 'Banho',
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-100',
+  },
+  DIAPER: {
+    icon: Baby,
+    label: 'Fralda',
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+  },
+  MILK_EXTRACTION: {
+    icon: Droplets,
+    label: 'Extração',
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-100',
+  },
+};
+
+type FilterType = 'all' | 'FEEDING' | 'SLEEP' | 'DIAPER' | 'BATH' | 'MILK_EXTRACTION';
+type DateFilter = 'today' | '7days' | '30days';
+
+function formatTime(date: string | Date): string {
+  const d = typeof date === 'string' ? parseISO(date) : date;
+  return format(d, 'HH:mm', { locale: ptBR });
+}
+
+function formatDuration(seconds: number | undefined | null): string {
+  if (!seconds) return '';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}min`;
+  }
+  return `${minutes}min`;
+}
+
+function formatDateHeader(date: Date): string {
+  if (isToday(date)) return 'Hoje';
+  if (isYesterday(date)) return 'Ontem';
+  return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+}
+
+interface RoutineItemProps {
+  routine: RoutineLog;
+}
+
+function RoutineItem({ routine }: RoutineItemProps) {
+  const config = routineConfig[routine.routineType as keyof typeof routineConfig];
+  if (!config) return null;
+
+  const Icon = config.icon;
+  const meta = routine.meta as Record<string, unknown>;
+
+  // Detalhes extras
+  const details: string[] = [];
+  
+  if (routine.routineType === 'FEEDING') {
+    if (meta?.feedingType === 'breast') {
+      details.push('Amamentação');
+      if (meta?.breastSide) {
+        const sides: Record<string, string> = { left: 'Esquerdo', right: 'Direito', both: 'Ambos' };
+        details.push(`Lado ${sides[meta.breastSide as string] || meta.breastSide}`);
+      }
+    } else if (meta?.feedingType === 'bottle') {
+      details.push('Mamadeira');
+      if (meta?.bottleMl) details.push(`${meta.bottleMl}ml`);
+    } else if (meta?.feedingType === 'solid') {
+      details.push('Sólidos');
+    }
+    if (meta?.complementMl) {
+      details.push(`Complemento: ${meta.complementMl}ml`);
+    }
+  }
+  
+  if (routine.routineType === 'SLEEP') {
+    if (meta?.quality) details.push(`Qualidade: ${meta.quality}`);
+    if (meta?.location) details.push(`Local: ${meta.location}`);
+  }
+  
+  if (routine.routineType === 'DIAPER') {
+    const types: string[] = [];
+    if (meta?.wet) types.push('Xixi');
+    if (meta?.dirty) types.push('Cocô');
+    if (types.length) details.push(types.join(' + '));
+    if (meta?.consistency) details.push(`Consistência: ${meta.consistency}`);
+  }
+  
+  if (routine.routineType === 'MILK_EXTRACTION') {
+    if (meta?.ml) details.push(`${meta.ml}ml`);
+    if (meta?.side) {
+      const sides: Record<string, string> = { left: 'Esquerdo', right: 'Direito', both: 'Ambos' };
+      details.push(`Lado ${sides[meta.side as string] || meta.side}`);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', config.bgColor)}>
+        <Icon className={cn('w-5 h-5', config.color)} />
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-gray-900">{config.label}</span>
+          {routine.durationSeconds && (
+            <span className="text-xs text-gray-500 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formatDuration(routine.durationSeconds)}
+            </span>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span>{formatTime(routine.startTime)}</span>
+          {routine.endTime && (
+            <>
+              <span>→</span>
+              <span>{formatTime(routine.endTime)}</span>
+            </>
+          )}
+          {!routine.endTime && (
+            <span className="text-green-600 font-medium">• Em andamento</span>
+          )}
+        </div>
+        
+        {details.length > 0 && (
+          <p className="text-xs text-gray-400 mt-0.5 truncate">
+            {details.join(' • ')}
+          </p>
+        )}
+        
+        {routine.notes && (
+          <p className="text-xs text-gray-400 mt-0.5 truncate italic">
+            "{routine.notes}"
+          </p>
+        )}
+      </div>
+      
+      <ChevronRight className="w-4 h-4 text-gray-300" />
+    </div>
+  );
+}
+
+export function RoutinesList({ babyId }: RoutinesListProps) {
+  const [routines, setRoutines] = useState<RoutineLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState<FilterType>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+
+  const fetchRoutines = useCallback(async () => {
+    if (!babyId) return;
+
+    setIsLoading(true);
+    try {
+      const days = dateFilter === 'today' ? 0 : dateFilter === '7days' ? 7 : 30;
+      const startDate = startOfDay(subDays(new Date(), days));
+      
+      const response = await routineService.getHistory(babyId, {
+        startDate: startDate.toISOString(),
+        endDate: new Date().toISOString(),
+        type: typeFilter === 'all' ? undefined : typeFilter,
+        limit: 50,
+      });
+
+      if (response.success) {
+        setRoutines(response.data || []);
+      }
+    } catch (err) {
+      console.error('[RoutinesList] Error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [babyId, typeFilter, dateFilter]);
+
+  useEffect(() => {
+    fetchRoutines();
+  }, [fetchRoutines]);
+
+  // Agrupar rotinas por data
+  const groupedRoutines = routines.reduce((groups, routine) => {
+    const date = format(parseISO(routine.startTime), 'yyyy-MM-dd');
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(routine);
+    return groups;
+  }, {} as Record<string, RoutineLog[]>);
+
+  // Ordenar datas (mais recente primeiro)
+  const sortedDates = Object.keys(groupedRoutines).sort((a, b) => b.localeCompare(a));
+
+  return (
+    <div className="space-y-4">
+      {/* Header com filtros */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-gray-400" />
+          Histórico de Rotinas
+        </h2>
+        
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filtro de data */}
+          <div className="flex rounded-lg bg-gray-100 p-1">
+            {[
+              { value: 'today', label: 'Hoje' },
+              { value: '7days', label: '7 dias' },
+              { value: '30days', label: '30 dias' },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setDateFilter(opt.value as DateFilter)}
+                className={cn(
+                  'px-3 py-1 text-xs font-medium rounded-md transition-colors',
+                  dateFilter === opt.value
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          
+          {/* Filtro de tipo */}
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as FilterType)}
+            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
+          >
+            <option value="all">Todos os tipos</option>
+            <option value="FEEDING">🍼 Alimentação</option>
+            <option value="SLEEP">😴 Sono</option>
+            <option value="DIAPER">🚼 Fralda</option>
+            <option value="BATH">🛁 Banho</option>
+            <option value="MILK_EXTRACTION">💧 Extração</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Lista */}
+      <Card>
+        <CardBody className="p-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Spinner size="lg" />
+            </div>
+          ) : routines.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                {typeFilter === 'all' 
+                  ? 'Nenhuma rotina registrada neste período' 
+                  : `Nenhum registro de ${routineConfig[typeFilter as keyof typeof routineConfig]?.label.toLowerCase() || typeFilter} encontrado`
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {sortedDates.map((date) => (
+                <div key={date}>
+                  <div className="px-3 py-2 bg-gray-50 sticky top-0">
+                    <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                      {formatDateHeader(parseISO(date))}
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {groupedRoutines[date]
+                      .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+                      .map((routine) => (
+                        <RoutineItem key={routine.id} routine={routine} />
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardBody>
+      </Card>
+    </div>
+  );
+}

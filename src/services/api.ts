@@ -274,6 +274,18 @@ export const routineService = {
     return response.data;
   },
 
+  // Get history (alias for list with better params)
+  getHistory: async (babyId: number, params?: {
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const response = await api.get(`/routines/${babyId}`, { params });
+    return response.data;
+  },
+
   // Get single routine
   get: async (routineId: number) => {
     const response = await api.get(`/routines/log/${routineId}`);
@@ -300,12 +312,25 @@ export const routineService = {
 
 // ====== Stats Service ======
 export const statsService = {
+  getStats: async (babyId: number, range: '24h' | '7d' | '30d' = '24h') => {
+    const response = await api.get(`/stats/${babyId}`, { params: { range } });
+    return response.data;
+  },
+
+  // Alias para manter compatibilidade
   get: async (babyId: number, range: '24h' | '7d' | '30d' = '24h') => {
     const response = await api.get(`/stats/${babyId}`, { params: { range } });
     return response.data;
   },
 
-  getHistory: async (babyId: number, type: string, days: number = 7) => {
+  // Histórico agregado para gráficos (últimos N dias)
+  getHistory: async (babyId: number, range: '7d' | '14d' | '30d' = '7d') => {
+    const response = await api.get(`/stats/${babyId}/history`, { params: { range } });
+    return response.data;
+  },
+
+  // Histórico por tipo específico
+  getHistoryByType: async (babyId: number, type: string, days: number = 7) => {
     const response = await api.get(`/stats/${babyId}/history/${type}`, { params: { days } });
     return response.data;
   },

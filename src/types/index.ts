@@ -149,33 +149,49 @@ export interface Milestone {
 
 // ====== Statistics ======
 export interface BabyStats {
-  feeding: {
-    totalToday: number;
-    averageDurationMinutes: number;
+  feeding?: {
+    count: number;
+    totalMinutes: number;
+    totalToday?: number;
+    averageDurationMinutes?: number;
     lastFeeding?: RoutineLog;
-    breastFeedings: number;
-    bottleFeedings: number;
-    totalMl: number;
+    breastFeedings?: number;
+    bottleFeedings?: number;
+    totalMl?: number;
+    complementMl?: number;
+    breastSideDistribution?: {
+      left: number;
+      right: number;
+      both: number;
+    };
   };
-  sleep: {
-    totalHoursToday: number;
-    averageSleepHours: number;
+  sleep?: {
+    count: number;
+    totalMinutes: number;
+    totalHoursToday?: number;
+    averageSleepHours?: number;
     lastSleep?: RoutineLog;
-    sleepSessions: number;
+    sleepSessions?: number;
   };
-  diaper: {
-    totalToday: number;
-    peeCount: number;
-    poopCount: number;
+  diaper?: {
+    count: number;
+    wetCount: number;
+    dirtyCount: number;
+    totalToday?: number;
+    peeCount?: number;
+    poopCount?: number;
     lastChange?: RoutineLog;
   };
-  bath: {
-    totalToday: number;
+  bath?: {
+    count: number;
+    totalToday?: number;
     lastBath?: RoutineLog;
   };
-  extraction: {
-    totalMlToday: number;
-    sessionsToday: number;
+  extraction?: {
+    count: number;
+    totalMl: number;
+    totalMlToday?: number;
+    sessionsToday?: number;
     lastExtraction?: RoutineLog;
   };
   today?: {

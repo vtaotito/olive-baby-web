@@ -21,9 +21,9 @@ function Card({ className, children, variant = 'default', ...props }: CardProps)
   );
 }
 
-interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
-  title?: string;
-  subtitle?: string;
+interface CardHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  title?: ReactNode;
+  subtitle?: ReactNode;
   action?: ReactNode;
   children?: ReactNode;
 }
