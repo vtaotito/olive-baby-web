@@ -1,5 +1,5 @@
 // Olive Baby Web - Dashboard Page
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Baby,
@@ -14,6 +14,7 @@ import {
   Plus,
   ChevronRight,
   BarChart3,
+  History,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
 import { Card, CardBody, CardHeader, Button, Spinner } from '../../components/ui';
@@ -21,7 +22,19 @@ import { StatsChart } from '../../components/charts';
 import { useAuthStore } from '../../stores/authStore';
 import { useBabyStore } from '../../stores/babyStore';
 import { formatAge, formatTimeBR, formatDateBR, getTimeAgo } from '../../lib/utils';
+import { statsService, routineService } from '../../services/api';
 import type { BabyStats, RoutineLog } from '../../types';
+
+interface HistoryData {
+  labels: string[];
+  sleep_hours: number[];
+  feeding_counts: number[];
+  feeding_minutes: number[];
+  diaper_counts: number[];
+  extraction_ml: number[];
+  bottle_ml: number[];
+  complement_ml: number[];
+}
 
 const routineCards = [
   { type: 'feeding', label: 'Alimentação', icon: Utensils, color: 'bg-yellow-100 text-yellow-700', path: '/routines/feeding' },
@@ -36,6 +49,8 @@ export function DashboardPage() {
   const { user } = useAuthStore();
   const { babies, selectedBaby, stats, fetchBabies, selectBaby, fetchStats, isLoading } = useBabyStore();
   const [recentActivities, setRecentActivities] = useState<RoutineLog[]>([]);
+  const [historyData, setHistoryData] = useState<HistoryData | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   useEffect(() => {
     fetchBabies();
@@ -53,8 +68,57 @@ export function DashboardPage() {
     }
   }, [selectedBaby, fetchStats]);
 
-  // Generate chart data from stats
-  const generateWeeklyData = () => {
+  // Fetch history data for charts
+  const fetchHistoryData = useCallback(async () => {
+    if (!selectedBaby) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const response = await statsService.getHistory(selectedBaby.id, '7d');
+      if (response.success && response.data) {
+        setHistoryData(response.data);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error fetching history:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [selectedBaby]);
+
+  // Fetch recent activities
+  const fetchRecentActivities = useCallback(async () => {
+    if (!selectedBaby) return;
+    
+    try {
+      const response = await routineService.getHistory(selectedBaby.id, {
+        limit: 5,
+      });
+      if (response.success && response.data) {
+        setRecentActivities(response.data);
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error fetching recent activities:', error);
+    }
+  }, [selectedBaby]);
+
+  useEffect(() => {
+    if (selectedBaby) {
+      fetchHistoryData();
+      fetchRecentActivities();
+    }
+  }, [selectedBaby, fetchHistoryData, fetchRecentActivities]);
+
+  // Generate fallback chart data if no history data
+  const getChartData = () => {
+    if (historyData && historyData.labels.length > 0) {
+      return {
+        labels: historyData.labels,
+        feeding: historyData.feeding_counts,
+        sleep: historyData.sleep_hours,
+      };
+    }
+    
+    // Fallback: generate empty labels for last 7 days
     const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const today = new Date();
     const labels: string[] = [];
@@ -65,15 +129,14 @@ export function DashboardPage() {
       labels.push(days[date.getDay()]);
     }
     
-    // Mock data - in production this would come from the API
     return {
       labels,
-      feeding: labels.map(() => Math.floor(Math.random() * 8) + 4),
-      sleep: labels.map(() => Math.random() * 4 + 10),
+      feeding: new Array(7).fill(0),
+      sleep: new Array(7).fill(0),
     };
   };
 
-  const weeklyData = generateWeeklyData();
+  const weeklyData = getChartData();
 
   if (isLoading && babies.length === 0) {
     return (
@@ -167,7 +230,9 @@ export function DashboardPage() {
               <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Utensils className="w-5 h-5 text-yellow-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{stats.today?.feedingCount || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.feeding?.count || 0}
+              </p>
               <p className="text-xs text-gray-500">Alimentações hoje</p>
             </CardBody>
           </Card>
@@ -177,7 +242,7 @@ export function DashboardPage() {
                 <Moon className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {stats.today?.sleepMinutes ? Math.round(stats.today.sleepMinutes / 60) : 0}h
+                {stats.sleep?.totalMinutes ? Math.round(stats.sleep.totalMinutes / 60) : 0}h
               </p>
               <p className="text-xs text-gray-500">Sono hoje</p>
             </CardBody>
@@ -187,7 +252,9 @@ export function DashboardPage() {
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Droplets className="w-5 h-5 text-green-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{stats.today?.diaperCount || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.diaper?.count || 0}
+              </p>
               <p className="text-xs text-gray-500">Fraldas hoje</p>
             </CardBody>
           </Card>
@@ -196,7 +263,9 @@ export function DashboardPage() {
               <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Bath className="w-5 h-5 text-purple-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{stats.today?.bathCount || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.bath?.count || 0}
+              </p>
               <p className="text-xs text-gray-500">Banhos hoje</p>
             </CardBody>
           </Card>
@@ -208,41 +277,100 @@ export function DashboardPage() {
         <Card>
           <CardHeader title="Alimentações da Semana" />
           <CardBody>
-            <StatsChart
-              type="bar"
-              labels={weeklyData.labels}
-              datasets={[
-                {
-                  label: 'Alimentações',
-                  data: weeklyData.feeding,
-                  backgroundColor: 'rgba(234, 179, 8, 0.6)',
-                  borderColor: 'rgb(234, 179, 8)',
-                },
-              ]}
-              height={200}
-            />
+            {isLoadingHistory ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <Spinner />
+              </div>
+            ) : (
+              <StatsChart
+                type="bar"
+                labels={weeklyData.labels}
+                datasets={[
+                  {
+                    label: 'Alimentações',
+                    data: weeklyData.feeding,
+                    backgroundColor: 'rgba(234, 179, 8, 0.6)',
+                    borderColor: 'rgb(234, 179, 8)',
+                  },
+                ]}
+                height={200}
+              />
+            )}
           </CardBody>
         </Card>
         <Card>
           <CardHeader title="Sono da Semana (horas)" />
           <CardBody>
-            <StatsChart
-              type="line"
-              labels={weeklyData.labels}
-              datasets={[
-                {
-                  label: 'Horas de sono',
-                  data: weeklyData.sleep,
-                  borderColor: 'rgb(59, 130, 246)',
-                  backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                  fill: true,
-                },
-              ]}
-              height={200}
-            />
+            {isLoadingHistory ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <Spinner />
+              </div>
+            ) : (
+              <StatsChart
+                type="line"
+                labels={weeklyData.labels}
+                datasets={[
+                  {
+                    label: 'Horas de sono',
+                    data: weeklyData.sleep,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: true,
+                  },
+                ]}
+                height={200}
+              />
+            )}
           </CardBody>
         </Card>
       </div>
+
+      {/* Recent Activities */}
+      {recentActivities.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader 
+            title="Atividades Recentes" 
+            action={
+              <Link to="/routines" className="text-sm text-olive-600 hover:text-olive-700">
+                Ver todas
+              </Link>
+            }
+          />
+          <CardBody className="divide-y divide-gray-100">
+            {recentActivities.map((activity) => {
+              const routineConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
+                FEEDING: { icon: Utensils, color: 'bg-yellow-100 text-yellow-600', label: 'Alimentação' },
+                SLEEP: { icon: Moon, color: 'bg-blue-100 text-blue-600', label: 'Sono' },
+                DIAPER: { icon: Droplets, color: 'bg-green-100 text-green-600', label: 'Fralda' },
+                BATH: { icon: Bath, color: 'bg-purple-100 text-purple-600', label: 'Banho' },
+                MILK_EXTRACTION: { icon: Milk, color: 'bg-pink-100 text-pink-600', label: 'Extração' },
+              };
+              const config = routineConfig[activity.routineType] || { icon: Clock, color: 'bg-gray-100 text-gray-600', label: activity.routineType };
+              const Icon = config.icon;
+              
+              return (
+                <div key={activity.id} className="flex items-center gap-3 py-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${config.color}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{config.label}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatTimeBR(new Date(activity.startTime))}
+                      {activity.durationSeconds && ` • ${Math.round(activity.durationSeconds / 60)} min`}
+                    </p>
+                  </div>
+                  {!activity.endTime && (
+                    <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                      Em andamento
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </CardBody>
+        </Card>
+      )}
 
       {/* Quick Links */}
       <div className="grid md:grid-cols-3 gap-4">
