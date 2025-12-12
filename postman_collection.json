@@ -1,0 +1,1084 @@
+{
+  "info": {
+    "name": "Olive Baby API",
+    "description": "API completa para gerenciamento de rotinas e desenvolvimento de bebês",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "olivebaby"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@email.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"novo@email.com\",\n  \"password\": \"SenhaForte123!\",\n  \"fullName\": \"Maria Silva\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"(11) 98765-4321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Babies",
+      "item": [
+        {
+          "name": "List Babies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies"]
+            }
+          }
+        },
+        {
+          "name": "Get Baby",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Baby",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"birthDate\": \"2024-01-15\",\n  \"relationship\": \"filho\",\n  \"birthWeightGrams\": 3200,\n  \"birthLengthCm\": 50.5,\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies"]
+            }
+          }
+        },
+        {
+          "name": "Update Baby",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Pedro Silva\",\n  \"city\": \"Campinas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Baby",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Routines",
+      "item": [
+        {
+          "name": "Feeding",
+          "item": [
+            {
+              "name": "Start Feeding",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"feedingType\": \"breast\",\n    \"breastSide\": \"left\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/feeding/start",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "feeding", "start"]
+                }
+              }
+            },
+            {
+              "name": "Close Feeding",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"complement\": \"yes\",\n    \"complementType\": \"formula\",\n    \"complementMl\": 50\n  },\n  \"notes\": \"Aceitou complemento\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/feeding/close",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "feeding", "close"]
+                }
+              }
+            },
+            {
+              "name": "Get Active Feeding",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/routines/feeding/active/{{babyId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "feeding", "active", "{{babyId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sleep",
+          "item": [
+            {
+              "name": "Start Sleep",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"location\": \"crib\",\n    \"environment\": \"dark\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/sleep/start",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "sleep", "start"]
+                }
+              }
+            },
+            {
+              "name": "Close Sleep",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"quality\": \"good\"\n  },\n  \"notes\": \"Dormiu bem\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/sleep/close",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "sleep", "close"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Diaper",
+          "item": [
+            {
+              "name": "Register Diaper",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"diaperType\": \"both\",\n    \"consistency\": \"normal\"\n  },\n  \"notes\": \"Xixi e cocô\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/diaper",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "diaper"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bath",
+          "item": [
+            {
+              "name": "Start Bath",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"waterTemperature\": \"warm\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/bath/start",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "bath", "start"]
+                }
+              }
+            },
+            {
+              "name": "Close Bath",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"hairWashed\": true\n  },\n  \"notes\": \"Banho completo\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/bath/close",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "bath", "close"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Extraction",
+          "item": [
+            {
+              "name": "Start Extraction",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"extractionType\": \"electric_pump\",\n    \"breastSide\": \"both\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/extraction/start",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "extraction", "start"]
+                }
+              }
+            },
+            {
+              "name": "Close Extraction",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"babyId\": {{babyId}},\n  \"meta\": {\n    \"quantityMl\": 150\n  },\n  \"notes\": \"Boa produção\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/routines/extraction/close",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["routines", "extraction", "close"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Routines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routines?babyId={{babyId}}&routineType=feeding&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["routines"],
+              "query": [
+                {
+                  "key": "babyId",
+                  "value": "{{babyId}}"
+                },
+                {
+                  "key": "routineType",
+                  "value": "feeding"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Routine",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routines/log/{{routineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["routines", "log", "{{routineId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Routine",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Notas atualizadas\",\n  \"meta\": {\n    \"feedingType\": \"breast\",\n    \"breastSide\": \"both\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/routines/log/{{routineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["routines", "log", "{{routineId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Routine",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routines/log/{{routineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["routines", "log", "{{routineId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stats",
+      "item": [
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/{{babyId}}?range=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["stats", "{{babyId}}"],
+              "query": [
+                {
+                  "key": "range",
+                  "value": "7d"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stats/{{babyId}}/history/sleep?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["stats", "{{babyId}}", "history", "sleep"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Growth",
+      "item": [
+        {
+          "name": "List Growth Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/growth",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "growth"]
+            }
+          }
+        },
+        {
+          "name": "Get Growth Record",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/growth/{{growthId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "growth", "{{growthId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Growth Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"measurementDate\": \"2024-02-15\",\n  \"weightGrams\": 4500,\n  \"lengthCm\": 55.0,\n  \"headCircumferenceCm\": 37.5,\n  \"notes\": \"Consulta de 1 mês\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/growth",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "growth"]
+            }
+          }
+        },
+        {
+          "name": "Update Growth Record",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weightGrams\": 4550,\n  \"notes\": \"Peso corrigido\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/growth/{{growthId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "growth", "{{growthId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Growth Record",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/growth/{{growthId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "growth", "{{growthId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Latest Growth",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/growth/latest",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "growth", "latest"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Milestones",
+      "item": [
+        {
+          "name": "List Milestones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/milestones?category=social",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "milestones"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "social"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Milestone",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "milestones", "{{milestoneId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Milestone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Primeiro Passo\",\n  \"description\": \"Deu o primeiro passo sozinho\",\n  \"category\": \"motor\",\n  \"achievedAt\": \"2024-11-15\",\n  \"notes\": \"Ficamos muito emocionados!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/milestones",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "milestones"]
+            }
+          }
+        },
+        {
+          "name": "Update Milestone",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Atualizando as notas do marco\",\n  \"achievedAt\": \"2024-11-16\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "milestones", "{{milestoneId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Milestone",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "milestones", "{{milestoneId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Professionals",
+      "item": [
+        {
+          "name": "List Professionals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/professionals",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "professionals"]
+            }
+          }
+        },
+        {
+          "name": "Get Professional",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/professionals/{{professionalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["professionals", "{{professionalId}}"]
+            }
+          }
+        },
+        {
+          "name": "Invite Professional",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"medico@clinica.com\",\n  \"fullName\": \"Dr. João Santos\",\n  \"specialty\": \"Pediatria\",\n  \"role\": \"PEDIATRICIAN\",\n  \"crmNumber\": \"123456\",\n  \"crmState\": \"SP\",\n  \"phone\": \"(11) 99999-8888\",\n  \"notes\": \"Pediatra recomendado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/babies/{{babyId}}/professionals/invite",
+              "host": ["{{baseUrl}}"],
+              "path": ["babies", "{{babyId}}", "professionals", "invite"]
+            }
+          }
+        },
+        {
+          "name": "Get My Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/professionals/my-patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["professionals", "my-patients"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "item": [
+        {
+          "name": "Export Routines (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/export/{{babyId}}/routines?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["export", "{{babyId}}", "routines"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Growth (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/export/{{babyId}}/growth",
+              "host": ["{{baseUrl}}"],
+              "path": ["export", "{{babyId}}", "growth"]
+            }
+          }
+        },
+        {
+          "name": "Export Milestones (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/export/{{babyId}}/milestones",
+              "host": ["{{baseUrl}}"],
+              "path": ["export", "{{babyId}}", "milestones"]
+            }
+          }
+        },
+        {
+          "name": "Export Full Report (PDF)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/export/{{babyId}}/full",
+              "host": ["{{baseUrl}}"],
+              "path": ["export", "{{babyId}}", "full"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "babyId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "routineId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "growthId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "milestoneId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "professionalId",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

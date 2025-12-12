@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  builder:
+    image: node:20-slim
+    container_name: olivebaby-web-builder
+    working_dir: /app
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        echo "Installing git..."
+        apt-get update && apt-get install -y git
+        if [ ! -f /app/package.json ]; then
+          echo "Cloning repository..."
+          git clone https://github.com/vtaotito/olive-baby-web.git /tmp/web
+          cp -r /tmp/web/* /app/
+          rm -rf /tmp/web
+        fi
+        echo "Installing dependencies..."
+        npm install --include=dev
+        echo "Building application..."
+        export VITE_API_URL=https://oliecare.cloud/api/v1
+        npm run build
+        echo "Copying build files..."
+        rm -rf /dist/*
+        cp -r /app/dist/* /dist/
+        echo "Build complete - $(date)"
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: https://oliecare.cloud/api/v1
+    volumes:
+      - web_src:/app
+      - web_dist:/dist
+    networks:
+      - olivebaby-network
+
+  web:
+    image: nginx:alpine
+    container_name: olivebaby-web-server
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - web_dist:/usr/share/nginx/html:ro
+    networks:
+      - olivebaby-network
+    depends_on:
+      builder:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  nginx:
+    image: nginx:alpine
+    container_name: olivebaby-nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ssl_certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot
+    networks:
+      - olivebaby-network
+    depends_on:
+      - web
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  certbot:
+    image: certbot/certbot
+    container_name: olivebaby-certbot
+    volumes:
+      - ssl_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks:
+      - olivebaby-network
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        sleep 30
+        if [ ! -f /etc/letsencrypt/live/oliecare.cloud/fullchain.pem ]; then
+          certbot certonly --webroot --webroot-path=/var/www/certbot \
+            --email vitor@titotech.com.br --agree-tos --no-eff-email \
+            -d oliecare.cloud -d www.oliecare.cloud || true
+        fi
+        while true; do sleep 12h; certbot renew --quiet; done
+
+volumes:
+  web_src:
+  web_dist:
+  ssl_certs:
+  certbot_www:
+
+networks:
+  olivebaby-network:
+    external: true

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - Olive Baby</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+
+        .sidebar .version {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            background: #34495e;
+            color: white;
+        }
+
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+
+        .nav-section {
+            margin-bottom: 20px;
+        }
+
+        .nav-section h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #95a5a6;
+            margin-bottom: 10px;
+        }
+
+        .nav-section ul {
+            list-style: none;
+        }
+
+        .nav-section li {
+            margin-bottom: 5px;
+        }
+
+        .nav-section a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav-section a:hover,
+        .nav-section a.active {
+            background: #34495e;
+            color: #3498db;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .base-url {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .endpoint {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .endpoint-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .endpoint-header:hover {
+            background: #e9ecef;
+        }
+
+        .method {
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .method.get { background: #28a745; color: white; }
+        .method.post { background: #007bff; color: white; }
+        .method.patch { background: #ffc107; color: #333; }
+        .method.delete { background: #dc3545; color: white; }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #495057;
+            flex: 1;
+        }
+
+        .endpoint-title {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .endpoint-body {
+            padding: 20px;
+            display: none;
+        }
+
+        .endpoint-body.active {
+            display: block;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+
+        .response-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .response-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #6c757d;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .response-tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        .response-content {
+            display: none;
+        }
+
+        .response-content.active {
+            display: block;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .status-200 { background: #d4edda; color: #155724; }
+        .status-201 { background: #d4edda; color: #155724; }
+        .status-400 { background: #f8d7da; color: #721c24; }
+        .status-401 { background: #f8d7da; color: #721c24; }
+        .status-403 { background: #f8d7da; color: #721c24; }
+        .status-404 { background: #f8d7da; color: #721c24; }
+        .status-500 { background: #f8d7da; color: #721c24; }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #856404;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-required {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge-optional {
+            background: #6c757d;
+            color: white;
+        }
+
+        .badge-public {
+            background: #28a745;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>🍼 Olive Baby</h1>
+            <div class="version">API v1.0</div>
+
+            <input type="text" class="search-box" id="searchBox" placeholder="Buscar endpoints...">
+
+            <div class="nav-section">
+                <h3>Início</h3>
+                <ul>
+                    <li><a href="#overview">Visão Geral</a></li>
+                    <li><a href="#authentication">Autenticação</a></li>
+                    <li><a href="#response-codes">Códigos de Resposta</a></li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <h3>Endpoints</h3>
+                <ul>
+                    <li><a href="#auth">🔐 Autenticação</a></li>
+                    <li><a href="#babies">👶 Bebês</a></li>
+                    <li><a href="#routines">📝 Rotinas</a></li>
+                    <li><a href="#stats">📊 Estatísticas</a></li>
+                    <li><a href="#growth">📈 Crescimento</a></li>
+                    <li><a href="#milestones">🎯 Marcos</a></li>
+                    <li><a href="#professionals">👨‍⚕️ Profissionais</a></li>
+                    <li><a href="#export">📥 Exportação</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1>📚 Documentação da API</h1>
+                <p>API REST completa para gerenciamento de rotinas e desenvolvimento de bebês</p>
+                <div class="base-url">
+                    <strong>Base URL:</strong> http://localhost:4000/api/v1
+                </div>
+            </div>
+
+            <!-- Overview -->
+            <div class="section" id="overview">
+                <h2>🌐 Visão Geral</h2>
+                <p>A API Olive Baby oferece endpoints completos para gerenciar:</p>
+                <ul style="margin-left: 20px; margin-top: 15px;">
+                    <li>✅ Autenticação de usuários (caregivers e profissionais)</li>
+                    <li>👶 Gestão de bebês</li>
+                    <li>📝 Registro de rotinas (alimentação, sono, fralda, banho, extração)</li>
+                    <li>📊 Estatísticas e análises</li>
+                    <li>📈 Acompanhamento de crescimento</li>
+                    <li>🎯 Marcos de desenvolvimento</li>
+                    <li>👨‍⚕️ Integração com profissionais de saúde</li>
+                    <li>📥 Exportação de relatórios</li>
+                </ul>
+
+                <div class="info-box" style="margin-top: 20px;">
+                    <strong>ℹ️ Formato:</strong> Todas as requisições e respostas são em JSON<br>
+                    <strong>🔒 Autenticação:</strong> JWT Bearer Token (exceto rotas públicas)<br>
+                    <strong>⏰ Timezone:</strong> UTC (converter no cliente)
+                </div>
+            </div>
+
+            <!-- Authentication -->
+            <div class="section" id="authentication">
+                <h2>🔐 Autenticação</h2>
+                <p>A API utiliza <strong>JWT (JSON Web Tokens)</strong> para autenticação. Após o login, você receberá:</p>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Duração</th>
+                            <th>Uso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Access Token</strong></td>
+                            <td>15 minutos</td>
+                            <td>Autorização de requisições</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Refresh Token</strong></td>
+                            <td>7 dias</td>
+                            <td>Renovar access token</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">Rotas Públicas <span class="badge badge-public">Sem Token</span></h3>
+                <ul style="margin-left: 20px;">
+                    <li><code>/auth/login</code></li>
+                    <li><code>/auth/register</code></li>
+                    <li><code>/auth/forgot-password</code></li>
+                    <li><code>/auth/reset-password</code></li>
+                    <li><code>/professionals/verify-token</code></li>
+                    <li><code>/professionals/activate</code></li>
+                </ul>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">Rotas Protegidas</h3>
+                <p>Inclua o token no header de autorização:</p>
+                <div class="code-block">
+                    <pre>Authorization: Bearer {accessToken}</pre>
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                </div>
+            </div>
+
+            <!-- Response Codes -->
+            <div class="section" id="response-codes">
+                <h2>📊 Códigos de Resposta HTTP</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Quando Ocorre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-code status-200">200</span></td>
+                            <td><strong>OK</strong></td>
+                            <td>Requisição bem-sucedida</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-201">201</span></td>
+                            <td><strong>Created</strong></td>
+                            <td>Recurso criado com sucesso</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-400">400</span></td>
+                            <td><strong>Bad Request</strong></td>
+                            <td>Dados de entrada inválidos</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-401">401</span></td>
+                            <td><strong>Unauthorized</strong></td>
+                            <td>Token ausente, inválido ou expirado</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-403">403</span></td>
+                            <td><strong>Forbidden</strong></td>
+                            <td>Sem permissão para acessar recurso</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-404">404</span></td>
+                            <td><strong>Not Found</strong></td>
+                            <td>Recurso não encontrado</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-code status-500">500</span></td>
+                            <td><strong>Internal Server Error</strong></td>
+                            <td>Erro interno do servidor</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Auth Endpoints -->
+            <div class="section" id="auth">
+                <h2>🔐 Autenticação (Auth)</h2>
+
+                <!-- Login -->
+                <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/auth/login</span>
+                        <span class="endpoint-title">Login de usuário</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <h4>Request Body:</h4>
+                        <div class="code-block">
+                            <pre>{
+  "email": "usuario@email.com",
+  "password": "senha123"
+}</pre>
+                            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                        </div>
+
+                        <div class="response-tabs">
+                            <button class="response-tab active" onclick="switchTab(event, 'login-200')">
+                                <span class="status-code status-200">200</span> Sucesso
+                            </button>
+                            <button class="response-tab" onclick="switchTab(event, 'login-401')">
+                                <span class="status-code status-401">401</span> Erro
+                            </button>
+                        </div>
+
+                        <div id="login-200" class="response-content active">
+                            <div class="code-block">
+                                <pre>{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "email": "usuario@email.com",
+      "fullName": "Maria Silva",
+      "role": "CAREGIVER"
+    }
+  }
+}</pre>
+                                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                            </div>
+                        </div>
+
+                        <div id="login-401" class="response-content">
+                            <div class="code-block">
+                                <pre>{
+  "success": false,
+  "error": "Credenciais inválidas"
+}</pre>
+                                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Register -->
+                <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/auth/register</span>
+                        <span class="endpoint-title">Registro de novo usuário</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <h4>Request Body:</h4>
+                        <div class="code-block">
+                            <pre>{
+  "email": "novo@email.com",
+  "password": "SenhaForte123!",
+  "fullName": "Maria Silva",
+  "cpf": "12345678901",
+  "phone": "(11) 98765-4321"
+}</pre>
+                            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                        </div>
+
+                        <div class="response-tabs">
+                            <button class="response-tab active" onclick="switchTab(event, 'register-201')">
+                                <span class="status-code status-201">201</span> Sucesso
+                            </button>
+                        </div>
+
+                        <div id="register-201" class="response-content active">
+                            <div class="code-block">
+                                <pre>{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "email": "novo@email.com",
+      "fullName": "Maria Silva",
+      "role": "CAREGIVER"
+    }
+  }
+}</pre>
+                                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refresh Token -->
+                <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/auth/refresh</span>
+                        <span class="endpoint-title">Renovar access token</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <h4>Request Body:</h4>
+                        <div class="code-block">
+                            <pre>{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</pre>
+                            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                        </div>
+
+                        <div class="response-tabs">
+                            <button class="response-tab active" onclick="switchTab(event, 'refresh-200')">
+                                <span class="status-code status-200">200</span> Sucesso
+                            </button>
+                        </div>
+
+                        <div id="refresh-200" class="response-content active">
+                            <div class="code-block">
+                                <pre>{
+  "success": true,
+  "data": {
+    "accessToken": "novo_access_token...",
+    "refreshToken": "novo_refresh_token..."
+  }
+}</pre>
+                                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <strong>💡 Dica:</strong> Para ver todos os endpoints de autenticação e outros módulos, consulte o arquivo <code>API_DOCUMENTATION.md</code> completo com todos os detalhes, campos, validações e exemplos.
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="section">
+                <h2>🔗 Documentação Completa</h2>
+                <p>Esta página mostra apenas uma visão geral. Para a documentação completa com todos os endpoints detalhados, consulte:</p>
+                
+                <div class="info-box">
+                    <strong>📄 Arquivo Markdown:</strong> <code>API_DOCUMENTATION.md</code><br><br>
+                    <strong>Contém:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>✅ Todos os endpoints detalhados (50+ endpoints)</li>
+                        <li>📝 Modelos JSON completos de request e response</li>
+                        <li>🔢 Todos os códigos de resposta HTTP</li>
+                        <li>📊 Exemplos de uso com JavaScript/Fetch</li>
+                        <li>🎯 Estruturas de dados Meta Fields por tipo de rotina</li>
+                        <li>⚡ Informações sobre rate limiting e validações</li>
+                        <li>🔐 Detalhes de autenticação e segurança</li>
+                    </ul>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">Seções Disponíveis:</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>🔐 Autenticação</strong><br>
+                        <small>7 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>👶 Bebês</strong><br>
+                        <small>5 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>📝 Rotinas</strong><br>
+                        <small>15 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>📊 Estatísticas</strong><br>
+                        <small>2 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>📈 Crescimento</strong><br>
+                        <small>6 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>🎯 Marcos</strong><br>
+                        <small>5 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>👨‍⚕️ Profissionais</strong><br>
+                        <small>9 endpoints</small>
+                    </div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>📥 Exportação</strong><br>
+                        <small>4 endpoints</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="section">
+                <h2>📞 Suporte</h2>
+                <p>Para dúvidas ou problemas com a API, entre em contato:</p>
+                <ul style="margin-left: 20px; margin-top: 15px;">
+                    <li>📧 Email: dev@olivebaby.com</li>
+                    <li>📄 Documentação: <code>API_DOCUMENTATION.md</code></li>
+                    <li>🔧 Última atualização: 11/12/2024</li>
+                    <li>📦 Versão: v1.0</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle endpoint body
+        function toggleEndpoint(header) {
+            const body = header.nextElementSibling;
+            body.classList.toggle('active');
+        }
+
+        // Switch response tabs
+        function switchTab(event, contentId) {
+            const tabs = event.target.closest('.response-tabs').querySelectorAll('.response-tab');
+            const contents = event.target.closest('.endpoint-body').querySelectorAll('.response-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(contentId).classList.add('active');
+        }
+
+        // Copy code to clipboard
+        function copyCode(button) {
+            const codeBlock = button.previousElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copiado!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const endpoints = document.querySelectorAll('.endpoint');
+            
+            endpoints.forEach(endpoint => {
+                const text = endpoint.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    endpoint.style.display = 'block';
+                } else {
+                    endpoint.style.display = 'none';
+                }
+            });
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    // Update active nav link
+                    document.querySelectorAll('.nav-section a').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Highlight active section on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-section a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

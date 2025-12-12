@@ -1,9 +1,9 @@
 // Olive Baby Web - Feeding Tracker Component
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Utensils, Baby as BabyIcon, Milk, Cookie, ChevronLeft } from 'lucide-react';
+import { Utensils, Baby as BabyIcon, Milk, Cookie, ChevronLeft, AlertCircle, Play, Square, RefreshCw } from 'lucide-react';
 import { DashboardLayout } from '../layout';
-import { Card, CardBody, CardHeader, Button, Input } from '../ui';
+import { Card, CardBody, CardHeader, Button, Input, Modal, Spinner } from '../ui';
 import { useToast } from '../ui/Toast';
 import { Timer } from './Timer';
 import { useTimer } from '../../hooks/useTimer';
@@ -40,14 +40,52 @@ export function FeedingTracker() {
   const [complementMl, setComplementMl] = useState('');
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingOpen, setIsCheckingOpen] = useState(true);
+  
+  // Modal para rotina já aberta
+  const [showOpenRoutineModal, setShowOpenRoutineModal] = useState(false);
+  const [openRoutineData, setOpenRoutineData] = useState<any>(null);
   
   const activeFeeding = activeRoutines.feeding;
   
   const { seconds, isRunning, start, pause, stop, setSeconds, calculateElapsed } = useTimer();
 
+  // Verificar se há rotina aberta ao carregar
+  const checkOpenRoutine = useCallback(async () => {
+    if (!selectedBaby) return;
+    
+    setIsCheckingOpen(true);
+    try {
+      const response = await routineService.getOpenFeeding(selectedBaby.id);
+      if (response.success && response.data) {
+        // Há uma rotina aberta - configurar estado
+        setOpenRoutineData(response.data);
+        setActiveRoutine('feeding', response.data);
+        
+        // Restaurar tipo e configurações
+        const meta = response.data.meta as Record<string, unknown>;
+        if (meta?.feedingType) setFeedingType(meta.feedingType as FeedingType);
+        if (meta?.breastSide) setBreastSide(meta.breastSide as BreastSide);
+        
+        // Iniciar timer com tempo decorrido
+        const elapsed = calculateElapsed(new Date(response.data.startTime));
+        setSeconds(elapsed);
+        start(elapsed);
+      }
+    } catch (err) {
+      // Sem rotina aberta - tudo ok
+    } finally {
+      setIsCheckingOpen(false);
+    }
+  }, [selectedBaby, setActiveRoutine, calculateElapsed, setSeconds, start]);
+
+  useEffect(() => {
+    checkOpenRoutine();
+  }, [checkOpenRoutine]);
+
   // Resume timer if there's an active feeding
   useEffect(() => {
-    if (activeFeeding) {
+    if (activeFeeding && !isCheckingOpen) {
       const elapsed = calculateElapsed(new Date(activeFeeding.startTime));
       setSeconds(elapsed);
       start(elapsed);
@@ -57,7 +95,7 @@ export function FeedingTracker() {
       if (meta?.feedingType) setFeedingType(meta.feedingType as FeedingType);
       if (meta?.breastSide) setBreastSide(meta.breastSide as BreastSide);
     }
-  }, [activeFeeding, calculateElapsed, setSeconds, start]);
+  }, [activeFeeding, calculateElapsed, setSeconds, start, isCheckingOpen]);
 
   const handleStart = async () => {
     if (!selectedBaby) return;
@@ -78,8 +116,65 @@ export function FeedingTracker() {
         success('Alimentação iniciada!', 'O cronômetro está rodando');
       }
     } catch (err: unknown) {
+      const error = err as { 
+        response?: { 
+          data?: { 
+            message?: string;
+            code?: string;
+            data?: { openRoutine?: any };
+          } 
+        }; 
+        message?: string 
+      };
+      
+      // Verificar se é erro de rotina já aberta (409)
+      if (error.response?.data?.code === 'FEEDING_ALREADY_OPEN' && error.response?.data?.data?.openRoutine) {
+        setOpenRoutineData(error.response.data.data.openRoutine);
+        setShowOpenRoutineModal(true);
+      } else {
+        showError('Erro', error.response?.data?.message || 'Falha ao iniciar alimentação');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler para retomar rotina existente
+  const handleResumeRoutine = () => {
+    if (openRoutineData) {
+      setActiveRoutine('feeding', openRoutineData);
+      const elapsed = calculateElapsed(new Date(openRoutineData.startTime));
+      setSeconds(elapsed);
+      start(elapsed);
+      
+      // Restaurar configurações
+      const meta = openRoutineData.meta as Record<string, unknown>;
+      if (meta?.feedingType) setFeedingType(meta.feedingType as FeedingType);
+      if (meta?.breastSide) setBreastSide(meta.breastSide as BreastSide);
+      
+      setShowOpenRoutineModal(false);
+      success('Alimentação retomada!', 'Continue de onde parou');
+    }
+  };
+
+  // Handler para finalizar rotina existente rapidamente
+  const handleQuickFinish = async () => {
+    if (!selectedBaby || !openRoutineData) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await routineService.closeFeeding(selectedBaby.id, {}, undefined);
+      if (response.success) {
+        setActiveRoutine('feeding', undefined);
+        stop();
+        setShowOpenRoutineModal(false);
+        setOpenRoutineData(null);
+        success('Alimentação finalizada!', `Duração: ${Math.round(response.data.durationSeconds / 60)} minutos`);
+        fetchStats(selectedBaby.id);
+      }
+    } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
-      showError('Erro', error.response?.data?.message || 'Falha ao iniciar alimentação');
+      showError('Erro', error.response?.data?.message || 'Falha ao finalizar alimentação');
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +215,16 @@ export function FeedingTracker() {
     }
   };
 
+  // Calcular tempo decorrido para exibição no modal
+  const getElapsedTime = () => {
+    if (!openRoutineData?.startTime) return '00:00:00';
+    const elapsed = Math.floor((Date.now() - new Date(openRoutineData.startTime).getTime()) / 1000);
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const secs = elapsed % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (!selectedBaby) {
     return (
       <DashboardLayout>
@@ -130,8 +235,81 @@ export function FeedingTracker() {
     );
   }
 
+  // Mostrar spinner enquanto verifica rotina aberta
+  if (isCheckingOpen) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <Spinner size="lg" />
+          <p className="text-gray-500 mt-4">Verificando alimentação em andamento...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
+      {/* Modal para rotina já aberta */}
+      <Modal 
+        isOpen={showOpenRoutineModal} 
+        onClose={() => setShowOpenRoutineModal(false)}
+        title="Alimentação em andamento"
+      >
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-yellow-600" />
+          </div>
+          
+          <p className="text-gray-700 mb-2">
+            Já existe uma alimentação em andamento desde:
+          </p>
+          
+          <p className="text-3xl font-bold text-yellow-600 mb-4">
+            {getElapsedTime()}
+          </p>
+          
+          {openRoutineData?.meta?.feedingType && (
+            <p className="text-sm text-gray-500 mb-6">
+              Tipo: {
+                openRoutineData.meta.feedingType === 'breast' ? 'Amamentação' :
+                openRoutineData.meta.feedingType === 'bottle' ? 'Mamadeira' : 'Sólidos'
+              }
+              {openRoutineData.meta.breastSide && (
+                <> • Lado: {
+                  openRoutineData.meta.breastSide === 'left' ? 'Esquerdo' :
+                  openRoutineData.meta.breastSide === 'right' ? 'Direito' : 'Ambos'
+                }</>
+              )}
+            </p>
+          )}
+          
+          <div className="flex flex-col gap-3">
+            <Button onClick={handleResumeRoutine} className="w-full">
+              <Play className="w-4 h-4 mr-2" />
+              Retomar alimentação
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleQuickFinish} 
+              className="w-full"
+              isLoading={isLoading}
+            >
+              <Square className="w-4 h-4 mr-2" />
+              Finalizar agora
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowOpenRoutineModal(false)} 
+              className="w-full"
+            >
+              Voltar
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" onClick={() => navigate(-1)}>

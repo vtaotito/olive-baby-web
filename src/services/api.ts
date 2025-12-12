@@ -156,7 +156,45 @@ export const babyService = {
 
 // ====== Routine Service ======
 export const routineService = {
+  // ============================================
+  // Verificar Rotina Aberta (Novo Fluxo)
+  // ============================================
+  
+  // Verifica qualquer rotina aberta
+  getOpenRoutine: async (babyId: number, routineType: 'FEEDING' | 'SLEEP' | 'BATH') => {
+    const response = await api.get('/routines/open', { 
+      params: { babyId, routineType } 
+    });
+    return response.data;
+  },
+
+  // Verifica se há feeding aberto
+  getOpenFeeding: async (babyId: number) => {
+    const response = await api.get('/routines/feeding/open', { 
+      params: { babyId } 
+    });
+    return response.data;
+  },
+
+  // Verifica se há sleep aberto
+  getOpenSleep: async (babyId: number) => {
+    const response = await api.get('/routines/sleep/open', { 
+      params: { babyId } 
+    });
+    return response.data;
+  },
+
+  // Verifica se há bath aberto
+  getOpenBath: async (babyId: number) => {
+    const response = await api.get('/routines/bath/open', { 
+      params: { babyId } 
+    });
+    return response.data;
+  },
+
+  // ============================================
   // Feeding
+  // ============================================
   startFeeding: async (babyId: number, meta: Record<string, unknown>) => {
     const response = await api.post('/routines/feeding/start', { babyId, meta });
     return response.data;
@@ -167,7 +205,9 @@ export const routineService = {
     return response.data;
   },
 
+  // ============================================
   // Sleep
+  // ============================================
   startSleep: async (babyId: number, meta?: Record<string, unknown>) => {
     const response = await api.post('/routines/sleep/start', { babyId, meta });
     return response.data;
@@ -178,13 +218,17 @@ export const routineService = {
     return response.data;
   },
 
+  // ============================================
   // Diaper (instant)
+  // ============================================
   registerDiaper: async (babyId: number, meta: Record<string, unknown>, notes?: string) => {
     const response = await api.post('/routines/diaper', { babyId, meta, notes });
     return response.data;
   },
 
+  // ============================================
   // Bath
+  // ============================================
   startBath: async (babyId: number, meta?: Record<string, unknown>) => {
     const response = await api.post('/routines/bath/start', { babyId, meta });
     return response.data;
@@ -195,7 +239,9 @@ export const routineService = {
     return response.data;
   },
 
+  // ============================================
   // Milk Extraction
+  // ============================================
   startExtraction: async (babyId: number, meta?: Record<string, unknown>) => {
     const response = await api.post('/routines/extraction/start', { babyId, meta });
     return response.data;
@@ -206,7 +252,11 @@ export const routineService = {
     return response.data;
   },
 
-  // Get active routine
+  // ============================================
+  // Helpers
+  // ============================================
+  
+  // Get active routine (deprecated - use getOpenXXX)
   getActive: async (babyId: number, routineType: string) => {
     const response = await api.get(`/routines/${routineType}/active/${babyId}`);
     return response.data;
