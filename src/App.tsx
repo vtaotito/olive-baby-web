@@ -21,7 +21,7 @@ import { MilestonesPage } from './pages/milestones';
 import { ExportPage } from './pages/export';
 
 // Settings Pages
-import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage } from './pages/settings';
+import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage, HelpPage } from './pages/settings';
 
 // Team Page
 import { TeamPage } from './pages/team';
@@ -247,7 +247,7 @@ function App() {
               path="/settings/help"
               element={
                 <ProtectedRoute>
-                  <PlaceholderSettingsPage title="Ajuda e Suporte" />
+                  <HelpPage />
                 </ProtectedRoute>
               }
             />
