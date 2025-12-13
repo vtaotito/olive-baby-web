@@ -14,7 +14,6 @@ import {
   RoutineCharts,
   InsightsCards,
   RoutinesList,
-  QuickActions,
 } from '../../components/routines/dashboard';
 
 export function RoutinesDashboardPage() {
@@ -101,9 +100,6 @@ export function RoutinesDashboardPage() {
           babyId={selectedBaby.id}
         />
       </div>
-
-      {/* FAB para ações rápidas */}
-      <QuickActions />
     </DashboardLayout>
   );
 }

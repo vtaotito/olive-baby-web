@@ -532,3 +532,96 @@ export const professionalService = {
     return response.data;
   },
 };
+
+// ====== AI Assistant Service ======
+export const aiService = {
+  // Health check
+  healthCheck: async () => {
+    const response = await api.get('/ai/health');
+    return response.data;
+  },
+
+  // ============================================
+  // Chat Sessions
+  // ============================================
+
+  // Create new chat session
+  createSession: async (babyId: number, title?: string) => {
+    const response = await api.post('/ai/chat/sessions', { babyId, title });
+    return response.data;
+  },
+
+  // List chat sessions
+  listSessions: async (babyId?: number) => {
+    const response = await api.get('/ai/chat/sessions', { params: { babyId } });
+    return response.data;
+  },
+
+  // Get session with messages
+  getSession: async (sessionId: number) => {
+    const response = await api.get(`/ai/chat/sessions/${sessionId}`);
+    return response.data;
+  },
+
+  // Send message to assistant
+  sendMessage: async (sessionId: number, message: string) => {
+    const response = await api.post(`/ai/chat/sessions/${sessionId}/messages`, { message });
+    return response.data;
+  },
+
+  // Delete session
+  deleteSession: async (sessionId: number) => {
+    const response = await api.delete(`/ai/chat/sessions/${sessionId}`);
+    return response.data;
+  },
+
+  // Archive session
+  archiveSession: async (sessionId: number) => {
+    const response = await api.patch(`/ai/chat/sessions/${sessionId}/archive`);
+    return response.data;
+  },
+
+  // ============================================
+  // Insights
+  // ============================================
+
+  // Get insights for baby
+  getInsights: async (babyId: number, options?: { refresh?: boolean; includeRead?: boolean }) => {
+    const response = await api.get(`/ai/insights/${babyId}`, { params: options });
+    return response.data;
+  },
+
+  // Generate new insights
+  generateInsights: async (babyId: number) => {
+    const response = await api.post(`/ai/insights/${babyId}/generate`);
+    return response.data;
+  },
+
+  // Mark insight as read
+  markInsightRead: async (insightId: number) => {
+    const response = await api.patch(`/ai/insights/${insightId}/read`);
+    return response.data;
+  },
+
+  // Dismiss insight
+  dismissInsight: async (insightId: number) => {
+    const response = await api.patch(`/ai/insights/${insightId}/dismiss`);
+    return response.data;
+  },
+
+  // ============================================
+  // Knowledge Base (Admin)
+  // ============================================
+
+  // List documents
+  listDocuments: async () => {
+    const response = await api.get('/ai/documents');
+    return response.data;
+  },
+
+  // Search knowledge base
+  searchKnowledge: async (query: string, topK?: number, tags?: string[]) => {
+    const response = await api.post('/ai/search', { query, topK, tags });
+    return response.data;
+  },
+};

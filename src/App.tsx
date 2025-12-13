@@ -26,6 +26,9 @@ import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage } from './page
 // Team Page
 import { TeamPage } from './pages/team';
 
+// Assistant Page
+import { AssistantPage } from './pages/assistant';
+
 // Routine Trackers
 import {
   FeedingTracker,
@@ -183,6 +186,18 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TeamPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* AI Assistant */}
+            <Route
+              path="/assistant"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AssistantPage />
+                  </DashboardLayout>
                 </ProtectedRoute>
               }
             />

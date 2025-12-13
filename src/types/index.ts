@@ -244,3 +244,82 @@ export interface BabyFormData {
   city?: string;
   state?: string;
 }
+
+// ====== AI Assistant ======
+export type AiMessageRole = 'user' | 'assistant' | 'tool' | 'system';
+export type AiInsightSeverity = 'info' | 'warning' | 'alert';
+export type AiInsightType = 
+  | 'sleep_pattern'
+  | 'feeding_pattern'
+  | 'diaper_alert'
+  | 'cluster_feeding'
+  | 'breast_distribution'
+  | 'growth_trend'
+  | 'milestone_suggestion'
+  | 'routine_anomaly'
+  | 'general';
+
+export interface AiChatMessage {
+  id: number;
+  sessionId: number;
+  role: AiMessageRole;
+  content: string;
+  toolName?: string;
+  toolPayload?: Record<string, unknown>;
+  citations?: AiCitation[];
+  tokensUsed?: number;
+  createdAt: string;
+}
+
+export interface AiChatSession {
+  id: number;
+  userId: number;
+  babyId: number;
+  title?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  messages?: AiChatMessage[];
+  baby?: {
+    name: string;
+    birthDate?: string;
+  };
+}
+
+export interface AiCitation {
+  source: string;
+  title: string;
+  content: string;
+  similarity: number;
+}
+
+export interface AiInsight {
+  id: number;
+  babyId: number;
+  type: AiInsightType;
+  severity: AiInsightSeverity;
+  title: string;
+  explanation: string;
+  recommendation?: string;
+  data?: Record<string, unknown>;
+  isRead: boolean;
+  isDismissed: boolean;
+  validUntil?: string;
+  createdAt: string;
+}
+
+export interface AiSendMessageResponse {
+  userMessage: AiChatMessage;
+  assistantMessage: AiChatMessage;
+  citations: AiCitation[];
+  toolsUsed: string[];
+}
+
+export interface AiHealthStatus {
+  openaiConfigured: boolean;
+  knowledgeBase: {
+    documents: number;
+    chunks: number;
+  };
+  chatSessions: number;
+}

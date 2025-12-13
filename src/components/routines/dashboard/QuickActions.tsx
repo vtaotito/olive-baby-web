@@ -63,13 +63,13 @@ export function QuickActions({ onAction }: QuickActionsProps) {
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[45] transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* FAB Container */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse items-end gap-3">
+      <div className="flex flex-col-reverse items-end gap-3">
         {/* Action Buttons */}
         {actions.map((action, index) => {
           const Icon = action.icon;

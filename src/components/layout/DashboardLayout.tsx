@@ -22,6 +22,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useBabyStore } from '../../stores/babyStore';
 import { Avatar, Button } from '../ui';
 import { formatAge } from '../../lib/utils';
+import { FloatingActions } from './FloatingActions';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -220,6 +221,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </div>
       </main>
+
+      {/* Floating Actions (Quick Actions + AI Chat) */}
+      <FloatingActions />
     </div>
   );
 }
