@@ -38,65 +38,65 @@ export function ExtractionTracker() {
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingOpen, setIsCheckingOpen] = useState(true);
+  const hasCheckedRef = useRef(false);
+  const timerInitializedRef = useRef(false);
   
   const activeExtraction = activeRoutines.extraction;
   
   const { seconds, isRunning, start, pause, stop, setSeconds, calculateElapsed } = useTimer();
 
-  // Verificar se há rotina aberta ao carregar
-  const checkOpenRoutine = useCallback(async () => {
-    if (!selectedBaby) {
-      setIsCheckingOpen(false);
+  // Resetar refs quando o babyId mudar
+  useEffect(() => {
+    hasCheckedRef.current = false;
+    timerInitializedRef.current = false;
+  }, [selectedBaby?.id]);
+
+  // Verificar se há rotina aberta ao carregar (apenas uma vez por babyId)
+  useEffect(() => {
+    if (!selectedBaby || hasCheckedRef.current) {
+      if (!selectedBaby) setIsCheckingOpen(false);
       return;
     }
     
+    hasCheckedRef.current = true;
     setIsCheckingOpen(true);
-    try {
-      console.log('[ExtractionTracker] Verificando rotina aberta para baby:', selectedBaby.id);
-      const response = await routineService.getOpenExtraction(selectedBaby.id);
-      console.log('[ExtractionTracker] Resposta:', response);
-      
-      if (response.success && response.data) {
-        console.log('[ExtractionTracker] Rotina aberta encontrada:', response.data);
-        // Há uma rotina aberta - configurar estado
-        setActiveRoutine('extraction', response.data);
+    
+    const checkOpenRoutine = async () => {
+      try {
+        console.log('[ExtractionTracker] Verificando rotina aberta para baby:', selectedBaby.id);
+        const response = await routineService.getOpenExtraction(selectedBaby.id);
+        console.log('[ExtractionTracker] Resposta:', response);
         
-        // Restaurar tipo e configurações
-        const meta = response.data.meta as Record<string, unknown>;
-        if (meta?.extractionMethod) setMethod(meta.extractionMethod as ExtractionMethod);
-        if (meta?.breastSide) setBreastSide(meta.breastSide as BreastSide);
-        
-        // Iniciar timer com tempo decorrido
-        const elapsed = calculateElapsed(new Date(response.data.startTime));
-        console.log('[ExtractionTracker] Tempo decorrido:', elapsed, 'segundos');
-        setSeconds(elapsed);
-        // Não iniciar automaticamente - usuário decide se quer continuar
-      } else {
-        console.log('[ExtractionTracker] Nenhuma rotina aberta');
+        if (response.success && response.data) {
+          console.log('[ExtractionTracker] Rotina aberta encontrada:', response.data);
+          // Há uma rotina aberta - configurar estado
+          setActiveRoutine('extraction', response.data);
+          
+          // Restaurar tipo e configurações
+          const meta = response.data.meta as Record<string, unknown>;
+          if (meta?.extractionMethod) setMethod(meta.extractionMethod as ExtractionMethod);
+          if (meta?.breastSide) setBreastSide(meta.breastSide as BreastSide);
+          
+          // Iniciar timer com tempo decorrido
+          const elapsed = calculateElapsed(new Date(response.data.startTime));
+          console.log('[ExtractionTracker] Tempo decorrido:', elapsed, 'segundos');
+          setSeconds(elapsed);
+          timerInitializedRef.current = true;
+          // Não iniciar automaticamente - usuário decide se quer continuar
+        } else {
+          console.log('[ExtractionTracker] Nenhuma rotina aberta');
+        }
+      } catch (err) {
+        // Sem rotina aberta - tudo ok
+        console.log('[ExtractionTracker] Erro ou sem rotina:', err);
+      } finally {
+        setIsCheckingOpen(false);
       }
-    } catch (err) {
-      // Sem rotina aberta - tudo ok
-      console.log('[ExtractionTracker] Erro ou sem rotina:', err);
-    } finally {
-      setIsCheckingOpen(false);
-    }
-  }, [selectedBaby, setActiveRoutine, calculateElapsed, setSeconds]);
-
-  useEffect(() => {
+    };
+    
     checkOpenRoutine();
-  }, [checkOpenRoutine]);
-
-  // Atualizar timer quando há rotina ativa
-  useEffect(() => {
-    if (activeExtraction && !isCheckingOpen) {
-      const elapsed = calculateElapsed(new Date(activeExtraction.startTime));
-      setSeconds(elapsed);
-      if (isRunning) {
-        // Se estava rodando, continuar
-        start(elapsed);
-      }
-    }
-  }, [activeExtraction, isCheckingOpen, calculateElapsed, setSeconds, isRunning, start]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBaby?.id]); // Apenas quando o babyId mudar
 
   const handleStart = async () => {
     if (!selectedBaby) return;
