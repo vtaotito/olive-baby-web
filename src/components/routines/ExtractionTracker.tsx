@@ -1,5 +1,5 @@
 // Olive Baby Web - Milk Extraction Tracker Component
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Milk, ChevronLeft, Zap, Hand, Clock, Play, Pause } from 'lucide-react';
 import { DashboardLayout } from '../layout';
