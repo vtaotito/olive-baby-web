@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Baby,
   Home,
-  Clock,
   TrendingUp,
   Award,
   Settings,
@@ -22,7 +21,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { useBabyStore } from '../../stores/babyStore';
 import { Avatar, Button } from '../ui';
 import { formatAge } from '../../lib/utils';
-import { FloatingActions } from './FloatingActions';
+import { QuickActionsFooter } from '../routines/dashboard/QuickActionsFooter';
+import { AIChatButton } from '../ai/AIChatButton';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -30,7 +30,6 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Início' },
-  { path: '/routines', icon: Clock, label: 'Rotinas' },
   { path: '/growth', icon: TrendingUp, label: 'Crescimento' },
   { path: '/milestones', icon: Award, label: 'Marcos' },
   { path: '/team', icon: Users, label: 'Equipe' },
@@ -216,14 +215,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className={cn('lg:pl-72 pt-16 lg:pt-0 min-h-screen')}>
+      <main className={cn('lg:pl-72 pt-16 lg:pt-0 min-h-screen pb-24')}>
         <div className="p-6 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
-      {/* Floating Actions (Quick Actions + AI Chat) */}
-      <FloatingActions />
+      {/* Quick Actions Footer */}
+      <QuickActionsFooter />
+
+      {/* AI Chat Button (mantido flutuante) */}
+      <div className="fixed bottom-24 right-6 z-50 lg:bottom-6">
+        <AIChatButton />
+      </div>
     </div>
   );
 }
