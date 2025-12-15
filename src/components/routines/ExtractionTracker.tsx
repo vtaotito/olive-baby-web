@@ -146,7 +146,10 @@ export function ExtractionTracker() {
     
     setIsLoading(true);
     try {
+      // Preservar dados originais do meta e adicionar quantidade extraída
+      const existingMeta = (activeExtraction.meta as Record<string, unknown>) || {};
       const meta: Record<string, unknown> = {
+        ...existingMeta,
         extractionMl: Number(extractionMl),
       };
       
