@@ -36,17 +36,18 @@ export function useActiveRoutine(babyId: number | undefined): UseActiveRoutineRe
 
     try {
       // Verificar todas as rotinas ativas em paralelo
-      const [feedingRes, sleepRes, bathRes] = await Promise.allSettled([
+      const [feedingRes, sleepRes, bathRes, extractionRes] = await Promise.allSettled([
         routineService.getOpenFeeding(babyId),
         routineService.getOpenSleep(babyId),
         routineService.getOpenBath(babyId),
+        routineService.getOpenExtraction(babyId),
       ]);
 
       setActiveRoutines({
         feeding: feedingRes.status === 'fulfilled' && feedingRes.value.data ? feedingRes.value.data : null,
         sleep: sleepRes.status === 'fulfilled' && sleepRes.value.data ? sleepRes.value.data : null,
         bath: bathRes.status === 'fulfilled' && bathRes.value.data ? bathRes.value.data : null,
-        extraction: null, // Extraction não tem verificação de aberto na API
+        extraction: extractionRes.status === 'fulfilled' && extractionRes.value.data ? extractionRes.value.data : null,
       });
     } catch (err) {
       console.error('[useActiveRoutine] Error:', err);

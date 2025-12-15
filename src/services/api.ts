@@ -192,6 +192,14 @@ export const routineService = {
     return response.data;
   },
 
+  // Verifica se há extraction aberto
+  getOpenExtraction: async (babyId: number) => {
+    const response = await api.get('/routines/extraction/open', { 
+      params: { babyId } 
+    });
+    return response.data;
+  },
+
   // ============================================
   // Feeding
   // ============================================
