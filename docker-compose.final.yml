@@ -11,10 +11,15 @@ services:
       - |
         echo "Installing git..."
         apt-get update && apt-get install -y git
-        if [ ! -f /app/package.json ]; then
+        if [ -d /app/.git ]; then
+          echo "Updating repository..."
+          cd /app && git fetch origin && git reset --hard origin/master
+        else
           echo "Cloning repository..."
+          rm -rf /app/*
           git clone https://github.com/vtaotito/olive-baby-web.git /tmp/web
           cp -r /tmp/web/* /app/
+          cp -r /tmp/web/.* /app/ 2>/dev/null || true
           rm -rf /tmp/web
         fi
         echo "Installing dependencies..."
@@ -25,6 +30,17 @@ services:
         echo "Copying build files..."
         rm -rf /dist/*
         cp -r /app/dist/* /dist/
+        echo "Copying nginx config..."
+        mkdir -p /nginx-config
+        if [ -f /app/nginx.conf ]; then
+          echo "Found nginx.conf, copying to /nginx-config/default.conf"
+          cp /app/nginx.conf /nginx-config/default.conf
+          echo "nginx.conf copied successfully"
+          cat /nginx-config/default.conf | head -20
+        else
+          echo "ERROR: nginx.conf not found in /app/"
+          ls -la /app/ | grep nginx
+        fi
         echo "Build complete - $(date)"
     environment:
       NODE_ENV: production
@@ -32,6 +48,7 @@ services:
     volumes:
       - web_src:/app
       - web_dist:/dist
+      - nginx_config:/nginx-config
     networks:
       - olivebaby-network
 
@@ -65,9 +82,12 @@ services:
     volumes:
       - ssl_certs:/etc/letsencrypt:ro
       - certbot_www:/var/www/certbot
+      - nginx_config:/etc/nginx/conf.d:ro
     networks:
       - olivebaby-network
     depends_on:
+      builder:
+        condition: service_completed_successfully
       - web
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
@@ -100,6 +120,7 @@ volumes:
   web_dist:
   ssl_certs:
   certbot_www:
+  nginx_config:
 
 networks:
   olivebaby-network:
