@@ -56,6 +56,7 @@ export function ProfilePage() {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isDirty },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -118,10 +119,12 @@ export function ProfilePage() {
         }
         
         // Resetar formulário para marcar como não modificado
-        setValue('fullName', data.fullName);
-        setValue('phone', data.phone || '');
-        setValue('city', data.city || '');
-        setValue('state', data.state || '');
+        reset({
+          fullName: data.fullName,
+          phone: data.phone || '',
+          city: data.city || '',
+          state: data.state || '',
+        });
         
         success('Perfil atualizado!', 'Suas informações foram salvas');
       } else {
