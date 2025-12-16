@@ -22,6 +22,7 @@ import { useToast } from '../../components/ui/Toast';
 import { useAuthStore } from '../../stores/authStore';
 import { Avatar } from '../../components/ui';
 import { formatCPF, formatPhone } from '../../lib/utils';
+import { caregiverService } from '../../services/api';
 
 const profileSchema = z.object({
   fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -81,16 +82,54 @@ export function ProfilePage() {
   const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Call API to update profile
-      // const response = await profileService.update(data);
+      const response = await caregiverService.updateMe({
+        fullName: data.fullName,
+        phone: data.phone || undefined,
+        city: data.city || undefined,
+        state: data.state || undefined,
+      });
       
-      // Simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      success('Perfil atualizado!', 'Suas informações foram salvas');
+      if (response.success && response.data) {
+        // Buscar dados atualizados do servidor para garantir sincronização
+        const profileResponse = await caregiverService.getMe();
+        if (profileResponse.success && profileResponse.data) {
+          // Atualizar dados do usuário no store com dados do servidor
+          const updatedUser = {
+            ...user!,
+            caregiver: {
+              ...user!.caregiver!,
+              ...profileResponse.data,
+            },
+          };
+          setUser(updatedUser);
+        } else {
+          // Fallback: atualizar com dados do formulário
+          const updatedUser = {
+            ...user!,
+            caregiver: {
+              ...user!.caregiver!,
+              fullName: data.fullName,
+              phone: data.phone || user!.caregiver!.phone,
+              city: data.city || user!.caregiver!.city,
+              state: data.state || user!.caregiver!.state,
+            },
+          };
+          setUser(updatedUser);
+        }
+        
+        // Resetar formulário para marcar como não modificado
+        setValue('fullName', data.fullName);
+        setValue('phone', data.phone || '');
+        setValue('city', data.city || '');
+        setValue('state', data.state || '');
+        
+        success('Perfil atualizado!', 'Suas informações foram salvas');
+      } else {
+        throw new Error(response.message || 'Falha ao atualizar perfil');
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
-      showError('Erro', error.response?.data?.message || 'Falha ao atualizar perfil');
+      showError('Erro', error.response?.data?.message || error.message || 'Falha ao atualizar perfil');
     } finally {
       setIsLoading(false);
     }

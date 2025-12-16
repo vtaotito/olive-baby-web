@@ -58,11 +58,34 @@ export function useActiveRoutine(babyId: number | undefined): UseActiveRoutineRe
 
   useEffect(() => {
     fetchActiveRoutines();
-    
-    // Refetch a cada 30 segundos
-    const interval = setInterval(fetchActiveRoutines, 30000);
-    return () => clearInterval(interval);
   }, [fetchActiveRoutines]);
+
+  // Polling apenas quando há rotina ativa (evita dependência circular)
+  useEffect(() => {
+    const hasAnyActive = !!(
+      activeRoutines.feeding || 
+      activeRoutines.sleep || 
+      activeRoutines.bath || 
+      activeRoutines.extraction
+    );
+
+    if (!hasAnyActive) {
+      return; // Não fazer polling se não há rotina ativa
+    }
+
+    // Refetch a cada 60 segundos apenas se houver rotina ativa
+    const interval = setInterval(() => {
+      fetchActiveRoutines();
+    }, 60000); // Aumentado para 60 segundos
+    
+    return () => clearInterval(interval);
+  }, [
+    activeRoutines.feeding?.id,
+    activeRoutines.sleep?.id,
+    activeRoutines.bath?.id,
+    activeRoutines.extraction?.id,
+    fetchActiveRoutines,
+  ]);
 
   const hasActiveRoutine = !!(
     activeRoutines.feeding || 

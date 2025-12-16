@@ -633,3 +633,35 @@ export const aiService = {
     return response.data;
   },
 };
+
+// ====== Caregiver Service ======
+export const caregiverService = {
+  // Get current caregiver profile
+  getMe: async () => {
+    const response = await api.get('/caregivers/me');
+    return response.data;
+  },
+
+  // Update current caregiver profile
+  updateMe: async (data: {
+    fullName?: string;
+    phone?: string;
+    city?: string;
+    state?: string;
+  }) => {
+    const response = await api.put('/caregivers/me', data);
+    return response.data;
+  },
+
+  // Search caregiver by email
+  searchByEmail: async (email: string) => {
+    const response = await api.get('/caregivers/search', { params: { email } });
+    return response.data;
+  },
+
+  // Get caregiver by ID
+  getById: async (id: number) => {
+    const response = await api.get(`/caregivers/${id}`);
+    return response.data;
+  },
+};
