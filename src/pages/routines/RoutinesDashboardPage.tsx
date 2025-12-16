@@ -62,7 +62,7 @@ export function RoutinesDashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto space-y-6 pb-24">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Rotina ativa (se houver) */}
         {hasActiveRoutine && (
           <div className="mb-6">

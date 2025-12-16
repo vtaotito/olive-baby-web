@@ -29,6 +29,7 @@ interface BabyState {
     birthLengthCm?: number;
     city?: string;
     state?: string;
+    babyCpf?: string;
   }) => Promise<Baby>;
   updateBaby: (id: number, data: Partial<Baby>) => Promise<void>;
   deleteBaby: (id: number) => Promise<void>;

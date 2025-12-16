@@ -48,6 +48,7 @@ export interface Baby {
   country: string;
   birthWeightGrams?: number;
   birthLengthCm?: number;
+  babyCpfHash?: string;
   createdAt: string;
   updatedAt: string;
   caregivers?: BabyCaregiver[];

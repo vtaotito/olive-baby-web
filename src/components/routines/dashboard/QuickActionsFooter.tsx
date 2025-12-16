@@ -85,3 +85,4 @@ export function QuickActionsFooter({ onAction }: QuickActionsFooterProps) {
     </footer>
   );
 }
+

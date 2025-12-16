@@ -97,3 +97,4 @@ Write-Host "Deploy package ready: $archiveName" -ForegroundColor Green
 Write-Host "Domain: $domain" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Pronto para deploy via Hostinger MCP!" -ForegroundColor Green
+

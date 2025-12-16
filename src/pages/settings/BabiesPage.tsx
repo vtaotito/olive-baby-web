@@ -15,6 +15,7 @@ import {
   Scale,
   Ruler,
   Check,
+  Users,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
 import { Card, CardBody, CardHeader, Button, Input, Modal, Avatar } from '../../components/ui';
@@ -41,6 +42,7 @@ const babySchema = z.object({
   state: z.string().optional(),
   birthWeightGrams: z.number().min(500).max(7000).optional().or(z.literal('')),
   birthLengthCm: z.number().min(20).max(70).optional().or(z.literal('')),
+  babyCpf: z.string().optional(),
 });
 
 type BabyFormData = z.infer<typeof babySchema>;
@@ -121,6 +123,7 @@ export function BabiesPage() {
           state: data.state || undefined,
           birthWeightGrams: data.birthWeightGrams ? Number(data.birthWeightGrams) : undefined,
           birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
+          babyCpf: data.babyCpf || undefined,
         });
         success('Bebê adicionado!', `${data.name} foi cadastrado com sucesso`);
       }
@@ -225,6 +228,14 @@ export function BabiesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/settings/babies/${baby.id}/members`)}
+                    title="Gerenciar membros e convites"
+                  >
+                    <Users className="w-4 h-4" />
+                  </Button>
                   {selectedBaby?.id !== baby.id && (
                     <Button
                       variant="ghost"
@@ -340,6 +351,16 @@ export function BabiesPage() {
               {...register('state')}
             />
           </div>
+
+          {!editingBaby && (
+            <Input
+              label="CPF do Bebê (opcional)"
+              placeholder="12345678901"
+              maxLength={11}
+              hint="Usado para identificar o bebê de forma única e permitir compartilhamento"
+              {...register('babyCpf')}
+            />
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button

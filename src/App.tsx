@@ -5,7 +5,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { ProtectedRoute, DashboardLayout } from './components/layout';
 
 // Auth Pages
-import { LoginPage, RegisterPage, ActivateProfessionalPage } from './pages/auth';
+import { LoginPage, RegisterPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
 
 // Onboarding
 import { OnboardingPage } from './pages/onboarding';
@@ -21,7 +21,7 @@ import { MilestonesPage } from './pages/milestones';
 import { ExportPage } from './pages/export';
 
 // Settings Pages
-import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage } from './pages/settings';
+import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage, BabyMembersPage } from './pages/settings';
 
 // Team Page
 import { TeamPage } from './pages/team';
@@ -73,6 +73,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/invite/accept" element={<AcceptInvitePage />} />
 
             {/* Onboarding */}
             <Route
@@ -232,6 +233,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/babies/:babyId/members"
+              element={
+                <ProtectedRoute>
+                  <BabyMembersPage />
                 </ProtectedRoute>
               }
             />

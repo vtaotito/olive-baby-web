@@ -2,9 +2,9 @@
 // Lista de rotinas do dia/semana
 
 import { useState, useEffect, useCallback } from 'react';
-import { format, parseISO, isToday, isYesterday, startOfDay, subDays } from 'date-fns';
+import { format, parseISO, isToday, isYesterday, startOfDay, subDays, differenceInMinutes, differenceInHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Moon, Utensils, Droplets, Bath, Baby, ChevronRight, Clock, Filter } from 'lucide-react';
+import { Moon, Utensils, Droplets, Bath, Baby, ChevronRight, Clock, Filter, Droplet, Wind } from 'lucide-react';
 import { Card, CardBody, Button, Spinner } from '../../ui';
 import { routineService } from '../../../services/api';
 import { cn } from '../../../lib/utils';
@@ -73,9 +73,22 @@ function formatDateHeader(date: Date): string {
 
 interface RoutineItemProps {
   routine: RoutineLog;
+  refreshTimestamp?: Date;
 }
 
-function RoutineItem({ routine }: RoutineItemProps) {
+function formatTimeElapsed(startTime: string | Date, endTime: Date): string {
+  const start = typeof startTime === 'string' ? parseISO(startTime) : startTime;
+  const totalMinutes = differenceInMinutes(endTime, start);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+  return `00:${minutes.toString().padStart(2, '0')}`;
+}
+
+function RoutineItem({ routine, refreshTimestamp }: RoutineItemProps) {
   const config = routineConfig[routine.routineType as keyof typeof routineConfig];
   if (!config) return null;
 
@@ -84,6 +97,12 @@ function RoutineItem({ routine }: RoutineItemProps) {
 
   // Detalhes extras
   const details: string[] = [];
+  
+  // Para rotinas de alimentação: calcular tempo desde a última rotina até o refresh
+  let timeSinceLastFeeding: string | null = null;
+  if (routine.routineType === 'FEEDING' && refreshTimestamp && routine.endTime) {
+    timeSinceLastFeeding = formatTimeElapsed(routine.endTime, refreshTimestamp);
+  }
   
   if (routine.routineType === 'FEEDING') {
     if (meta?.feedingType === 'breast') {
@@ -108,11 +127,29 @@ function RoutineItem({ routine }: RoutineItemProps) {
     if (meta?.location) details.push(`Local: ${meta.location}`);
   }
   
+  // Para fralda: determinar tipo e ícone
+  let diaperIcon: React.ReactElement | null = null;
   if (routine.routineType === 'DIAPER') {
-    const types: string[] = [];
-    if (meta?.wet) types.push('Xixi');
-    if (meta?.dirty) types.push('Cocô');
-    if (types.length) details.push(types.join(' + '));
+    const isWet = meta?.wet === true;
+    const isDirty = meta?.dirty === true;
+    
+    if (isWet && isDirty) {
+      // Ambos: mostrar dois ícones
+      diaperIcon = (
+        <div className="flex items-center gap-1">
+          <Droplet className="w-4 h-4 text-blue-500" />
+          <Wind className="w-4 h-4 text-amber-600" />
+        </div>
+      );
+      details.push('Xixi + Cocô');
+    } else if (isWet) {
+      diaperIcon = <Droplet className="w-4 h-4 text-blue-500" />;
+      details.push('Xixi');
+    } else if (isDirty) {
+      diaperIcon = <Wind className="w-4 h-4 text-amber-600" />;
+      details.push('Cocô');
+    }
+    
     if (meta?.consistency) details.push(`Consistência: ${meta.consistency}`);
   }
   
@@ -126,17 +163,30 @@ function RoutineItem({ routine }: RoutineItemProps) {
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', config.bgColor)}>
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center relative', config.bgColor)}>
         <Icon className={cn('w-5 h-5', config.color)} />
+        {/* Ícone específico para fralda (sobreposto) */}
+        {routine.routineType === 'DIAPER' && diaperIcon && (
+          <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+            {diaperIcon}
+          </div>
+        )}
       </div>
       
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-gray-900">{config.label}</span>
           {routine.durationSeconds && (
             <span className="text-xs text-gray-500 flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {formatDuration(routine.durationSeconds)}
+            </span>
+          )}
+          {/* Tempo decorrido desde última alimentação */}
+          {routine.routineType === 'FEEDING' && timeSinceLastFeeding && (
+            <span className="text-xs text-blue-600 font-medium flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded">
+              <Clock className="w-3 h-3" />
+              {timeSinceLastFeeding} atrás
             </span>
           )}
         </div>
@@ -177,6 +227,7 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<FilterType>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+  const [refreshTimestamp, setRefreshTimestamp] = useState<Date>(new Date());
 
   const fetchRoutines = useCallback(async () => {
     if (!babyId) return;
@@ -195,6 +246,7 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
 
       if (response.success) {
         setRoutines(response.data || []);
+        setRefreshTimestamp(new Date()); // Atualizar timestamp do refresh
       }
     } catch (err) {
       console.error('[RoutinesList] Error:', err);
@@ -297,7 +349,7 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
                     {groupedRoutines[date]
                       .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
                       .map((routine) => (
-                        <RoutineItem key={routine.id} routine={routine} />
+                        <RoutineItem key={routine.id} routine={routine} refreshTimestamp={refreshTimestamp} />
                       ))}
                   </div>
                 </div>

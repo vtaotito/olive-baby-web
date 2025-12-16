@@ -133,6 +133,7 @@ export const babyService = {
     birthLengthCm?: number;
     city?: string;
     state?: string;
+    babyCpf?: string;
   }) => {
     const response = await api.post('/babies', data);
     return response.data;
@@ -662,6 +663,76 @@ export const caregiverService = {
   // Get caregiver by ID
   getById: async (id: number) => {
     const response = await api.get(`/caregivers/${id}`);
+    return response.data;
+  },
+};
+
+// ====== Baby Member Service ======
+export const babyMemberService = {
+  // List members of a baby
+  listMembers: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/members`);
+    return response.data;
+  },
+
+  // Update member
+  updateMember: async (babyId: number, memberId: number, data: {
+    role?: string;
+    permissions?: Record<string, any>;
+  }) => {
+    const response = await api.patch(`/babies/${babyId}/members/${memberId}`, data);
+    return response.data;
+  },
+
+  // Revoke member access
+  revokeMember: async (babyId: number, memberId: number) => {
+    const response = await api.delete(`/babies/${babyId}/members/${memberId}`);
+    return response.data;
+  },
+};
+
+// ====== Baby Invite Service ======
+export const babyInviteService = {
+  // Create invite
+  createInvite: async (babyId: number, data: {
+    emailInvited: string;
+    memberType: 'PARENT' | 'FAMILY' | 'PROFESSIONAL';
+    role: string;
+    invitedName?: string;
+    message?: string;
+    expiresInHours?: number;
+  }) => {
+    const response = await api.post(`/babies/${babyId}/invites`, data);
+    return response.data;
+  },
+
+  // List invites
+  listInvites: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/invites`);
+    return response.data;
+  },
+
+  // Verify token (public)
+  verifyToken: async (token: string) => {
+    const response = await api.post('/invites/verify-token', { token });
+    return response.data;
+  },
+
+  // Accept invite
+  acceptInvite: async (token: string) => {
+    const response = await api.post('/invites/accept', { token });
+    return response.data;
+  },
+
+  // Resend invite
+  resendInvite: async (babyId: number, inviteId: number) => {
+    const response = await api.post(`/babies/${babyId}/invites/${inviteId}/resend`);
+    return response.data;
+  },
+
+  // Revoke invite
+  revokeInvite: async (babyId: number, inviteId: number) => {
+    const response = await api.delete(`/babies/${babyId}/invites/${inviteId}`);
     return response.data;
   },
 };
