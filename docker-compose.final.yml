@@ -30,17 +30,38 @@ services:
         echo "Copying build files..."
         rm -rf /dist/*
         cp -r /app/dist/* /dist/
-        echo "Copying nginx config..."
-        mkdir -p /nginx-config
+        echo "=== DEBUG: Starting nginx config copy ==="
+        echo "Current directory: $(pwd)"
+        echo "Listing /app directory:"
+        ls -la /app/ | head -20
+        echo "Checking for nginx.conf:"
         if [ -f /app/nginx.conf ]; then
-          echo "Found nginx.conf, copying to /nginx-config/default.conf"
+          echo "✓ nginx.conf found in /app/"
+          echo "File size: $(wc -l < /app/nginx.conf) lines"
+          echo "First 10 lines of nginx.conf:"
+          head -10 /app/nginx.conf
+          echo "Creating /nginx-config directory..."
+          mkdir -p /nginx-config
+          echo "Copying nginx.conf to /nginx-config/default.conf..."
           cp /app/nginx.conf /nginx-config/default.conf
-          echo "nginx.conf copied successfully"
-          cat /nginx-config/default.conf | head -20
+          echo "✓ nginx.conf copied successfully"
+          echo "Verifying copy:"
+          if [ -f /nginx-config/default.conf ]; then
+            echo "✓ /nginx-config/default.conf exists"
+            echo "File size: $(wc -l < /nginx-config/default.conf) lines"
+            echo "First 15 lines of copied file:"
+            head -15 /nginx-config/default.conf
+          else
+            echo "✗ ERROR: /nginx-config/default.conf does not exist after copy!"
+          fi
         else
-          echo "ERROR: nginx.conf not found in /app/"
-          ls -la /app/ | grep nginx
+          echo "✗ ERROR: nginx.conf not found in /app/"
+          echo "Listing all files in /app/:"
+          ls -la /app/
+          echo "Searching for nginx files:"
+          find /app -name "*nginx*" -type f 2>/dev/null || echo "No nginx files found"
         fi
+        echo "=== DEBUG: Finished nginx config copy ==="
         echo "Build complete - $(date)"
     environment:
       NODE_ENV: production
