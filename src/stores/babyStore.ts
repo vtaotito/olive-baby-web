@@ -98,7 +98,14 @@ export const useBabyStore = create<BabyState>()(
 
       updateBaby: async (id: number, data: Partial<Baby>) => {
         try {
-          const response = await babyService.update(id, data);
+          const response = await babyService.update(id, {
+            name: data.name,
+            birthDate: data.birthDate,
+            city: data.city,
+            state: data.state,
+            birthWeightGrams: data.birthWeightGrams,
+            birthLengthCm: data.birthLengthCm,
+          });
           if (response.success && response.data) {
             set((state) => ({
               babies: state.babies.map((b) => (b.id === id ? response.data : b)),

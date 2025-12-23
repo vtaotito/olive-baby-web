@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  builder:
+    image: node:20-slim
+    container_name: olivebaby-web-builder
+    working_dir: /app
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        echo "Installing git..."
+        apt-get update && apt-get install -y git
+        if [ -d /app/.git ]; then
+          echo "Updating repository..."
+          cd /app && git fetch origin && git reset --hard origin/master
+        else
+          echo "Cloning repository..."
+          rm -rf /app/*
+          git clone https://github.com/vtaotito/olive-baby-web.git /tmp/web
+          cp -r /tmp/web/* /app/
+          cp -r /tmp/web/.* /app/ 2>/dev/null || true
+          rm -rf /tmp/web
+        fi
+        echo "Installing dependencies..."
+        npm install --include=dev
+        echo "Building application..."
+        export VITE_API_URL=https://oliecare.cloud/api/v1
+        npm run build
+        echo "Copying build files..."
+        rm -rf /dist/*
+        cp -r /app/dist/* /dist/
+        echo "=== DEBUG: Starting nginx config copy ==="
+        echo "Current directory: $(pwd)"
+        echo "Listing /app directory:"
+        ls -la /app/ | head -20
+        echo "Checking for nginx.conf:"
+        if [ -f /app/nginx.conf ]; then
+          echo "OK: nginx.conf found in /app/"
+          echo "File size: $(wc -l < /app/nginx.conf) lines"
+          echo "First 10 lines of nginx.conf:"
+          head -10 /app/nginx.conf
+          echo "Creating /nginx-config directory..."
+          mkdir -p /nginx-config
+          echo "Copying nginx.conf to /nginx-config/default.conf..."
+          cp /app/nginx.conf /nginx-config/default.conf
+          echo "OK: nginx.conf copied successfully"
+          echo "Verifying copy:"
+          if [ -f /nginx-config/default.conf ]; then
+            echo "OK: /nginx-config/default.conf exists"
+            echo "File size: $(wc -l < /nginx-config/default.conf) lines"
+            echo "First 15 lines of copied file:"
+            head -15 /nginx-config/default.conf
+          else
+            echo "ERROR: /nginx-config/default.conf does not exist after copy!"
+          fi
+        else
+          echo "ERROR: nginx.conf not found in /app/"
+          echo "Listing all files in /app/:"
+          ls -la /app/
+          echo "Searching for nginx files:"
+          find /app -name "*nginx*" -type f 2>/dev/null || echo "No nginx files found"
+        fi
+        echo "=== DEBUG: Finished nginx config copy ==="
+        echo "Build complete - $(date)"
+    environment:
+      NODE_ENV: production
+      VITE_API_URL: https://oliecare.cloud/api/v1
+    volumes:
+      - web_src:/app
+      - web_dist:/dist
+      - nginx_config:/nginx-config
+    networks:
+      - olivebaby-network
+
+  web:
+    image: nginx:alpine
+    container_name: olivebaby-web-server
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - web_dist:/usr/share/nginx/html:ro
+    networks:
+      - olivebaby-network
+    depends_on:
+      builder:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  nginx:
+    image: nginx:alpine
+    container_name: olivebaby-nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ssl_certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot
+      - nginx_config:/etc/nginx/conf.d:ro
+    networks:
+      - olivebaby-network
+    depends_on:
+      builder:
+        condition: service_completed_successfully
+      - web
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  certbot:
+    image: certbot/certbot
+    container_name: olivebaby-certbot
+    volumes:
+      - ssl_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    networks:
+      - olivebaby-network
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        sleep 30
+        if [ ! -f /etc/letsencrypt/live/oliecare.cloud/fullchain.pem ]; then
+          certbot certonly --webroot --webroot-path=/var/www/certbot \
+            --email vitor@titotech.com.br --agree-tos --no-eff-email \
+            -d oliecare.cloud -d www.oliecare.cloud || true
+        fi
+        while true; do sleep 12h; certbot renew --quiet; done
+
+volumes:
+  web_src:
+  web_dist:
+  ssl_certs:
+  certbot_www:
+  nginx_config:
+
+networks:
+  olivebaby-network:
+    external: true

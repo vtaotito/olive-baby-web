@@ -37,7 +37,7 @@ const relationships: { value: Relationship; label: string; emoji: string }[] = [
 const babySchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
-  relationship: z.enum(['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER', 'NANNY', 'OTHER']),
+  relationship: z.enum(['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER', 'NANNY', 'OTHER']).optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   birthWeightGrams: z.number().min(500).max(7000).optional().or(z.literal('')),
@@ -69,6 +69,7 @@ export function BabiesPage() {
     defaultValues: {
       relationship: 'MOTHER',
     },
+    mode: 'onChange',
   });
 
   const selectedRelationship = watch('relationship');
@@ -107,14 +108,23 @@ export function BabiesPage() {
     setIsLoading(true);
     try {
       if (editingBaby) {
-        await updateBaby(editingBaby.id, {
+        const updateData = {
           name: data.name,
           birthDate: new Date(data.birthDate).toISOString(),
           city: data.city || undefined,
           state: data.state || undefined,
-        });
+          birthWeightGrams: data.birthWeightGrams ? Number(data.birthWeightGrams) : undefined,
+          birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
+        };
+        console.log('Updating baby:', editingBaby.id, updateData);
+        await updateBaby(editingBaby.id, updateData);
         success('Bebê atualizado!', `${data.name} foi atualizado com sucesso`);
       } else {
+        if (!data.relationship) {
+          showError('Erro', 'Selecione sua relação com o bebê');
+          setIsLoading(false);
+          return;
+        }
         await addBaby({
           name: data.name,
           birthDate: new Date(data.birthDate).toISOString(),
@@ -130,8 +140,9 @@ export function BabiesPage() {
       setShowModal(false);
       reset();
     } catch (err: unknown) {
+      console.error('Error saving baby:', err);
       const error = err as { response?: { data?: { message?: string } }; message?: string };
-      showError('Erro', error.response?.data?.message || 'Falha ao salvar bebê');
+      showError('Erro', error.response?.data?.message || error.message || 'Falha ao salvar bebê');
     } finally {
       setIsLoading(false);
     }
@@ -276,7 +287,19 @@ export function BabiesPage() {
         onClose={() => setShowModal(false)}
         title={editingBaby ? 'Editar Bebê' : 'Adicionar Bebê'}
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form 
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit(onSubmit, (errors) => {
+              console.error('Form validation errors:', errors);
+              if (Object.keys(errors).length > 0) {
+                console.error('Validation failed:', errors);
+              }
+            })(e);
+          }} 
+          className="space-y-4"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Input
             label="Nome do bebê"
             placeholder="Ex: Maria Oliveira"
@@ -293,50 +316,48 @@ export function BabiesPage() {
           />
 
           {!editingBaby && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sua relação com o bebê
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {relationships.map((rel) => (
-                    <button
-                      key={rel.value}
-                      type="button"
-                      onClick={() => setValue('relationship', rel.value)}
-                      className={cn(
-                        'p-3 rounded-lg border-2 transition-all text-center',
-                        selectedRelationship === rel.value
-                          ? 'border-olive-500 bg-olive-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      )}
-                    >
-                      <span className="text-xl block">{rel.emoji}</span>
-                      <span className="text-xs font-medium">{rel.label}</span>
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sua relação com o bebê
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {relationships.map((rel) => (
+                  <button
+                    key={rel.value}
+                    type="button"
+                    onClick={() => setValue('relationship', rel.value)}
+                    className={cn(
+                      'p-3 rounded-lg border-2 transition-all text-center',
+                      selectedRelationship === rel.value
+                        ? 'border-olive-500 bg-olive-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    )}
+                  >
+                    <span className="text-xl block">{rel.emoji}</span>
+                    <span className="text-xs font-medium">{rel.label}</span>
+                  </button>
+                ))}
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Peso ao nascer (g)"
-                  type="number"
-                  placeholder="3200"
-                  leftIcon={<Scale className="w-5 h-5" />}
-                  {...register('birthWeightGrams', { valueAsNumber: true })}
-                />
-                <Input
-                  label="Comprimento (cm)"
-                  type="number"
-                  step="0.1"
-                  placeholder="49.5"
-                  leftIcon={<Ruler className="w-5 h-5" />}
-                  {...register('birthLengthCm', { valueAsNumber: true })}
-                />
-              </div>
-            </>
+            </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Peso ao nascer (g)"
+              type="number"
+              placeholder="3200"
+              leftIcon={<Scale className="w-5 h-5" />}
+              {...register('birthWeightGrams', { valueAsNumber: true })}
+            />
+            <Input
+              label="Comprimento (cm)"
+              type="number"
+              step="0.1"
+              placeholder="49.5"
+              leftIcon={<Ruler className="w-5 h-5" />}
+              {...register('birthLengthCm', { valueAsNumber: true })}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -362,16 +383,34 @@ export function BabiesPage() {
             />
           )}
 
+          {Object.keys(errors).length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm font-medium text-red-800 mb-1">Erros de validação:</p>
+              <ul className="text-sm text-red-700 list-disc list-inside">
+                {errors.name && <li>{errors.name.message}</li>}
+                {errors.birthDate && <li>{errors.birthDate.message}</li>}
+                {errors.relationship && <li>{errors.relationship.message}</li>}
+                {errors.birthWeightGrams && <li>{errors.birthWeightGrams.message}</li>}
+                {errors.birthLengthCm && <li>{errors.birthLengthCm.message}</li>}
+              </ul>
+            </div>
+          )}
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
               variant="secondary"
               onClick={() => setShowModal(false)}
               fullWidth
+              disabled={isLoading}
             >
               Cancelar
             </Button>
-            <Button type="submit" fullWidth isLoading={isLoading}>
+            <Button 
+              type="submit" 
+              fullWidth 
+              isLoading={isLoading}
+              disabled={isLoading}
+            >
               {editingBaby ? 'Salvar' : 'Adicionar'}
             </Button>
           </div>

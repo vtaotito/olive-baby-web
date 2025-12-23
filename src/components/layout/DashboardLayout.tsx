@@ -1,5 +1,5 @@
 // Olive Baby Web - Dashboard Layout
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Baby,
@@ -42,9 +42,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { babies, selectedBaby, selectBaby } = useBabyStore();
+  const { babies, selectedBaby, selectBaby, fetchBabies } = useBabyStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [babyDropdownOpen, setBabyDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    // Carregar bebês quando o componente montar
+    fetchBabies().catch(console.error);
+  }, [fetchBabies]);
 
   const handleLogout = async () => {
     await logout();
@@ -112,78 +117,88 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Baby Selector - Sempre visível */}
         <div className="p-4 border-b border-gray-100">
           {babies.length > 0 ? (
-            <div className="relative">
-              <button
-                onClick={() => setBabyDropdownOpen(!babyDropdownOpen)}
-                className="w-full flex items-center gap-3 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors"
-              >
-                <Avatar
-                  name={selectedBaby?.name || 'Bebê'}
-                  src={selectedBaby?.photoUrl}
-                  size="md"
-                />
-                <div className="flex-1 text-left min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{selectedBaby?.name || 'Selecione'}</p>
-                  {selectedBaby && (
-                    <p className="text-xs text-gray-500">{formatAge(selectedBaby.birthDate)}</p>
-                  )}
-                </div>
-                <ChevronDown className={cn('w-5 h-5 text-gray-400 transition-transform flex-shrink-0', babyDropdownOpen && 'rotate-180')} />
-              </button>
-
-              {babyDropdownOpen && (
-                <>
-                  {/* Backdrop para fechar ao clicar fora */}
-                  <div
-                    className="fixed inset-0 z-[45]"
-                    onClick={() => setBabyDropdownOpen(false)}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Bebê Ativo
+              </label>
+              <div className="relative">
+                <button
+                  onClick={() => setBabyDropdownOpen(!babyDropdownOpen)}
+                  className="w-full flex items-center gap-3 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors border border-olive-200"
+                >
+                  <Avatar
+                    name={selectedBaby?.name || 'Bebê'}
+                    src={selectedBaby?.photoUrl}
+                    size="md"
                   />
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 z-[50] max-h-[400px] overflow-y-auto">
-                    {babies.map((baby) => (
-                      <button
-                        key={baby.id}
-                        onClick={() => {
-                          selectBaby(baby);
-                          setBabyDropdownOpen(false);
-                        }}
-                        className={cn(
-                          'w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors',
-                          'first:rounded-t-xl',
-                          selectedBaby?.id === baby.id && 'bg-olive-50'
-                        )}
-                      >
-                        <Avatar name={baby.name} src={baby.photoUrl} size="sm" />
-                        <div className="text-left flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 text-sm truncate">{baby.name}</p>
-                          <p className="text-xs text-gray-500">{formatAge(baby.birthDate)}</p>
-                        </div>
-                        {selectedBaby?.id === baby.id && (
-                          <div className="w-2 h-2 bg-olive-600 rounded-full flex-shrink-0" />
-                        )}
-                      </button>
-                    ))}
-                    <Link
-                      to="/settings/babies/new"
-                      className="block w-full p-3 text-sm text-olive-600 font-medium hover:bg-olive-50 border-t border-gray-100 rounded-b-xl transition-colors"
-                      onClick={() => setBabyDropdownOpen(false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
-                        <span>Adicionar bebê</span>
-                      </div>
-                    </Link>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{selectedBaby?.name || 'Selecione um bebê'}</p>
+                    {selectedBaby && (
+                      <p className="text-xs text-gray-500">{formatAge(selectedBaby.birthDate)}</p>
+                    )}
                   </div>
-                </>
-              )}
+                  <ChevronDown className={cn('w-5 h-5 text-gray-400 transition-transform flex-shrink-0', babyDropdownOpen && 'rotate-180')} />
+                </button>
+
+                {babyDropdownOpen && (
+                  <>
+                    {/* Backdrop para fechar ao clicar fora */}
+                    <div
+                      className="fixed inset-0 z-[45]"
+                      onClick={() => setBabyDropdownOpen(false)}
+                    />
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 z-[50] max-h-[400px] overflow-y-auto">
+                      {babies.map((baby) => (
+                        <button
+                          key={baby.id}
+                          onClick={() => {
+                            selectBaby(baby);
+                            setBabyDropdownOpen(false);
+                          }}
+                          className={cn(
+                            'w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors',
+                            'first:rounded-t-xl',
+                            selectedBaby?.id === baby.id && 'bg-olive-50'
+                          )}
+                        >
+                          <Avatar name={baby.name} src={baby.photoUrl} size="sm" />
+                          <div className="text-left flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 text-sm truncate">{baby.name}</p>
+                            <p className="text-xs text-gray-500">{formatAge(baby.birthDate)}</p>
+                          </div>
+                          {selectedBaby?.id === baby.id && (
+                            <div className="w-2 h-2 bg-olive-600 rounded-full flex-shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                      <Link
+                        to="/settings/babies/new"
+                        className="block w-full p-3 text-sm text-olive-600 font-medium hover:bg-olive-50 border-t border-gray-100 rounded-b-xl transition-colors"
+                        onClick={() => setBabyDropdownOpen(false)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Plus className="w-4 h-4" />
+                          <span>Adicionar bebê</span>
+                        </div>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           ) : (
-            <Link
-              to="/settings/babies/new"
-              className="w-full flex items-center justify-center gap-2 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors border-2 border-dashed border-olive-300"
-            >
-              <Plus className="w-5 h-5 text-olive-600" />
-              <span className="font-medium text-olive-700">Adicionar bebê</span>
-            </Link>
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Bebê Ativo
+              </label>
+              <Link
+                to="/settings/babies/new"
+                className="w-full flex items-center justify-center gap-2 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors border-2 border-dashed border-olive-300"
+              >
+                <Plus className="w-5 h-5 text-olive-600" />
+                <span className="font-medium text-olive-700">Adicionar bebê</span>
+              </Link>
+            </div>
           )}
         </div>
 

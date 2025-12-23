@@ -144,6 +144,8 @@ export const babyService = {
     birthDate: string;
     city: string;
     state: string;
+    birthWeightGrams?: number;
+    birthLengthCm?: number;
   }>) => {
     const response = await api.patch(`/babies/${id}`, data);
     return response.data;
