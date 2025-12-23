@@ -5,7 +5,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { ProtectedRoute, DashboardLayout } from './components/layout';
 
 // Auth Pages
-import { LoginPage, RegisterPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
+import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
 
 // Onboarding
 import { OnboardingPage } from './pages/onboarding';
@@ -73,6 +73,8 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/invite/accept" element={<AcceptInvitePage />} />
 
             {/* Onboarding */}
