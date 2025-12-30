@@ -1,4 +1,4 @@
-// Olive Baby Web - Admin Users Page
+// Olive Baby Web - Admin Users Page (Tema Claro)
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -9,13 +9,11 @@ import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
-  Eye,
   UserCog,
-  X,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { adminService } from '../../services/adminApi';
-import { Button, Spinner, Modal, Input, Select } from '../../components/ui';
+import { Button, Spinner, Modal, Input } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/utils';
 import type { AdminUser, AdminUserFilters, PlanType, UserStatus } from '../../types/admin';
@@ -23,14 +21,14 @@ import type { AdminUser, AdminUserFilters, PlanType, UserStatus } from '../../ty
 // Status Badge Component
 function StatusBadge({ status }: { status: UserStatus }) {
   const config = {
-    ACTIVE: { label: 'Ativo', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-    BLOCKED: { label: 'Bloqueado', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
-    PENDING_VERIFICATION: { label: 'Pendente', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+    ACTIVE: { label: 'Ativo', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    BLOCKED: { label: 'Bloqueado', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+    PENDING_VERIFICATION: { label: 'Pendente', color: 'bg-amber-50 text-amber-700 border-amber-200' },
   };
   const { label, color } = config[status] || config.ACTIVE;
 
   return (
-    <span className={cn('px-2 py-1 text-xs font-medium rounded-full border', color)}>
+    <span className={cn('px-2.5 py-1 text-xs font-medium rounded-full border', color)}>
       {label}
     </span>
   );
@@ -40,13 +38,13 @@ function StatusBadge({ status }: { status: UserStatus }) {
 function PlanBadge({ plan }: { plan?: { name: string; type: PlanType } }) {
   if (!plan || plan.type === 'FREE') {
     return (
-      <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-700 text-slate-300">
+      <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200">
         Free
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-olive-50 text-olive-700 border border-olive-200">
       <Crown className="w-3 h-3" />
       Premium
     </span>
@@ -56,15 +54,15 @@ function PlanBadge({ plan }: { plan?: { name: string; type: PlanType } }) {
 // Role Badge Component
 function RoleBadge({ role }: { role: string }) {
   const config: Record<string, string> = {
-    PARENT: 'bg-sky-500/20 text-sky-400',
-    CAREGIVER: 'bg-violet-500/20 text-violet-400',
-    PEDIATRICIAN: 'bg-emerald-500/20 text-emerald-400',
-    SPECIALIST: 'bg-rose-500/20 text-rose-400',
-    ADMIN: 'bg-amber-500/20 text-amber-400',
+    PARENT: 'bg-sky-50 text-sky-700 border-sky-200',
+    CAREGIVER: 'bg-violet-50 text-violet-700 border-violet-200',
+    PEDIATRICIAN: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    SPECIALIST: 'bg-rose-50 text-rose-700 border-rose-200',
+    ADMIN: 'bg-amber-50 text-amber-700 border-amber-200',
   };
 
   return (
-    <span className={cn('px-2 py-1 text-xs font-medium rounded-full', config[role] || 'bg-slate-700 text-slate-300')}>
+    <span className={cn('px-2.5 py-1 text-xs font-medium rounded-full border', config[role] || 'bg-gray-100 text-gray-600 border-gray-200')}>
       {role}
     </span>
   );
@@ -117,10 +115,10 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title="Ações do Usuário">
       <div className="space-y-6">
         {/* User Info */}
-        <div className="bg-slate-800/50 rounded-xl p-4">
-          <p className="text-white font-medium">{user.caregiver?.fullName || user.email}</p>
-          <p className="text-sm text-slate-400">{user.email}</p>
-          <div className="flex items-center gap-2 mt-2">
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <p className="text-gray-900 font-medium">{user.caregiver?.fullName || user.email}</p>
+          <p className="text-sm text-gray-500">{user.email}</p>
+          <div className="flex items-center gap-2 mt-3">
             <RoleBadge role={user.role} />
             <PlanBadge plan={user.plan} />
             <StatusBadge status={user.status} />
@@ -129,7 +127,7 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
 
         {/* Plan Actions */}
         <div>
-          <h4 className="text-sm font-medium text-slate-300 mb-3">Alterar Plano</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Alterar Plano</h4>
           <div className="flex gap-2">
             <Button
               variant={user.plan?.type === 'FREE' ? 'primary' : 'outline'}
@@ -153,7 +151,7 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
 
         {/* Status Actions */}
         <div>
-          <h4 className="text-sm font-medium text-slate-300 mb-3">Status do Usuário</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Status do Usuário</h4>
           {user.status === 'BLOCKED' ? (
             <Button
               variant="outline"
@@ -161,7 +159,7 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
               onClick={() => changeStatusMutation.mutate({ userId: user.id, status: 'ACTIVE' })}
               disabled={isLoading}
               leftIcon={<CheckCircle className="w-4 h-4" />}
-              className="text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+              className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
             >
               Desbloquear
             </Button>
@@ -178,7 +176,7 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
                 onClick={() => changeStatusMutation.mutate({ userId: user.id, status: 'BLOCKED', reason: blockReason })}
                 disabled={isLoading}
                 leftIcon={<Ban className="w-4 h-4" />}
-                className="text-rose-400 border-rose-500/30 hover:bg-rose-500/10"
+                className="text-rose-600 border-rose-300 hover:bg-rose-50"
               >
                 Bloquear Usuário
               </Button>
@@ -222,19 +220,19 @@ export function AdminUsersPage() {
   return (
     <AdminLayout title="Usuários">
       {/* Search & Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar por nome ou email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500"
               />
             </div>
             <Button onClick={handleSearch}>Buscar</Button>
@@ -252,13 +250,13 @@ export function AdminUsersPage() {
 
         {/* Filter Options */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-800">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Plano</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Plano</label>
               <select
                 value={filters.plan || ''}
                 onChange={(e) => handleFilterChange('plan', e.target.value as PlanType || undefined)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos</option>
                 <option value="FREE">Free</option>
@@ -266,11 +264,11 @@ export function AdminUsersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Role</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
               <select
                 value={filters.role || ''}
                 onChange={(e) => handleFilterChange('role', e.target.value || undefined)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos</option>
                 <option value="PARENT">Parent</option>
@@ -281,11 +279,11 @@ export function AdminUsersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select
                 value={filters.status || ''}
                 onChange={(e) => handleFilterChange('status', e.target.value as UserStatus || undefined)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos</option>
                 <option value="ACTIVE">Ativo</option>
@@ -297,7 +295,7 @@ export function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Spinner size="lg" />
@@ -307,25 +305,25 @@ export function AdminUsersPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-800/50">
-                    <th className="text-left py-4 px-6 text-sm font-medium text-slate-400">Usuário</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-slate-400">Role</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-slate-400">Plano</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-slate-400">Status</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-slate-400">Bebês</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-slate-400">Cadastro</th>
-                    <th className="text-right py-4 px-6 text-sm font-medium text-slate-400">Ações</th>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Usuário</th>
+                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Role</th>
+                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Plano</th>
+                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Status</th>
+                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Bebês</th>
+                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Cadastro</th>
+                    <th className="text-right py-4 px-6 text-sm font-medium text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user) => (
-                    <tr key={user.id} className="border-t border-slate-800/50 hover:bg-slate-800/30">
+                    <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-6">
                         <div>
-                          <p className="text-white font-medium">
+                          <p className="text-gray-900 font-medium">
                             {user.caregiver?.fullName || '-'}
                           </p>
-                          <p className="text-sm text-slate-400">{user.email}</p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </td>
                       <td className="py-4 px-6">
@@ -337,8 +335,8 @@ export function AdminUsersPage() {
                       <td className="py-4 px-6">
                         <StatusBadge status={user.status} />
                       </td>
-                      <td className="py-4 px-6 text-white">{user.babiesCount}</td>
-                      <td className="py-4 px-6 text-slate-400 text-sm">
+                      <td className="py-4 px-6 text-gray-900 font-medium">{user.babiesCount}</td>
+                      <td className="py-4 px-6 text-gray-500 text-sm">
                         {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="py-4 px-6 text-right">
@@ -355,7 +353,7 @@ export function AdminUsersPage() {
                   ))}
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-500">
+                      <td colSpan={7} className="py-12 text-center text-gray-400">
                         Nenhum usuário encontrado
                       </td>
                     </tr>
@@ -366,8 +364,8 @@ export function AdminUsersPage() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800">
-                <p className="text-sm text-slate-400">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <p className="text-sm text-gray-500">
                   Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
                   {pagination.total} usuários
@@ -382,7 +380,7 @@ export function AdminUsersPage() {
                   >
                     Anterior
                   </Button>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-gray-600 px-2">
                     {pagination.page} / {pagination.totalPages}
                   </span>
                   <Button
@@ -410,4 +408,3 @@ export function AdminUsersPage() {
     </AdminLayout>
   );
 }
-

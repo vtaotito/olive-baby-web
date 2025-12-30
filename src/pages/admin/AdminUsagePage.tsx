@@ -1,4 +1,4 @@
-// Olive Baby Web - Admin Usage Analytics Page
+// Olive Baby Web - Admin Usage Analytics Page (Tema Claro)
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -8,6 +8,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   AlertTriangle,
+  Activity,
+  Zap,
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -56,17 +58,20 @@ export function AdminUsagePage() {
     return `${date.getDate()}/${date.getMonth() + 1}`;
   };
 
-  // Chart data for routines trend
+  // Chart data for routines trend - Olive color
   const routinesTrendData = {
     labels: usage?.routinesPerDay.map(d => formatDate(d.date)) || [],
     datasets: [
       {
         label: 'Rotinas',
         data: usage?.routinesPerDay.map(d => d.count) || [],
-        borderColor: 'rgba(251, 191, 36, 1)',
-        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+        borderColor: 'rgba(101, 123, 73, 1)',
+        backgroundColor: 'rgba(101, 123, 73, 0.1)',
         fill: true,
         tension: 0.4,
+        pointBackgroundColor: 'rgba(101, 123, 73, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
       },
     ],
   };
@@ -82,6 +87,9 @@ export function AdminUsagePage() {
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
         tension: 0.4,
+        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
       },
     ],
   };
@@ -93,10 +101,13 @@ export function AdminUsagePage() {
       {
         label: 'Novos Bebês',
         data: usage?.newBabiesPerDay.map(d => d.count) || [],
-        borderColor: 'rgba(168, 85, 247, 1)',
-        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+        borderColor: 'rgba(139, 92, 246, 1)',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
         fill: true,
         tension: 0.4,
+        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
       },
     ],
   };
@@ -109,13 +120,14 @@ export function AdminUsagePage() {
         label: 'Paywall Hits',
         data: Object.values(usage?.paywallHits || {}),
         backgroundColor: [
-          'rgba(251, 191, 36, 0.8)',
+          'rgba(101, 123, 73, 0.8)',
           'rgba(59, 130, 246, 0.8)',
-          'rgba(168, 85, 247, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
           'rgba(34, 197, 94, 0.8)',
           'rgba(236, 72, 153, 0.8)',
         ],
         borderWidth: 0,
+        borderRadius: 8,
       },
     ],
   };
@@ -131,18 +143,18 @@ export function AdminUsagePage() {
     scales: {
       x: {
         grid: {
-          color: 'rgba(148, 163, 184, 0.1)',
+          color: 'rgba(229, 231, 235, 0.5)',
         },
         ticks: {
-          color: 'rgba(148, 163, 184, 0.6)',
+          color: 'rgba(107, 114, 128, 1)',
         },
       },
       y: {
         grid: {
-          color: 'rgba(148, 163, 184, 0.1)',
+          color: 'rgba(229, 231, 235, 0.5)',
         },
         ticks: {
-          color: 'rgba(148, 163, 184, 0.6)',
+          color: 'rgba(107, 114, 128, 1)',
         },
       },
     },
@@ -162,7 +174,7 @@ export function AdminUsagePage() {
     <AdminLayout title="Métricas de Uso">
       {/* Range Selector */}
       <div className="flex justify-end mb-6">
-        <div className="inline-flex bg-slate-800 rounded-lg p-1">
+        <div className="inline-flex bg-gray-100 rounded-lg p-1">
           {(['7d', '30d', '90d'] as const).map((r) => (
             <button
               key={r}
@@ -170,8 +182,8 @@ export function AdminUsagePage() {
               className={cn(
                 'px-4 py-2 text-sm font-medium rounded-md transition-colors',
                 range === r
-                  ? 'bg-amber-500 text-slate-900'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-olive-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               )}
             >
               {r === '7d' ? '7 dias' : r === '30d' ? '30 dias' : '90 dias'}
@@ -181,34 +193,34 @@ export function AdminUsagePage() {
       </div>
 
       {/* Conversion Funnel */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-amber-400" />
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-olive-600" />
           Funil de Conversão
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-800/50 rounded-xl p-6 text-center">
-            <p className="text-3xl font-bold text-white mb-1">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+            <p className="text-3xl font-bold text-gray-900 mb-1">
               {usage?.conversionFunnel.freeUsers || 0}
             </p>
-            <p className="text-sm text-slate-400">Usuários Free</p>
+            <p className="text-sm text-gray-500">Usuários Free</p>
           </div>
-          <div className="bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 rounded-xl p-6 text-center">
-            <p className="text-3xl font-bold text-amber-400 mb-1">
+          <div className="bg-olive-50 border border-olive-200 rounded-xl p-6 text-center">
+            <p className="text-3xl font-bold text-olive-700 mb-1">
               {usage?.conversionFunnel.premiumUsers || 0}
             </p>
-            <p className="text-sm text-slate-400">Usuários Premium</p>
+            <p className="text-sm text-gray-500">Usuários Premium</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-6 text-center">
-            <p className="text-3xl font-bold text-white mb-1">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+            <p className="text-3xl font-bold text-gray-900 mb-1">
               {(usage?.conversionFunnel.conversionRate || 0).toFixed(1)}%
             </p>
-            <p className="text-sm text-slate-400">Taxa de Conversão</p>
+            <p className="text-sm text-gray-500">Taxa de Conversão</p>
             <div className={cn(
               'flex items-center justify-center gap-1 mt-2 text-sm',
               (usage?.conversionFunnel.conversionRate || 0) >= 5 
-                ? 'text-emerald-400' 
-                : 'text-rose-400'
+                ? 'text-emerald-600' 
+                : 'text-rose-600'
             )}>
               {(usage?.conversionFunnel.conversionRate || 0) >= 5 ? (
                 <ArrowUpRight className="w-4 h-4" />
@@ -226,9 +238,9 @@ export function AdminUsagePage() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Routines Trend */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-amber-400" />
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-olive-600" />
             Rotinas por Dia
           </h3>
           <div className="h-64">
@@ -237,9 +249,9 @@ export function AdminUsagePage() {
         </div>
 
         {/* New Users Trend */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-sky-400" />
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-sky-600" />
             Novos Usuários por Dia
           </h3>
           <div className="h-64">
@@ -248,9 +260,9 @@ export function AdminUsagePage() {
         </div>
 
         {/* New Babies Trend */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Baby className="w-5 h-5 text-violet-400" />
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Baby className="w-5 h-5 text-violet-600" />
             Novos Bebês por Dia
           </h3>
           <div className="h-64">
@@ -259,9 +271,9 @@ export function AdminUsagePage() {
         </div>
 
         {/* Paywall Hits */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-400" />
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
             Paywall Hits por Feature
           </h3>
           {Object.keys(usage?.paywallHits || {}).length > 0 ? (
@@ -269,44 +281,56 @@ export function AdminUsagePage() {
               <Bar data={paywallHitsData} options={chartOptions} />
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-slate-500">
-              Nenhum paywall hit registrado no período
+            <div className="h-64 flex flex-col items-center justify-center text-gray-400">
+              <AlertTriangle className="w-10 h-10 mb-2 opacity-40" />
+              <p>Nenhum paywall hit registrado no período</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Summary Stats */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Resumo do Período</h3>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumo do Período</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-slate-800/50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-white">
+          <div className="bg-olive-50 border border-olive-100 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-5 h-5 text-olive-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
               {usage?.routinesPerDay.reduce((sum, d) => sum + d.count, 0) || 0}
             </p>
-            <p className="text-sm text-slate-400">Total de Rotinas</p>
+            <p className="text-sm text-gray-500">Total de Rotinas</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-white">
+          <div className="bg-sky-50 border border-sky-100 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-sky-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
               {usage?.newUsersPerDay.reduce((sum, d) => sum + d.count, 0) || 0}
             </p>
-            <p className="text-sm text-slate-400">Novos Usuários</p>
+            <p className="text-sm text-gray-500">Novos Usuários</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-white">
+          <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Baby className="w-5 h-5 text-violet-600" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
               {usage?.newBabiesPerDay.reduce((sum, d) => sum + d.count, 0) || 0}
             </p>
-            <p className="text-sm text-slate-400">Novos Bebês</p>
+            <p className="text-sm text-gray-500">Novos Bebês</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-4">
-            <p className="text-2xl font-bold text-white">
+          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
               {Object.values(usage?.paywallHits || {}).reduce((sum, c) => sum + c, 0)}
             </p>
-            <p className="text-sm text-slate-400">Paywall Hits</p>
+            <p className="text-sm text-gray-500">Paywall Hits</p>
           </div>
         </div>
       </div>
     </AdminLayout>
   );
 }
-

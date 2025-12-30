@@ -1,4 +1,4 @@
-// Olive Baby Web - Admin Babies Page
+// Olive Baby Web - Admin Babies Page (Tema Claro)
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -57,19 +57,19 @@ export function AdminBabiesPage() {
   return (
     <AdminLayout title="Bebês">
       {/* Search & Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar por nome do bebê..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500"
               />
             </div>
             <Button onClick={handleSearch}>Buscar</Button>
@@ -87,13 +87,13 @@ export function AdminBabiesPage() {
 
         {/* Filter Options */}
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="max-w-xs">
-              <label className="block text-sm text-slate-400 mb-1">Estado</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
               <select
                 value={filters.state || ''}
                 onChange={(e) => handleFilterChange('state', e.target.value || undefined)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos os estados</option>
                 {BRAZILIAN_STATES.map(state => (
@@ -119,16 +119,16 @@ export function AdminBabiesPage() {
           </div>
 
           {babies.length === 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-              <Baby className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500">Nenhum bebê encontrado</p>
+            <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
+              <Baby className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Nenhum bebê encontrado</p>
             </div>
           )}
 
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl px-6 py-4">
-              <p className="text-sm text-slate-400">
+            <div className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm">
+              <p className="text-sm text-gray-500">
                 Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
                 {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
                 {pagination.total} bebês
@@ -143,7 +143,7 @@ export function AdminBabiesPage() {
                 >
                   Anterior
                 </Button>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-gray-600 px-2">
                   {pagination.page} / {pagination.totalPages}
                 </span>
                 <Button
@@ -164,52 +164,52 @@ export function AdminBabiesPage() {
   );
 }
 
-// Baby Card Component
+// Baby Card Component - Tema Claro
 function BabyCard({ baby }: { baby: AdminBaby }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-700 transition-colors">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-violet-500/20 to-violet-600/10 border border-violet-500/30 rounded-xl flex items-center justify-center">
-            <Baby className="w-6 h-6 text-violet-400" />
+          <div className="w-12 h-12 bg-violet-50 border border-violet-200 rounded-xl flex items-center justify-center">
+            <Baby className="w-6 h-6 text-violet-600" />
           </div>
           <div>
-            <h3 className="text-white font-semibold">{baby.name}</h3>
-            <p className="text-sm text-slate-400">{formatAge(baby.birthDate)}</p>
+            <h3 className="text-gray-900 font-semibold">{baby.name}</h3>
+            <p className="text-sm text-gray-500">{formatAge(baby.birthDate)}</p>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-          <Users className="w-4 h-4 text-sky-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-white">{baby.caregiversCount}</p>
-          <p className="text-xs text-slate-500">Cuidadores</p>
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="bg-sky-50 border border-sky-100 rounded-lg p-3 text-center">
+          <Users className="w-4 h-4 text-sky-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900">{baby.caregiversCount}</p>
+          <p className="text-xs text-gray-500">Cuidadores</p>
         </div>
-        <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-          <Stethoscope className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-white">{baby.professionalsCount}</p>
-          <p className="text-xs text-slate-500">Profissionais</p>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-center">
+          <Stethoscope className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900">{baby.professionalsCount}</p>
+          <p className="text-xs text-gray-500">Profissionais</p>
         </div>
-        <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-          <Activity className="w-4 h-4 text-amber-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-white">{baby.routinesCount30d}</p>
-          <p className="text-xs text-slate-500">Rotinas/30d</p>
+        <div className="bg-olive-50 border border-olive-100 rounded-lg p-3 text-center">
+          <Activity className="w-4 h-4 text-olive-600 mx-auto mb-1" />
+          <p className="text-lg font-bold text-gray-900">{baby.routinesCount30d}</p>
+          <p className="text-xs text-gray-500">Rotinas/30d</p>
         </div>
       </div>
 
       {/* Primary Caregiver */}
       {baby.primaryCaregiver && (
-        <div className="border-t border-slate-800 pt-4">
-          <p className="text-xs text-slate-500 mb-2">Responsável Principal</p>
+        <div className="border-t border-gray-100 pt-4">
+          <p className="text-xs text-gray-500 mb-2">Responsável Principal</p>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-white">{baby.primaryCaregiver.fullName}</p>
-              <p className="text-xs text-slate-400">{baby.primaryCaregiver.email}</p>
+              <p className="text-sm text-gray-900 font-medium">{baby.primaryCaregiver.fullName}</p>
+              <p className="text-xs text-gray-500">{baby.primaryCaregiver.email}</p>
             </div>
-            <span className="text-xs text-slate-500 capitalize">
+            <span className="text-xs text-gray-400 capitalize bg-gray-100 px-2 py-1 rounded-full">
               {baby.primaryCaregiver.relationship.toLowerCase()}
             </span>
           </div>
@@ -217,7 +217,7 @@ function BabyCard({ baby }: { baby: AdminBaby }) {
       )}
 
       {/* Footer Info */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-800 text-xs text-slate-500">
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
         <div className="flex items-center gap-1">
           <MapPin className="w-3 h-3" />
           <span>{baby.city ? `${baby.city}, ${baby.state}` : baby.state || '-'}</span>
@@ -230,4 +230,3 @@ function BabyCard({ baby }: { baby: AdminBaby }) {
     </div>
   );
 }
-
