@@ -25,13 +25,21 @@ export function BabyInitializer({ children }: BabyInitializerProps) {
     }
 
     // Carregar bebês automaticamente
-    fetchBabies()
-      .then(() => {
+    // Usar uma função async para garantir que o estado seja atualizado corretamente
+    const loadBabies = async () => {
+      try {
+        await fetchBabies();
+        // Pequeno delay para garantir que o estado seja atualizado
+        setTimeout(() => {
+          setIsInitializing(false);
+        }, 100);
+      } catch (error) {
+        console.error('Erro ao carregar bebês:', error);
         setIsInitializing(false);
-      })
-      .catch(() => {
-        setIsInitializing(false);
-      });
+      }
+    };
+
+    loadBabies();
   }, [isAuthenticated, fetchBabies]);
 
   // Redirecionar para onboarding se não houver bebês (exceto se já estiver lá)
