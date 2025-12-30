@@ -95,9 +95,11 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
   }, [isOpen, editingBaby, reset]);
 
   const onSubmit = async (data: BabyFormData) => {
+    console.log('[BabyModal] onSubmit chamado', { editingBaby, data });
     setIsLoading(true);
     try {
       if (editingBaby) {
+        console.log('[BabyModal] Editando bebê', editingBaby.id);
         const updateData = {
           name: data.name,
           birthDate: new Date(data.birthDate).toISOString(),
@@ -106,7 +108,9 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
           birthWeightGrams: data.birthWeightGrams ? Number(data.birthWeightGrams) : undefined,
           birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
         };
+        console.log('[BabyModal] Dados para atualizar:', updateData);
         await updateBaby(editingBaby.id, updateData);
+        console.log('[BabyModal] Bebê atualizado com sucesso');
         success('Bebê atualizado!', `${data.name} foi atualizado com sucesso`);
         // Atualizar lista de bebês
         await fetchBabies();
@@ -151,14 +155,19 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
       title={editingBaby ? 'Editar Bebê' : 'Adicionar Bebê'}
     >
       <form 
-        onSubmit={(e) => {
-          e.stopPropagation();
-          handleSubmit(onSubmit, (errors) => {
-            console.error('Form validation errors:', errors);
-          })(e);
-        }} 
+        onSubmit={handleSubmit(
+          (data) => {
+            console.log('[BabyModal] Validation passed, calling onSubmit');
+            onSubmit(data);
+          },
+          (errors) => {
+            console.error('[BabyModal] Form validation errors:', errors);
+            if (Object.keys(errors).length > 0) {
+              showError('Erro de validação', 'Por favor, corrija os erros no formulário');
+            }
+          }
+        )} 
         className="space-y-4"
-        onClick={(e) => e.stopPropagation()}
       >
         <Input
           label="Nome do bebê"

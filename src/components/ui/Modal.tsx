@@ -95,7 +95,7 @@ export function Modal({
         )}
 
         {/* Body */}
-        <div className="p-6">{children}</div>
+        <div className="p-6" onClick={(e) => e.stopPropagation()}>{children}</div>
       </div>
     </div>,
     document.body

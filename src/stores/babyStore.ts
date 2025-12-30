@@ -123,21 +123,32 @@ export const useBabyStore = create<BabyState>()(
         }
       },
 
-      updateBaby: async (id: number, data: Partial<Baby>) => {
+      updateBaby: async (id: number, data: Partial<{
+        name?: string;
+        birthDate?: string;
+        city?: string;
+        state?: string;
+        birthWeightGrams?: number;
+        birthLengthCm?: number;
+      }>) => {
         try {
-          const response = await babyService.update(id, {
-            name: data.name,
-            birthDate: data.birthDate,
-            city: data.city,
-            state: data.state,
-            birthWeightGrams: data.birthWeightGrams,
-            birthLengthCm: data.birthLengthCm,
-          });
+          // Filtrar apenas campos definidos
+          const updatePayload: any = {};
+          if (data.name !== undefined) updatePayload.name = data.name;
+          if (data.birthDate !== undefined) updatePayload.birthDate = data.birthDate;
+          if (data.city !== undefined) updatePayload.city = data.city;
+          if (data.state !== undefined) updatePayload.state = data.state;
+          if (data.birthWeightGrams !== undefined) updatePayload.birthWeightGrams = data.birthWeightGrams;
+          if (data.birthLengthCm !== undefined) updatePayload.birthLengthCm = data.birthLengthCm;
+
+          const response = await babyService.update(id, updatePayload);
           if (response.success && response.data) {
             set((state) => ({
               babies: state.babies.map((b) => (b.id === id ? response.data : b)),
               selectedBaby: state.selectedBaby?.id === id ? response.data : state.selectedBaby,
             }));
+          } else {
+            throw new Error(response.message || 'Falha ao atualizar bebê');
           }
         } catch (error) {
           throw error;
