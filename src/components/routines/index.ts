@@ -7,3 +7,4 @@ export * from './BathTracker';
 export * from './ExtractionTracker';
 export * from './RoutineRecordsPanel';
 export * from './RoutineRecordEditModal';
+export * from './RoutineLastRecordsTable';

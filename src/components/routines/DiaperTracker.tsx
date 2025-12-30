@@ -5,7 +5,7 @@ import { Droplets, ChevronLeft, Check } from 'lucide-react';
 import { DashboardLayout } from '../layout';
 import { Card, CardBody, CardHeader, Button } from '../ui';
 import { useToast } from '../ui/Toast';
-import { RoutineRecordsPanel } from './RoutineRecordsPanel';
+import { RoutineLastRecordsTable } from './RoutineLastRecordsTable';
 import { useBabyStore } from '../../stores/babyStore';
 import { routineService } from '../../services/api';
 import { cn } from '../../lib/utils';
@@ -212,12 +212,11 @@ export function DiaperTracker() {
           Registrar Fralda
         </Button>
 
-        {/* Registros Salvos */}
-        <RoutineRecordsPanel
+        {/* Últimos Registros */}
+        <RoutineLastRecordsTable
           babyId={selectedBaby.id}
           routineType="DIAPER"
           routineTypeLabel="Fralda"
-          limit={10}
         />
       </div>
     </DashboardLayout>
