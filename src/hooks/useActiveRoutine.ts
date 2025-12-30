@@ -73,10 +73,11 @@ export function useActiveRoutine(babyId: number | undefined): UseActiveRoutineRe
       return; // Não fazer polling se não há rotina ativa
     }
 
-    // Refetch a cada 60 segundos apenas se houver rotina ativa
+    // Refetch a cada 30 segundos apenas se houver rotina ativa
+    // Intervalo reduzido mas ainda razoável para atualizar timers
     const interval = setInterval(() => {
       fetchActiveRoutines();
-    }, 60000); // Aumentado para 60 segundos
+    }, 30000); // 30 segundos - balance entre atualização e carga no servidor
     
     return () => clearInterval(interval);
   }, [

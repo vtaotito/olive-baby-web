@@ -6,12 +6,15 @@ import type { AuthTokens, ApiResponse } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
 
-// Create axios instance
+// Create axios instance com configurações otimizadas
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
+  timeout: 30000, // 30 segundos de timeout
   headers: {
     'Content-Type': 'application/json',
   },
+  // Configurações para evitar requisições duplicadas
+  validateStatus: (status) => status < 500, // Não rejeitar automaticamente 4xx
 });
 
 // Request interceptor - add auth token
@@ -26,15 +29,57 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle token refresh
+// Response interceptor - handle token refresh com proteção contra loops
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & { 
+      _retry?: boolean;
+      _skipAuth?: boolean;
+    };
+
+    // Skip refresh para endpoints públicos ou se já está tentando refresh
+    if (originalRequest._skipAuth || originalRequest.url?.includes('/auth/')) {
+      return Promise.reject(error);
+    }
 
     // If 401 and not already retrying
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Se já está fazendo refresh, adicionar à fila
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const tokens = storage.get<AuthTokens>('auth_tokens');
@@ -42,23 +87,42 @@ api.interceptors.response.use(
           // Try to refresh token
           const response = await axios.post<ApiResponse<AuthTokens>>(
             `${API_URL}/auth/refresh`,
-            { refreshToken: tokens.refreshToken }
+            { refreshToken: tokens.refreshToken },
+            { timeout: 10000 } // Timeout de 10s para refresh
           );
 
           if (response.data.success && response.data.data) {
             // Save new tokens
             storage.set('auth_tokens', response.data.data);
             
+            // Processar fila de requisições pendentes
+            processQueue(null, response.data.data.accessToken);
+            
             // Retry original request
-            originalRequest.headers.Authorization = `Bearer ${response.data.data.accessToken}`;
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${response.data.data.accessToken}`;
+            }
+            isRefreshing = false;
             return api(originalRequest);
           }
         }
+        
+        // Se não conseguiu refresh, limpar e redirecionar
+        throw new Error('Token refresh failed');
       } catch (refreshError) {
-        // Refresh failed - clear auth and redirect to login
+        // Refresh failed - processar fila com erro
+        processQueue(refreshError, null);
+        isRefreshing = false;
+        
+        // Clear auth and redirect to login
         storage.remove('auth_tokens');
         storage.remove('user');
-        window.location.href = '/login';
+        
+        // Evitar redirecionamento múltiplo
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+        
         return Promise.reject(refreshError);
       }
     }

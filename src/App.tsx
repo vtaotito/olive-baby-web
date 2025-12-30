@@ -54,12 +54,20 @@ const PlaceholderSettingsPage = ({ title }: { title: string }) => (
   </DashboardLayout>
 );
 
-// Create a client
+// Create a client com configurações otimizadas
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
+      staleTime: 1000 * 60 * 5, // 5 minutes - dados considerados frescos por 5 min
+      cacheTime: 1000 * 60 * 10, // 10 minutes - cache mantido por 10 min
+      refetchOnWindowFocus: false, // Não refetch ao focar na janela
+      refetchOnReconnect: true, // Refetch apenas ao reconectar
+      refetchOnMount: true, // Refetch ao montar componente
+      retry: 1, // Apenas 1 tentativa em caso de erro
+      retryDelay: 1000, // 1 segundo entre tentativas
+    },
+    mutations: {
+      retry: 0, // Mutations não devem retry automaticamente
     },
   },
 });
