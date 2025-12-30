@@ -79,7 +79,7 @@ interface UserActionsModalProps {
 
 function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { success, error } = useToast();
   const [blockReason, setBlockReason] = useState('');
 
   const changePlanMutation = useMutation({
@@ -88,11 +88,11 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
-      toast({ title: 'Plano alterado com sucesso', variant: 'success' });
+      success('Plano alterado com sucesso');
       onClose();
     },
     onError: () => {
-      toast({ title: 'Erro ao alterar plano', variant: 'error' });
+      error('Erro ao alterar plano');
     },
   });
 
@@ -101,11 +101,11 @@ function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
       adminService.changeUserStatus(userId, status, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: 'Status alterado com sucesso', variant: 'success' });
+      success('Status alterado com sucesso');
       onClose();
     },
     onError: () => {
-      toast({ title: 'Erro ao alterar status', variant: 'error' });
+      error('Erro ao alterar status');
     },
   });
 
