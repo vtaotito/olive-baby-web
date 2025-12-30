@@ -26,6 +26,11 @@ export function formatTimeBR(date: string | Date): string {
   });
 }
 
+// Alias para formatTime (compatibilidade)
+export function formatTime(date: string | Date): string {
+  return formatTimeBR(date);
+}
+
 // Format date and time
 export function formatDateTimeBR(date: string | Date): string {
   return `${formatDateBR(date)} ${formatTimeBR(date)}`;

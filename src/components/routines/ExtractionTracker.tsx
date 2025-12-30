@@ -6,6 +6,7 @@ import { DashboardLayout } from '../layout';
 import { Card, CardBody, CardHeader, Button, Input } from '../ui';
 import { useToast } from '../ui/Toast';
 import { Timer } from './Timer';
+import { RoutineRecordsPanel } from './RoutineRecordsPanel';
 import { useTimer } from '../../hooks/useTimer';
 import { useBabyStore } from '../../stores/babyStore';
 import { routineService } from '../../services/api';
@@ -368,6 +369,14 @@ export function ExtractionTracker() {
             </CardBody>
           </Card>
         )}
+
+        {/* Registros Salvos */}
+        <RoutineRecordsPanel
+          babyId={selectedBaby.id}
+          routineType="MILK_EXTRACTION"
+          routineTypeLabel="Extração de Leite"
+          limit={10}
+        />
       </div>
     </DashboardLayout>
   );

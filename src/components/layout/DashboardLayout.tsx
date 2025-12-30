@@ -24,6 +24,8 @@ import { Avatar, Button } from '../ui';
 import { formatAge } from '../../lib/utils';
 import { QuickActionsFooter } from '../routines/dashboard/QuickActionsFooter';
 import { AIChatButton } from '../ai/AIChatButton';
+import { BabyModal } from '../babies';
+import { useModalStore } from '../../stores/modalStore';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,6 +45,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { babies, selectedBaby, selectBaby, isLoading } = useBabyStore();
+  const { babyModalOpen, openBabyModal, closeBabyModal } = useModalStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [babyDropdownOpen, setBabyDropdownOpen] = useState(false);
   
@@ -176,16 +179,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           )}
                         </button>
                       ))}
-                      <Link
-                        to="/onboarding"
-                        className="block w-full p-3 text-sm text-olive-600 font-medium hover:bg-olive-50 border-t border-gray-100 rounded-b-xl transition-colors"
-                        onClick={() => setBabyDropdownOpen(false)}
+                      <button
+                        className="block w-full p-3 text-sm text-olive-600 font-medium hover:bg-olive-50 border-t border-gray-100 rounded-b-xl transition-colors text-left"
+                        onClick={() => {
+                          setBabyDropdownOpen(false);
+                          openBabyModal();
+                        }}
                       >
                         <div className="flex items-center gap-2">
                           <Plus className="w-4 h-4" />
                           <span>Adicionar bebê</span>
                         </div>
-                      </Link>
+                      </button>
                     </div>
                   </>
                 )}
@@ -196,13 +201,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Bebê Ativo
               </label>
-              <Link
-                to="/onboarding"
+              <button
+                onClick={() => openBabyModal()}
                 className="w-full flex items-center justify-center gap-2 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors border-2 border-dashed border-olive-300"
               >
                 <Plus className="w-5 h-5 text-olive-600" />
                 <span className="font-medium text-olive-700">Adicionar bebê</span>
-              </Link>
+              </button>
               <p className="text-xs text-gray-500 text-center mt-2">
                 Cadastre seu primeiro bebê para começar
               </p>
@@ -273,6 +278,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="fixed bottom-24 right-6 z-50 lg:bottom-6">
         <AIChatButton />
       </div>
+
+      {/* Baby Modal Global */}
+      <BabyModal
+        isOpen={babyModalOpen}
+        onClose={closeBabyModal}
+      />
     </div>
   );
 }

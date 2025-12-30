@@ -5,3 +5,5 @@ export * from './SleepTracker';
 export * from './DiaperTracker';
 export * from './BathTracker';
 export * from './ExtractionTracker';
+export * from './RoutineRecordsPanel';
+export * from './RoutineRecordEditModal';

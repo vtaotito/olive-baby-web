@@ -1,9 +1,6 @@
 // Olive Baby Web - Babies Settings Page
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   Baby,
   ChevronLeft,
@@ -12,140 +9,49 @@ import {
   Trash2,
   Calendar,
   MapPin,
-  Scale,
-  Ruler,
   Check,
   Users,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
-import { Card, CardBody, CardHeader, Button, Input, Modal, Avatar } from '../../components/ui';
+import { Card, CardBody, CardHeader, Button, Modal, Avatar } from '../../components/ui';
+import { BabyModal } from '../../components/babies';
 import { useToast } from '../../components/ui/Toast';
 import { useBabyStore } from '../../stores/babyStore';
-import { babyService } from '../../services/api';
+import { useModalStore } from '../../stores/modalStore';
 import { formatDateBR, formatAge, cn } from '../../lib/utils';
-import type { Baby as BabyType, Relationship } from '../../types';
+import type { Baby as BabyType } from '../../types';
 
-const relationships: { value: Relationship; label: string; emoji: string }[] = [
-  { value: 'MOTHER', label: 'Mãe', emoji: '👩' },
-  { value: 'FATHER', label: 'Pai', emoji: '👨' },
-  { value: 'GRANDMOTHER', label: 'Avó', emoji: '👵' },
-  { value: 'GRANDFATHER', label: 'Avô', emoji: '👴' },
-  { value: 'NANNY', label: 'Babá', emoji: '👩‍🍼' },
-  { value: 'OTHER', label: 'Outro', emoji: '👤' },
-];
-
-const babySchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
-  relationship: z.enum(['MOTHER', 'FATHER', 'GRANDMOTHER', 'GRANDFATHER', 'NANNY', 'OTHER']).optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  birthWeightGrams: z.number().min(500).max(7000).optional().or(z.literal('')),
-  birthLengthCm: z.number().min(20).max(70).optional().or(z.literal('')),
-  babyCpf: z.string().optional(),
-});
-
-type BabyFormData = z.infer<typeof babySchema>;
+// Wrapper para usar o modal do store
+function BabyModalWrapper() {
+  const { babyModalOpen, editingBaby, closeBabyModal } = useModalStore();
+  return (
+    <BabyModal
+      isOpen={babyModalOpen}
+      onClose={closeBabyModal}
+      editingBaby={editingBaby}
+    />
+  );
+}
 
 export function BabiesPage() {
   const navigate = useNavigate();
-  const { babies, selectedBaby, fetchBabies, selectBaby, addBaby, updateBaby, deleteBaby } = useBabyStore();
+  const { babies, selectedBaby, fetchBabies, selectBaby, deleteBaby } = useBabyStore();
   const { success, error: showError } = useToast();
+  const { openBabyModal } = useModalStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingBaby, setEditingBaby] = useState<BabyType | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [babyToDelete, setBabyToDelete] = useState<BabyType | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<BabyFormData>({
-    resolver: zodResolver(babySchema),
-    defaultValues: {
-      relationship: 'MOTHER',
-    },
-    mode: 'onChange',
-  });
-
-  const selectedRelationship = watch('relationship');
 
   useEffect(() => {
     fetchBabies();
   }, [fetchBabies]);
 
   const openAddModal = () => {
-    setEditingBaby(null);
-    reset({
-      name: '',
-      birthDate: '',
-      relationship: 'MOTHER',
-      city: '',
-      state: '',
-    });
-    setShowModal(true);
+    openBabyModal(null);
   };
 
   const openEditModal = (baby: BabyType) => {
-    setEditingBaby(baby);
-    reset({
-      name: baby.name,
-      birthDate: baby.birthDate.split('T')[0],
-      relationship: 'MOTHER', // TODO: Get from baby-caregiver relationship
-      city: baby.city || '',
-      state: baby.state || '',
-      birthWeightGrams: baby.birthWeightGrams || undefined,
-      birthLengthCm: baby.birthLengthCm || undefined,
-    });
-    setShowModal(true);
-  };
-
-  const onSubmit = async (data: BabyFormData) => {
-    setIsLoading(true);
-    try {
-      if (editingBaby) {
-        const updateData = {
-          name: data.name,
-          birthDate: new Date(data.birthDate).toISOString(),
-          city: data.city || undefined,
-          state: data.state || undefined,
-          birthWeightGrams: data.birthWeightGrams ? Number(data.birthWeightGrams) : undefined,
-          birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
-        };
-        console.log('Updating baby:', editingBaby.id, updateData);
-        await updateBaby(editingBaby.id, updateData);
-        success('Bebê atualizado!', `${data.name} foi atualizado com sucesso`);
-      } else {
-        if (!data.relationship) {
-          showError('Erro', 'Selecione sua relação com o bebê');
-          setIsLoading(false);
-          return;
-        }
-        await addBaby({
-          name: data.name,
-          birthDate: new Date(data.birthDate).toISOString(),
-          relationship: data.relationship,
-          city: data.city || undefined,
-          state: data.state || undefined,
-          birthWeightGrams: data.birthWeightGrams ? Number(data.birthWeightGrams) : undefined,
-          birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
-          babyCpf: data.babyCpf || undefined,
-        });
-        success('Bebê adicionado!', `${data.name} foi cadastrado com sucesso`);
-      }
-      setShowModal(false);
-      reset();
-    } catch (err: unknown) {
-      console.error('Error saving baby:', err);
-      const error = err as { response?: { data?: { message?: string } }; message?: string };
-      showError('Erro', error.response?.data?.message || error.message || 'Falha ao salvar bebê');
-    } finally {
-      setIsLoading(false);
-    }
+    openBabyModal(baby);
   };
 
   const handleDelete = async () => {
@@ -281,141 +187,8 @@ export function BabiesPage() {
         )}
       </div>
 
-      {/* Add/Edit Baby Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={editingBaby ? 'Editar Bebê' : 'Adicionar Bebê'}
-      >
-        <form 
-          onSubmit={(e) => {
-            e.stopPropagation();
-            handleSubmit(onSubmit, (errors) => {
-              console.error('Form validation errors:', errors);
-              if (Object.keys(errors).length > 0) {
-                console.error('Validation failed:', errors);
-              }
-            })(e);
-          }} 
-          className="space-y-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Input
-            label="Nome do bebê"
-            placeholder="Ex: Maria Oliveira"
-            error={errors.name?.message}
-            {...register('name')}
-          />
-
-          <Input
-            label="Data de nascimento"
-            type="date"
-            max={new Date().toISOString().split('T')[0]}
-            error={errors.birthDate?.message}
-            {...register('birthDate')}
-          />
-
-          {!editingBaby && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sua relação com o bebê
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {relationships.map((rel) => (
-                  <button
-                    key={rel.value}
-                    type="button"
-                    onClick={() => setValue('relationship', rel.value)}
-                    className={cn(
-                      'p-3 rounded-lg border-2 transition-all text-center',
-                      selectedRelationship === rel.value
-                        ? 'border-olive-500 bg-olive-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    )}
-                  >
-                    <span className="text-xl block">{rel.emoji}</span>
-                    <span className="text-xs font-medium">{rel.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Peso ao nascer (g)"
-              type="number"
-              placeholder="3200"
-              leftIcon={<Scale className="w-5 h-5" />}
-              {...register('birthWeightGrams', { valueAsNumber: true })}
-            />
-            <Input
-              label="Comprimento (cm)"
-              type="number"
-              step="0.1"
-              placeholder="49.5"
-              leftIcon={<Ruler className="w-5 h-5" />}
-              {...register('birthLengthCm', { valueAsNumber: true })}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Cidade"
-              placeholder="São Paulo"
-              {...register('city')}
-            />
-            <Input
-              label="Estado"
-              placeholder="SP"
-              maxLength={2}
-              {...register('state')}
-            />
-          </div>
-
-          {!editingBaby && (
-            <Input
-              label="CPF do Bebê (opcional)"
-              placeholder="12345678901"
-              maxLength={11}
-              hint="Usado para identificar o bebê de forma única e permitir compartilhamento"
-              {...register('babyCpf')}
-            />
-          )}
-
-          {Object.keys(errors).length > 0 && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm font-medium text-red-800 mb-1">Erros de validação:</p>
-              <ul className="text-sm text-red-700 list-disc list-inside">
-                {errors.name && <li>{errors.name.message}</li>}
-                {errors.birthDate && <li>{errors.birthDate.message}</li>}
-                {errors.relationship && <li>{errors.relationship.message}</li>}
-                {errors.birthWeightGrams && <li>{errors.birthWeightGrams.message}</li>}
-                {errors.birthLengthCm && <li>{errors.birthLengthCm.message}</li>}
-              </ul>
-            </div>
-          )}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowModal(false)}
-              fullWidth
-              disabled={isLoading}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              fullWidth 
-              isLoading={isLoading}
-              disabled={isLoading}
-            >
-              {editingBaby ? 'Salvar' : 'Adicionar'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
+      {/* Baby Modal - Usando componente compartilhado */}
+      <BabyModalWrapper />
 
       {/* Delete Confirmation Modal */}
       <Modal
