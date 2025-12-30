@@ -123,7 +123,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="h-10 bg-gray-200 rounded-lg" />
               </div>
             </div>
-          ) : babies.length > 0 ? (
+          ) : babies.length > 0 && selectedBaby ? (
             <div className="space-y-2">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Bebê Ativo
@@ -134,15 +134,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   className="w-full flex items-center gap-3 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors border border-olive-200"
                 >
                   <Avatar
-                    name={selectedBaby?.name || 'Bebê'}
-                    src={selectedBaby?.photoUrl}
+                    name={selectedBaby.name || 'Bebê'}
+                    src={selectedBaby.photoUrl}
                     size="md"
                   />
                   <div className="flex-1 text-left min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{selectedBaby?.name || 'Selecione um bebê'}</p>
-                    {selectedBaby && (
-                      <p className="text-xs text-gray-500">{formatAge(selectedBaby.birthDate)}</p>
-                    )}
+                    <p className="font-medium text-gray-900 truncate">{selectedBaby.name || 'Bebê'}</p>
+                    <p className="text-xs text-gray-500">{formatAge(selectedBaby.birthDate)}</p>
                   </div>
                   <ChevronDown className={cn('w-5 h-5 text-gray-400 transition-transform flex-shrink-0', babyDropdownOpen && 'rotate-180')} />
                 </button>
