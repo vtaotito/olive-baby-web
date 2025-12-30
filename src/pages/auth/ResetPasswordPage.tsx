@@ -121,14 +121,12 @@ export function ResetPasswordPage() {
             </p>
           </div>
 
-          <Button
-            as={Link}
+          <Link
             to="/login"
-            variant="primary"
-            fullWidth
+            className="flex items-center justify-center w-full px-4 py-3 bg-olive-600 text-white font-medium rounded-xl hover:bg-olive-700 transition-colors"
           >
             Ir para o login
-          </Button>
+          </Link>
         </div>
       </AuthLayout>
     );

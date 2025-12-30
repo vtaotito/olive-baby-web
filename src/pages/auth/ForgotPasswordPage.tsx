@@ -70,15 +70,13 @@ export function ForgotPasswordPage() {
           </div>
 
           <div className="pt-4 space-y-3">
-            <Button
-              as={Link}
+            <Link
               to="/login"
-              variant="primary"
-              fullWidth
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-olive-600 text-white font-medium rounded-xl hover:bg-olive-700 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               Voltar para o login
-            </Button>
+            </Link>
             
             <button
               onClick={() => setIsSuccess(false)}
