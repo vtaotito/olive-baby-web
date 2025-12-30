@@ -73,6 +73,13 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
   useEffect(() => {
     if (isOpen) {
       if (editingBaby) {
+        // Converter birthLengthCm para número se for string
+        const birthLengthCm = editingBaby.birthLengthCm 
+          ? (typeof editingBaby.birthLengthCm === 'string' 
+              ? parseFloat(editingBaby.birthLengthCm) 
+              : editingBaby.birthLengthCm)
+          : undefined;
+        
         reset({
           name: editingBaby.name,
           birthDate: editingBaby.birthDate.split('T')[0],
@@ -80,7 +87,7 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
           city: editingBaby.city || '',
           state: editingBaby.state || '',
           birthWeightGrams: editingBaby.birthWeightGrams || undefined,
-          birthLengthCm: editingBaby.birthLengthCm || undefined,
+          birthLengthCm: birthLengthCm,
         });
       } else {
         reset({
@@ -98,14 +105,23 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
     setIsLoading(true);
     try {
       if (editingBaby) {
+        // Converter valores numéricos corretamente, tratando strings vazias e valores inválidos
+        const birthWeightGrams = data.birthWeightGrams && !isNaN(Number(data.birthWeightGrams))
+          ? Number(data.birthWeightGrams)
+          : undefined;
+        const birthLengthCm = data.birthLengthCm && !isNaN(Number(data.birthLengthCm))
+          ? Number(data.birthLengthCm)
+          : undefined;
+        
         const updateData = {
           name: data.name,
           birthDate: new Date(data.birthDate).toISOString(),
-          city: data.city || undefined,
-          state: data.state || undefined,
-          birthWeightGrams: data.birthWeightGrams ? Number(data.birthWeightGrams) : undefined,
-          birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
+          city: data.city?.trim() || undefined,
+          state: data.state?.trim() || undefined,
+          birthWeightGrams,
+          birthLengthCm,
         };
+        
         await updateBaby(editingBaby.id, updateData);
         success('Bebê atualizado!', `${data.name} foi atualizado com sucesso`);
         // Atualizar lista de bebês
@@ -151,16 +167,20 @@ export function BabyModal({ isOpen, onClose, editingBaby: propEditingBaby }: Bab
       title={editingBaby ? 'Editar Bebê' : 'Adicionar Bebê'}
     >
       <form 
-        onSubmit={handleSubmit(
-          (data) => {
-            onSubmit(data);
-          },
-          (errors) => {
-            if (Object.keys(errors).length > 0) {
-              showError('Erro de validação', 'Por favor, corrija os erros no formulário');
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSubmit(
+            (data) => {
+              onSubmit(data);
+            },
+            (errors) => {
+              if (Object.keys(errors).length > 0) {
+                showError('Erro de validação', 'Por favor, corrija os erros no formulário');
+              }
             }
-          }
-        )} 
+          )();
+        }} 
         className="space-y-4"
       >
         <Input

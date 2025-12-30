@@ -16,6 +16,7 @@ import {
   FileDown,
   Users,
   Plus,
+  Shield,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -240,6 +241,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               );
             })}
           </ul>
+
+          {/* Admin Link - Only for ADMIN role */}
+          {user?.role === 'ADMIN' && (
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <Link
+                to="/admin"
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors',
+                  location.pathname.startsWith('/admin')
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'text-amber-600 hover:bg-amber-50'
+                )}
+              >
+                <Shield className="w-5 h-5" />
+                <span className="font-medium">Admin Console</span>
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* User Menu */}

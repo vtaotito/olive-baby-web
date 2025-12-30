@@ -4,3 +4,5 @@ export * from './DashboardLayout';
 export * from './ProtectedRoute';
 export * from './FloatingActions';
 export * from './BabyInitializer';
+export * from './AdminLayout';
+export * from './AdminRoute';

@@ -132,14 +132,18 @@ export const useBabyStore = create<BabyState>()(
         birthLengthCm?: number;
       }>) => {
         try {
-          // Filtrar apenas campos definidos
+          // Filtrar apenas campos definidos e válidos
           const updatePayload: any = {};
-          if (data.name !== undefined) updatePayload.name = data.name;
+          if (data.name !== undefined && data.name.trim() !== '') updatePayload.name = data.name.trim();
           if (data.birthDate !== undefined) updatePayload.birthDate = data.birthDate;
-          if (data.city !== undefined) updatePayload.city = data.city;
-          if (data.state !== undefined) updatePayload.state = data.state;
-          if (data.birthWeightGrams !== undefined) updatePayload.birthWeightGrams = data.birthWeightGrams;
-          if (data.birthLengthCm !== undefined) updatePayload.birthLengthCm = data.birthLengthCm;
+          if (data.city !== undefined) updatePayload.city = data.city?.trim() || null;
+          if (data.state !== undefined) updatePayload.state = data.state?.trim() || null;
+          if (data.birthWeightGrams !== undefined && data.birthWeightGrams !== null && !isNaN(data.birthWeightGrams)) {
+            updatePayload.birthWeightGrams = data.birthWeightGrams;
+          }
+          if (data.birthLengthCm !== undefined && data.birthLengthCm !== null && !isNaN(data.birthLengthCm)) {
+            updatePayload.birthLengthCm = data.birthLengthCm;
+          }
 
           const response = await babyService.update(id, updatePayload);
           if (response.success && response.data) {

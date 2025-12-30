@@ -2,10 +2,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/ui/Toast';
-import { ProtectedRoute, DashboardLayout, BabyInitializer } from './components/layout';
+import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute } from './components/layout';
 
 // Auth Pages
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
+
+// Admin Pages
+import { AdminDashboardPage, AdminUsersPage, AdminBabiesPage, AdminUsagePage } from './pages/admin';
 
 // Onboarding
 import { OnboardingPage } from './pages/onboarding';
@@ -267,6 +270,40 @@ function App() {
                 <ProtectedRoute>
                   <HelpPage />
                 </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboardPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsersPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/babies"
+              element={
+                <AdminRoute>
+                  <AdminBabiesPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/usage"
+              element={
+                <AdminRoute>
+                  <AdminUsagePage />
+                </AdminRoute>
               }
             />
 
