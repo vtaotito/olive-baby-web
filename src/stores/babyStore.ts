@@ -56,29 +56,35 @@ export const useBabyStore = create<BabyState>()(
             const babies = response.data;
             set({ babies, isLoading: false });
             
-            // Sempre selecionar o primeiro bebê (mais antigo criado pelo usuário)
-            // Se já houver um selecionado e ele ainda existir na lista, manter
+            // Sempre garantir que há um bebê selecionado se houver bebês disponíveis
             const { selectedBaby } = get();
             if (babies.length > 0) {
-              // Se o bebê selecionado ainda existe, manter
-              const selectedStillExists = selectedBaby && babies.some(b => b.id === selectedBaby.id);
-              if (!selectedStillExists) {
-                // Selecionar o primeiro bebê (mais antigo)
-                const firstBaby = babies[0];
-                set({ selectedBaby: firstBaby });
-                // Carregar stats e rotinas ativas do bebê selecionado
-                get().fetchStats(firstBaby.id);
-                get().checkActiveRoutines(firstBaby.id);
-              } else if (selectedBaby) {
-                // Se o bebê selecionado ainda existe, apenas atualizar a lista
-                // mas manter a seleção e garantir que stats estão atualizados
-                get().fetchStats(selectedBaby.id);
-                get().checkActiveRoutines(selectedBaby.id);
+              let babyToSelect: Baby | null = null;
+              
+              // Se há um bebê selecionado, verificar se ele ainda existe na lista
+              if (selectedBaby) {
+                const foundBaby = babies.find(b => b.id === selectedBaby.id);
+                if (foundBaby) {
+                  // Bebê selecionado ainda existe - usar dados atualizados da API
+                  babyToSelect = foundBaby;
+                }
               }
+              
+              // Se não encontrou o bebê selecionado, selecionar o primeiro (mais antigo)
+              if (!babyToSelect) {
+                babyToSelect = babies[0];
+              }
+              
+              // Atualizar seleção e carregar dados
+              set({ selectedBaby: babyToSelect });
+              get().fetchStats(babyToSelect.id);
+              get().checkActiveRoutines(babyToSelect.id);
             } else {
               // Sem bebês - limpar seleção
               set({ selectedBaby: null, stats: null, activeRoutines: {} });
             }
+          } else {
+            set({ isLoading: false });
           }
         } catch (error) {
           set({ isLoading: false });
