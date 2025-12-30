@@ -19,5 +19,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Nota: O BabyInitializer cuida de carregar bebês e redirecionar para onboarding
   return <>{children}</>;
 }

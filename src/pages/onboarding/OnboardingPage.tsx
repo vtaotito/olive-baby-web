@@ -102,6 +102,7 @@ export function OnboardingPage() {
         birthLengthCm: data.birthLengthCm ? Number(data.birthLengthCm) : undefined,
       });
       success('Bebê cadastrado!', `${data.name} foi adicionado com sucesso`);
+      // O store já seleciona automaticamente o bebê recém-criado
       navigate('/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };

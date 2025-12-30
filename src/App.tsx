@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/ui/Toast';
-import { ProtectedRoute, DashboardLayout } from './components/layout';
+import { ProtectedRoute, DashboardLayout, BabyInitializer } from './components/layout';
 
 // Auth Pages
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
@@ -77,7 +77,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <BrowserRouter>
-          <Routes>
+          <BabyInitializer>
+            <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -283,6 +284,7 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+          </BabyInitializer>
         </BrowserRouter>
       </ToastProvider>
     </QueryClientProvider>

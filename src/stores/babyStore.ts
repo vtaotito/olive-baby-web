@@ -56,10 +56,28 @@ export const useBabyStore = create<BabyState>()(
             const babies = response.data;
             set({ babies, isLoading: false });
             
-            // Auto-select first baby if none selected
+            // Sempre selecionar o primeiro bebê (mais antigo criado pelo usuário)
+            // Se já houver um selecionado e ele ainda existir na lista, manter
             const { selectedBaby } = get();
-            if (!selectedBaby && babies.length > 0) {
-              set({ selectedBaby: babies[0] });
+            if (babies.length > 0) {
+              // Se o bebê selecionado ainda existe, manter
+              const selectedStillExists = selectedBaby && babies.some(b => b.id === selectedBaby.id);
+              if (!selectedStillExists) {
+                // Selecionar o primeiro bebê (mais antigo)
+                const firstBaby = babies[0];
+                set({ selectedBaby: firstBaby });
+                // Carregar stats e rotinas ativas do bebê selecionado
+                get().fetchStats(firstBaby.id);
+                get().checkActiveRoutines(firstBaby.id);
+              } else if (selectedBaby) {
+                // Se o bebê selecionado ainda existe, apenas atualizar a lista
+                // mas manter a seleção e garantir que stats estão atualizados
+                get().fetchStats(selectedBaby.id);
+                get().checkActiveRoutines(selectedBaby.id);
+              }
+            } else {
+              // Sem bebês - limpar seleção
+              set({ selectedBaby: null, stats: null, activeRoutines: {} });
             }
           }
         } catch (error) {
@@ -87,6 +105,9 @@ export const useBabyStore = create<BabyState>()(
               selectedBaby: newBaby,
               isLoading: false,
             }));
+            // Carregar stats e rotinas ativas do novo bebê
+            get().fetchStats(newBaby.id);
+            get().checkActiveRoutines(newBaby.id);
             return newBaby;
           }
           throw new Error('Failed to create baby');

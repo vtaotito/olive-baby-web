@@ -42,14 +42,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { babies, selectedBaby, selectBaby, fetchBabies } = useBabyStore();
+  const { babies, selectedBaby, selectBaby, isLoading } = useBabyStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [babyDropdownOpen, setBabyDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    // Carregar bebês quando o componente montar
-    fetchBabies().catch(console.error);
-  }, [fetchBabies]);
+  
+  // Nota: O BabyInitializer já cuida de carregar bebês automaticamente
+  // e redirecionar para onboarding se necessário
 
   const handleLogout = async () => {
     await logout();
@@ -116,7 +114,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Baby Selector - Sempre visível */}
         <div className="p-4 border-b border-gray-100">
-          {babies.length > 0 ? (
+          {isLoading ? (
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Bebê Ativo
+              </label>
+              <div className="w-full p-3 bg-gray-50 rounded-xl animate-pulse">
+                <div className="h-10 bg-gray-200 rounded-lg" />
+              </div>
+            </div>
+          ) : babies.length > 0 ? (
             <div className="space-y-2">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Bebê Ativo
@@ -172,7 +179,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         </button>
                       ))}
                       <Link
-                        to="/settings/babies/new"
+                        to="/onboarding"
                         className="block w-full p-3 text-sm text-olive-600 font-medium hover:bg-olive-50 border-t border-gray-100 rounded-b-xl transition-colors"
                         onClick={() => setBabyDropdownOpen(false)}
                       >
@@ -192,12 +199,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 Bebê Ativo
               </label>
               <Link
-                to="/settings/babies/new"
+                to="/onboarding"
                 className="w-full flex items-center justify-center gap-2 p-3 bg-olive-50 rounded-xl hover:bg-olive-100 transition-colors border-2 border-dashed border-olive-300"
               >
                 <Plus className="w-5 h-5 text-olive-600" />
                 <span className="font-medium text-olive-700">Adicionar bebê</span>
               </Link>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                Cadastre seu primeiro bebê para começar
+              </p>
             </div>
           )}
         </div>
