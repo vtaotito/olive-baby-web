@@ -3,3 +3,6 @@ export * from './ProfilePage';
 export * from './BabiesPage';
 export * from './NotificationsPage';
 export * from './BabyMembersPage';
+export * from './PrivacyPage';
+export * from './AppearancePage';
+export * from './HelpPage';

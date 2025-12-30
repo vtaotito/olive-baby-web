@@ -22,7 +22,8 @@ import { useToast } from '../../components/ui/Toast';
 import { useAuthStore } from '../../stores/authStore';
 import { Avatar } from '../../components/ui';
 import { formatCPF, formatPhone } from '../../lib/utils';
-import { caregiverService } from '../../services/api';
+import { caregiverService, authService } from '../../services/api';
+import { storage } from '../../lib/utils';
 
 const profileSchema = z.object({
   fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -141,26 +142,57 @@ export function ProfilePage() {
   const onSubmitPassword = async (data: PasswordFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Call API to change password
-      // await authService.changePassword(data);
+      const response = await authService.changePassword(data.currentPassword, data.newPassword);
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      success('Senha alterada!', 'Sua senha foi atualizada com sucesso');
-      setShowPasswordModal(false);
-      resetPassword();
+      if (response.success) {
+        success('Senha alterada!', 'Sua senha foi atualizada com sucesso');
+        setShowPasswordModal(false);
+        resetPassword();
+      } else {
+        throw new Error(response.message || 'Falha ao alterar senha');
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
-      showError('Erro', error.response?.data?.message || 'Falha ao alterar senha');
+      showError('Erro', error.response?.data?.message || error.message || 'Falha ao alterar senha');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const [deletePassword, setDeletePassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDeleteAccount = async () => {
-    // TODO: Implement account deletion
-    showError('Não disponível', 'Esta funcionalidade será implementada em breve');
-    setShowDeleteModal(false);
+    if (!deletePassword) {
+      showError('Erro', 'Digite sua senha para confirmar a exclusão');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await authService.deleteAccount(deletePassword);
+      
+      if (response.success) {
+        // Limpar dados locais
+        storage.remove('auth_tokens');
+        storage.remove('user');
+        
+        success('Conta excluída', 'Sua conta foi excluída com sucesso');
+        
+        // Redirecionar para login após um breve delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1500);
+      } else {
+        throw new Error(response.message || 'Falha ao excluir conta');
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      showError('Erro', error.response?.data?.message || error.message || 'Falha ao excluir conta');
+    } finally {
+      setIsDeleting(false);
+      setDeletePassword('');
+    }
   };
 
   return (
@@ -344,19 +376,42 @@ export function ProfilePage() {
       {/* Delete Account Modal */}
       <Modal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletePassword('');
+        }}
         title="Excluir Conta"
       >
         <div className="space-y-4">
+          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+            <p className="text-red-700 text-sm">
+              <strong>⚠️ Atenção:</strong> Esta ação é <strong>irreversível</strong>. 
+              Todos os seus dados, incluindo bebês cadastrados e histórico de rotinas, 
+              serão permanentemente removidos.
+            </p>
+          </div>
+          
           <p className="text-gray-600">
-            Tem certeza que deseja excluir sua conta? Esta ação é <strong>irreversível</strong> e
-            todos os seus dados serão permanentemente removidos.
+            Para confirmar a exclusão, digite sua senha abaixo:
           </p>
-          <div className="flex gap-3">
+          
+          <Input
+            label="Sua senha"
+            type="password"
+            value={deletePassword}
+            onChange={(e) => setDeletePassword(e.target.value)}
+            placeholder="Digite sua senha para confirmar"
+          />
+          
+          <div className="flex gap-3 pt-2">
             <Button
               variant="secondary"
-              onClick={() => setShowDeleteModal(false)}
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeletePassword('');
+              }}
               fullWidth
+              disabled={isDeleting}
             >
               Cancelar
             </Button>
@@ -364,8 +419,10 @@ export function ProfilePage() {
               variant="danger"
               onClick={handleDeleteAccount}
               fullWidth
+              isLoading={isDeleting}
+              disabled={!deletePassword}
             >
-              Excluir Conta
+              Excluir Minha Conta
             </Button>
           </div>
         </div>

@@ -21,7 +21,7 @@ import { MilestonesPage } from './pages/milestones';
 import { ExportPage } from './pages/export';
 
 // Settings Pages
-import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage, BabyMembersPage } from './pages/settings';
+import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage, BabyMembersPage, PrivacyPage, AppearancePage, HelpPage } from './pages/settings';
 
 // Team Page
 import { TeamPage } from './pages/team';
@@ -43,16 +43,6 @@ import { FeedingDashboardPage } from './pages/feeding/FeedingDashboardPage';
 
 // Routines Dashboard
 import { RoutinesDashboardPage } from './pages/routines';
-
-// Placeholder for other settings pages
-const PlaceholderSettingsPage = ({ title }: { title: string }) => (
-  <DashboardLayout>
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">{title}</h1>
-      <p className="text-gray-500">Esta funcionalidade estará disponível em breve.</p>
-    </div>
-  </DashboardLayout>
-);
 
 // Create a client com configurações otimizadas
 const queryClient = new QueryClient({
@@ -259,7 +249,7 @@ function App() {
               path="/settings/privacy"
               element={
                 <ProtectedRoute>
-                  <PlaceholderSettingsPage title="Privacidade e Segurança" />
+                  <PrivacyPage />
                 </ProtectedRoute>
               }
             />
@@ -267,7 +257,7 @@ function App() {
               path="/settings/appearance"
               element={
                 <ProtectedRoute>
-                  <PlaceholderSettingsPage title="Aparência" />
+                  <AppearancePage />
                 </ProtectedRoute>
               }
             />
@@ -275,7 +265,7 @@ function App() {
               path="/settings/help"
               element={
                 <ProtectedRoute>
-                  <PlaceholderSettingsPage title="Ajuda e Suporte" />
+                  <HelpPage />
                 </ProtectedRoute>
               }
             />

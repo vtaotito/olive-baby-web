@@ -1,5 +1,5 @@
 // Olive Baby Web - Notifications Settings Page
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -14,11 +14,13 @@ import {
   Mail,
   Volume2,
   Save,
+  Loader2,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
 import { Card, CardBody, CardHeader, Button } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/utils';
+import { settingsService } from '../../services/api';
 
 interface NotificationSetting {
   key: string;
@@ -31,8 +33,9 @@ interface NotificationSetting {
 
 export function NotificationsPage() {
   const navigate = useNavigate();
-  const { success } = useToast();
+  const { success, error: showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Notification preferences
@@ -48,10 +51,46 @@ export function NotificationsPage() {
     pushEnabled: true,
     emailEnabled: false,
     soundEnabled: true,
-    quietHoursEnabled: true,
+    quietHoursEnabled: false,
     quietHoursStart: '22:00',
     quietHoursEnd: '07:00',
   });
+
+  // Load settings from API
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await settingsService.getSettings();
+        if (response.success && response.data) {
+          const { notifications } = response.data;
+          
+          // Update general settings
+          setGeneralSettings({
+            pushEnabled: notifications.pushEnabled,
+            emailEnabled: notifications.emailEnabled,
+            soundEnabled: notifications.soundEnabled,
+            quietHoursEnabled: notifications.quietHoursEnabled,
+            quietHoursStart: notifications.quietHoursStart,
+            quietHoursEnd: notifications.quietHoursEnd,
+          });
+          
+          // Update routine notifications
+          if (notifications.routineNotifications) {
+            setRoutineNotifications(prev => prev.map(n => ({
+              ...n,
+              enabled: notifications.routineNotifications[n.key as keyof typeof notifications.routineNotifications] ?? n.enabled,
+            })));
+          }
+        }
+      } catch (err) {
+        console.error('Error loading settings:', err);
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+
+    loadSettings();
+  }, []);
 
   const toggleRoutineNotification = (key: string) => {
     setRoutineNotifications(prev =>
@@ -71,12 +110,26 @@ export function NotificationsPage() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      // TODO: Save to API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      success('Notificações atualizadas!', 'Suas preferências foram salvas');
-      setHasChanges(false);
-    } catch (error) {
-      console.error('Error saving notifications:', error);
+      // Build routine notifications object
+      const routineNotificationsData = routineNotifications.reduce((acc, n) => ({
+        ...acc,
+        [n.key]: n.enabled,
+      }), {} as Record<string, boolean>);
+
+      const response = await settingsService.updateNotifications({
+        ...generalSettings,
+        routineNotifications: routineNotificationsData,
+      });
+
+      if (response.success) {
+        success('Notificações atualizadas!', 'Suas preferências foram salvas');
+        setHasChanges(false);
+      } else {
+        throw new Error(response.message || 'Falha ao salvar');
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      showError('Erro', error.response?.data?.message || error.message || 'Falha ao salvar notificações');
     } finally {
       setIsLoading(false);
     }
@@ -109,6 +162,11 @@ export function NotificationsPage() {
         )}
       </div>
 
+      {isLoadingSettings ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-olive-600 animate-spin" />
+        </div>
+      ) : (
       <div className="max-w-2xl space-y-6">
         {/* General Settings */}
         <Card>
@@ -252,6 +310,7 @@ export function NotificationsPage() {
           <p>Quanto mais você registrar, mais inteligentes serão os lembretes.</p>
         </div>
       </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -175,6 +175,16 @@ export const authService = {
     const response = await api.get('/auth/me');
     return response.data;
   },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await api.post('/auth/change-password', { currentPassword, newPassword });
+    return response.data;
+  },
+
+  deleteAccount: async (password: string) => {
+    const response = await api.delete('/auth/account', { data: { password } });
+    return response.data;
+  },
 };
 
 // ====== Baby Service ======
@@ -753,6 +763,44 @@ export const babyMemberService = {
   // Revoke member access
   revokeMember: async (babyId: number, memberId: number) => {
     const response = await api.delete(`/babies/${babyId}/members/${memberId}`);
+    return response.data;
+  },
+};
+
+// ====== Settings Service ======
+export const settingsService = {
+  // Get all settings
+  getSettings: async () => {
+    const response = await api.get('/settings');
+    return response.data;
+  },
+
+  // Update notification settings
+  updateNotifications: async (data: {
+    pushEnabled?: boolean;
+    emailEnabled?: boolean;
+    soundEnabled?: boolean;
+    quietHoursEnabled?: boolean;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+    routineNotifications?: {
+      feeding?: boolean;
+      sleep?: boolean;
+      diaper?: boolean;
+      bath?: boolean;
+      extraction?: boolean;
+    };
+  }) => {
+    const response = await api.put('/settings/notifications', data);
+    return response.data;
+  },
+
+  // Update appearance settings
+  updateAppearance: async (data: {
+    theme?: 'light' | 'dark' | 'system';
+    language?: string;
+  }) => {
+    const response = await api.put('/settings/appearance', data);
     return response.data;
   },
 };
