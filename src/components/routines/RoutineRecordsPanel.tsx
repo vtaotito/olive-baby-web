@@ -33,7 +33,7 @@ export function RoutineRecordsPanel({
     queryKey: ['routines', babyId, routineType],
     queryFn: async () => {
       const response = await routineService.list(babyId, {
-        type: routineType,
+        type: routineType as string,
         limit,
       });
       return response;
