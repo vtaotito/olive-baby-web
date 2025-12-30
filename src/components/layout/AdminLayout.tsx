@@ -11,7 +11,10 @@ import {
   X,
   ChevronLeft,
   Shield,
-  Bell,
+  Target,
+  DollarSign,
+  Database,
+  Bug,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -27,6 +30,10 @@ const adminNavItems = [
   { path: '/admin/users', icon: Users, label: 'Usuários' },
   { path: '/admin/babies', icon: Baby, label: 'Bebês' },
   { path: '/admin/usage', icon: BarChart3, label: 'Métricas' },
+  { path: '/admin/activation', icon: Target, label: 'Ativação' },
+  { path: '/admin/monetization', icon: DollarSign, label: 'Monetização' },
+  { path: '/admin/quality', icon: Database, label: 'Qualidade' },
+  { path: '/admin/errors', icon: Bug, label: 'Erros' },
 ];
 
 export function AdminLayout({ children, title }: AdminLayoutProps) {

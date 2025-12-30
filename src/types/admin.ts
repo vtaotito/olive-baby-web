@@ -185,3 +185,100 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// ==========================================
+// Activation Funnel
+// ==========================================
+
+export interface ActivationFunnel {
+  registered: number;
+  createdBaby: number;
+  createdFirstRoutine: number;
+  created3RoutinesIn24h: number;
+  used2RoutineTypesIn7d: number;
+}
+
+// ==========================================
+// Cohorts
+// ==========================================
+
+export interface CohortData {
+  cohortStartDate: string;
+  cohortEndDate: string;
+  usersInCohort: number;
+  d1Retention: number;
+  d7Retention: number;
+  d30Retention: number;
+}
+
+// ==========================================
+// Paywall Analytics
+// ==========================================
+
+export interface PaywallAnalytics {
+  hitsByFeature: Record<string, number>;
+  hitsTimeline: Array<{ date: string; count: number }>;
+  conversionByFeature: Record<string, {
+    hits: number;
+    conversions: number;
+    rate: number;
+  }>;
+}
+
+// ==========================================
+// Upgrade Candidates
+// ==========================================
+
+export interface UpgradeCandidate {
+  userId: number;
+  name: string;
+  email: string;
+  score: number;
+  reasons: string[];
+  lastActivityAt: string | null;
+  babiesCount: number;
+  routinesCountRange: number;
+  paywallHitsRange: number;
+}
+
+// ==========================================
+// Data Quality
+// ==========================================
+
+export interface DataQualityReport {
+  routineType: string;
+  totalRoutines: number;
+  withMeta: number;
+  withoutMeta: number;
+  metaCompleteness: number;
+  missingFields: Array<{
+    field: string;
+    missingCount: number;
+    percentage: number;
+  }>;
+}
+
+// ==========================================
+// Errors Analytics
+// ==========================================
+
+export interface ErrorsAnalytics {
+  topRoutesByErrors: Array<{
+    route: string;
+    statusCode: number;
+    count: number;
+  }>;
+  topUsersByErrors: Array<{
+    userId: number;
+    email: string;
+    fullName?: string;
+    count: number;
+  }>;
+  errorsByDay: Array<{
+    date: string;
+    count4xx: number;
+    count5xx: number;
+  }>;
+  totalErrors: number;
+  errorRate: number;
+}
+

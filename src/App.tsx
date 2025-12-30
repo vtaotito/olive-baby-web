@@ -8,7 +8,16 @@ import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute } from './
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
 
 // Admin Pages
-import { AdminDashboardPage, AdminUsersPage, AdminBabiesPage, AdminUsagePage } from './pages/admin';
+import {
+  AdminDashboardPage,
+  AdminUsersPage,
+  AdminBabiesPage,
+  AdminUsagePage,
+  AdminActivationPage,
+  AdminMonetizationPage,
+  AdminQualityPage,
+  AdminErrorsPage,
+} from './pages/admin';
 
 // Onboarding
 import { OnboardingPage } from './pages/onboarding';
@@ -303,6 +312,38 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminUsagePage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/activation"
+              element={
+                <AdminRoute>
+                  <AdminActivationPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/monetization"
+              element={
+                <AdminRoute>
+                  <AdminMonetizationPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/quality"
+              element={
+                <AdminRoute>
+                  <AdminQualityPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/errors"
+              element={
+                <AdminRoute>
+                  <AdminErrorsPage />
                 </AdminRoute>
               }
             />

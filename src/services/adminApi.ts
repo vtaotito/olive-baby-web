@@ -12,6 +12,12 @@ import type {
   Plan,
   PlanType,
   UserStatus,
+  ActivationFunnel,
+  CohortData,
+  PaywallAnalytics,
+  UpgradeCandidate,
+  DataQualityReport,
+  ErrorsAnalytics,
 } from '../types/admin';
 
 // ==========================================
@@ -134,6 +140,74 @@ export const adminService = {
       data: AdminBaby[];
       pagination: PaginatedResponse<AdminBaby>['pagination'];
     }>('/admin/babies', { params: filters });
+    return response.data;
+  },
+
+  // ============================================
+  // Advanced Analytics
+  // ============================================
+
+  /**
+   * Get activation funnel metrics
+   */
+  getActivationFunnel: async (range: '7d' | '30d' = '30d') => {
+    const response = await api.get<{ success: boolean; data: ActivationFunnel }>(
+      '/admin/funnel',
+      { params: { range } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get cohort retention data
+   */
+  getCohorts: async (lookback: number = 12) => {
+    const response = await api.get<{ success: boolean; data: CohortData[] }>(
+      '/admin/cohorts',
+      { params: { unit: 'week', lookback } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get paywall analytics
+   */
+  getPaywallAnalytics: async (range: '7d' | '30d' = '30d') => {
+    const response = await api.get<{ success: boolean; data: PaywallAnalytics }>(
+      '/admin/paywall',
+      { params: { range } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get upgrade candidates with lead scoring
+   */
+  getUpgradeCandidates: async () => {
+    const response = await api.get<{ success: boolean; data: UpgradeCandidate[] }>(
+      '/admin/upgrade-candidates'
+    );
+    return response.data;
+  },
+
+  /**
+   * Get data quality report
+   */
+  getDataQuality: async () => {
+    const response = await api.get<{ success: boolean; data: DataQualityReport[] }>(
+      '/admin/data-quality'
+    );
+    return response.data;
+  },
+
+  /**
+   * Get errors analytics
+   */
+  getErrorsAnalytics: async (range: '7d' | '30d' = '7d') => {
+    const response = await api.get<{ success: boolean; data: ErrorsAnalytics }>(
+      '/admin/errors',
+      { params: { range } }
+    );
     return response.data;
   },
 };
