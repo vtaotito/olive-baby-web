@@ -70,25 +70,15 @@ export interface BabyCaregiver {
 // ====== Routines ======
 export type RoutineType = 'FEEDING' | 'SLEEP' | 'DIAPER' | 'BATH' | 'MILK_EXTRACTION';
 
-export interface RoutineLog {
-  id: number;
-  babyId: number;
-  routineType: RoutineType;
-  startTime: string;
-  endTime?: string;
-  durationSeconds?: number;
-  notes?: string;
-  meta: Record<string, unknown>;
-  createdAt: string;
-}
-
 // Feeding Meta
 export interface FeedingMeta {
   feedingType: 'breast' | 'bottle' | 'solid';
   breastSide?: 'left' | 'right' | 'both';
   bottleMl?: number;
   bottleContent?: 'breast_milk' | 'formula' | 'mixed';
+  bottleMilkType?: 'breast_milk' | 'formula' | 'mixed';
   solidDescription?: string;
+  solidFoods?: string | string[];
   complement?: 'yes' | 'no';
   complementMl?: number;
   complementType?: 'formula' | 'breast_milk' | 'other';
@@ -97,7 +87,10 @@ export interface FeedingMeta {
 // Sleep Meta
 export interface SleepMeta {
   sleepQuality?: 'good' | 'regular' | 'bad';
+  quality?: 'good' | 'regular' | 'bad';
   wokeUpTimes?: number;
+  location?: string;
+  environment?: string;
 }
 
 // Diaper Meta
@@ -110,14 +103,98 @@ export interface DiaperMeta {
 // Bath Meta
 export interface BathMeta {
   bathTemperature?: number;
+  waterTemperature?: number;
   products?: string[];
+  productsUsed?: string[];
+  hairWashed?: boolean;
 }
 
 // Milk Extraction Meta
 export interface MilkExtractionMeta {
   extractionMl?: number;
+  quantityMl?: number;
   extractionMethod?: 'manual' | 'electric';
+  extractionType?: 'manual' | 'electric';
   breastSide?: 'left' | 'right' | 'both';
+}
+
+// Union type para meta por tipo de rotina
+export type RoutineMetaUnion = FeedingMeta | SleepMeta | DiaperMeta | BathMeta | MilkExtractionMeta;
+
+// Mapeamento de tipo para meta
+export type RoutineMetaByType = {
+  FEEDING: FeedingMeta;
+  SLEEP: SleepMeta;
+  DIAPER: DiaperMeta;
+  BATH: BathMeta;
+  MILK_EXTRACTION: MilkExtractionMeta;
+};
+
+// Base interface para RoutineLog
+interface RoutineLogBase {
+  id: number;
+  babyId: number;
+  startTime: string;
+  endTime?: string;
+  durationSeconds?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+// Discriminated union para RoutineLog com meta tipado
+export interface FeedingLog extends RoutineLogBase {
+  routineType: 'FEEDING';
+  meta: FeedingMeta;
+}
+
+export interface SleepLog extends RoutineLogBase {
+  routineType: 'SLEEP';
+  meta: SleepMeta;
+}
+
+export interface DiaperLog extends RoutineLogBase {
+  routineType: 'DIAPER';
+  meta: DiaperMeta;
+}
+
+export interface BathLog extends RoutineLogBase {
+  routineType: 'BATH';
+  meta: BathMeta;
+}
+
+export interface MilkExtractionLog extends RoutineLogBase {
+  routineType: 'MILK_EXTRACTION';
+  meta: MilkExtractionMeta;
+}
+
+// União discriminada de todos os tipos de log
+export type TypedRoutineLog = FeedingLog | SleepLog | DiaperLog | BathLog | MilkExtractionLog;
+
+// Tipo genérico que aceita qualquer meta (retrocompatibilidade)
+export interface RoutineLog {
+  id: number;
+  babyId: number;
+  routineType: RoutineType;
+  startTime: string;
+  endTime?: string;
+  durationSeconds?: number;
+  notes?: string;
+  meta: Record<string, unknown>;
+  createdAt: string;
+}
+
+// Type guard helpers
+export function isRoutineType(type: string): type is RoutineType {
+  return ['FEEDING', 'SLEEP', 'DIAPER', 'BATH', 'MILK_EXTRACTION'].includes(type);
+}
+
+// Helper para obter meta tipado
+export function getTypedMeta<T extends RoutineType>(
+  log: RoutineLog,
+  expectedType: T
+): RoutineMetaByType[T] | null {
+  if (log.routineType !== expectedType) return null;
+  return log.meta as unknown as RoutineMetaByType[T];
 }
 
 // ====== Growth ======
