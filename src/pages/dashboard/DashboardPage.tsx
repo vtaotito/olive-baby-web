@@ -78,7 +78,7 @@ export function DashboardPage() {
                   <Button
                     variant="primary"
                     leftIcon={<Plus className="w-5 h-5" />}
-                    onClick={openBabyModal}
+                    onClick={() => openBabyModal()}
                   >
                     Adicionar bebê
                   </Button>
