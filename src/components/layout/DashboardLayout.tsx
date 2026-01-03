@@ -12,7 +12,6 @@ import {
   X,
   ChevronDown,
   User,
-  Bell,
   FileDown,
   Users,
   Plus,
@@ -27,6 +26,7 @@ import { QuickActionsFooter } from '../routines/dashboard/QuickActionsFooter';
 import { AIChatButton } from '../ai/AIChatButton';
 import { BabyModal } from '../babies';
 import { useModalStore } from '../../stores/modalStore';
+import { NotificationBell } from '../notifications';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -77,10 +77,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <span className="font-bold text-olive-800">Olive Baby</span>
           </Link>
 
-          <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative">
-            <Bell className="w-6 h-6" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
+          <NotificationBell />
         </div>
       </header>
 

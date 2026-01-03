@@ -402,3 +402,26 @@ export interface AiHealthStatus {
   };
   chatSessions: number;
 }
+
+// ====== Notifications ======
+export type NotificationStatus = 'UNREAD' | 'READ' | 'ARCHIVED';
+export type NotificationType = 'INSIGHT' | 'ALERT' | 'REMINDER' | 'SYSTEM' | 'ACHIEVEMENT';
+export type NotificationSeverity = 'info' | 'warning' | 'alert' | 'success';
+
+export interface Notification {
+  id: number;
+  userId: number;
+  babyId?: number;
+  type: NotificationType;
+  severity: NotificationSeverity;
+  title: string;
+  message: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  status: NotificationStatus;
+  sourceKey?: string;
+  meta?: Record<string, unknown>;
+  createdAt: string;
+  readAt?: string;
+  archivedAt?: string;
+}

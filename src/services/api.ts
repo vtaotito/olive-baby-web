@@ -1064,3 +1064,48 @@ export const babyInviteService = {
     return response.data;
   },
 };
+
+// ====== Notification Service ======
+export const notificationService = {
+  // List notifications
+  list: async (params?: {
+    status?: 'UNREAD' | 'READ' | 'ARCHIVED';
+    type?: string;
+    babyId?: number;
+    page?: number;
+    limit?: number;
+  }) => {
+    const response = await api.get('/notifications', { params });
+    return response.data;
+  },
+
+  // Get unread count
+  getUnreadCount: async () => {
+    const response = await api.get<{ success: boolean; data: { count: number } }>('/notifications/count');
+    return response.data;
+  },
+
+  // Mark as read
+  markAsRead: async (notificationId: number) => {
+    const response = await api.post(`/notifications/${notificationId}/read`);
+    return response.data;
+  },
+
+  // Archive notification
+  archive: async (notificationId: number) => {
+    const response = await api.post(`/notifications/${notificationId}/archive`);
+    return response.data;
+  },
+
+  // Mark all as read
+  markAllAsRead: async () => {
+    const response = await api.post('/notifications/read-all');
+    return response.data;
+  },
+
+  // Delete notification
+  delete: async (notificationId: number) => {
+    const response = await api.delete(`/notifications/${notificationId}`);
+    return response.data;
+  },
+};

@@ -1,14 +1,15 @@
 // Olive Baby Web - Dashboard Page
 // Dashboard completo de rotinas com insights e gráficos
 import { useState, useCallback } from 'react';
-import { Baby, Plus, ArrowRight } from 'lucide-react';
+import { Baby, Plus, ArrowRight, Lightbulb } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
-import { Spinner, Button, Card, CardBody } from '../../components/ui';
+import { Spinner, Button, Card, CardBody, CardHeader } from '../../components/ui';
 import { useBabyStore } from '../../stores/babyStore';
 import { useModalStore } from '../../stores/modalStore';
 import { useStats } from '../../hooks/useStats';
 import { useActiveRoutine } from '../../hooks/useActiveRoutine';
 import { useInsights } from '../../hooks/useInsights';
+import { useInsightNotifications } from '../../hooks/useNotifications';
 import {
   ActiveRoutineCard,
   DailySummary,
@@ -16,6 +17,7 @@ import {
   InsightsCards,
   RoutinesList,
 } from '../../components/routines/dashboard';
+import { InsightsCarousel } from '../../components/notifications';
 
 export function DashboardPage() {
   const { selectedBaby, babies } = useBabyStore();
@@ -31,6 +33,7 @@ export function DashboardPage() {
     selectedBaby?.id
   );
   const { insights, welcomeMessage } = useInsights(stats, selectedBaby?.name);
+  const { notifications: insightNotifications } = useInsightNotifications(selectedBaby?.id);
 
   // Callback quando uma rotina termina
   const handleRoutineEnd = useCallback(() => {
@@ -137,6 +140,22 @@ export function DashboardPage() {
               onRoutineEnd={handleRoutineEnd}
             />
           </div>
+        )}
+
+        {/* Insights do dia (carrossel de notificações) */}
+        {insightNotifications.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-olive-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Insights do Dia</h2>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">Dicas personalizadas baseadas nas rotinas do seu bebê</p>
+            </CardHeader>
+            <CardBody>
+              <InsightsCarousel insights={insightNotifications} />
+            </CardBody>
+          </Card>
         )}
 
         {/* Insights e mensagem de boas-vindas */}
