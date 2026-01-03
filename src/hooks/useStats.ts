@@ -1,5 +1,5 @@
 // Olive Baby Web - useStats Hook
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { statsService } from '../services/api';
 import type { BabyStats } from '../types';
 
@@ -27,7 +27,7 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
   const [history, setHistory] = useState<StatsHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
+  const isFetchingRef = useRef(false);
 
   const fetchStats = useCallback(async () => {
     if (!babyId) {
@@ -36,11 +36,11 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
     }
 
     // Evitar chamadas duplicadas enquanto já está carregando
-    if (isFetching) {
+    if (isFetchingRef.current) {
       return;
     }
 
-    setIsFetching(true);
+    isFetchingRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -74,9 +74,9 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
       setError('Erro ao carregar estatísticas');
     } finally {
       setIsLoading(false);
-      setIsFetching(false);
+      isFetchingRef.current = false;
     }
-  }, [babyId, range, isFetching]);
+  }, [babyId, range]);
 
   useEffect(() => {
     fetchStats();
