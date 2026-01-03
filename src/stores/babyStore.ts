@@ -49,6 +49,13 @@ export const useBabyStore = create<BabyState>()(
       isLoading: false,
 
       fetchBabies: async () => {
+        const currentState = get();
+        
+        // Evitar chamadas duplicadas se já está carregando
+        if (currentState.isLoading) {
+          return;
+        }
+        
         set({ isLoading: true });
         try {
           const response = await babyService.list();
@@ -197,22 +204,35 @@ export const useBabyStore = create<BabyState>()(
       },
 
       checkActiveRoutines: async (babyId: number) => {
-        const routineTypes = ['feeding', 'sleep', 'bath', 'extraction'] as const;
-        
-        const activeRoutines: ActiveRoutines = {};
-        
-        for (const type of routineTypes) {
-          try {
-            const response = await routineService.getActive(babyId, type);
-            if (response.success && response.data) {
-              activeRoutines[type] = response.data;
-            }
-          } catch {
-            // No active routine for this type
-          }
+        try {
+          // Verificar todas as rotinas em paralelo para melhor performance
+          const [feedingRes, sleepRes, bathRes, extractionRes] = await Promise.allSettled([
+            routineService.getActive(babyId, 'feeding'),
+            routineService.getActive(babyId, 'sleep'),
+            routineService.getActive(babyId, 'bath'),
+            routineService.getActive(babyId, 'extraction'),
+          ]);
+          
+          const activeRoutines: ActiveRoutines = {
+            feeding: feedingRes.status === 'fulfilled' && feedingRes.value?.success && feedingRes.value?.data
+              ? feedingRes.value.data
+              : undefined,
+            sleep: sleepRes.status === 'fulfilled' && sleepRes.value?.success && sleepRes.value?.data
+              ? sleepRes.value.data
+              : undefined,
+            bath: bathRes.status === 'fulfilled' && bathRes.value?.success && bathRes.value?.data
+              ? bathRes.value.data
+              : undefined,
+            extraction: extractionRes.status === 'fulfilled' && extractionRes.value?.success && extractionRes.value?.data
+              ? extractionRes.value.data
+              : undefined,
+          };
+          
+          set({ activeRoutines });
+        } catch (error) {
+          console.error('Error checking active routines:', error);
+          // Não propagar erro - apenas logar
         }
-        
-        set({ activeRoutines });
       },
 
       clearBabyData: () => {

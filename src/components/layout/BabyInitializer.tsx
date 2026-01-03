@@ -16,10 +16,18 @@ export function BabyInitializer({ children }: BabyInitializerProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Só inicializar se estiver autenticado
+    // Só inicializar se estiver autenticado e ainda não tiver inicializado
     if (!isAuthenticated) {
+      setIsInitializing(false);
+      setHasInitialized(false);
+      return;
+    }
+
+    // Evitar chamadas duplicadas
+    if (hasInitialized) {
       setIsInitializing(false);
       return;
     }
@@ -29,10 +37,8 @@ export function BabyInitializer({ children }: BabyInitializerProps) {
     const loadBabies = async () => {
       try {
         await fetchBabies();
-        // Pequeno delay para garantir que o estado seja atualizado
-        setTimeout(() => {
-          setIsInitializing(false);
-        }, 100);
+        setHasInitialized(true);
+        setIsInitializing(false);
       } catch (error) {
         console.error('Erro ao carregar bebês:', error);
         setIsInitializing(false);
@@ -40,7 +46,8 @@ export function BabyInitializer({ children }: BabyInitializerProps) {
     };
 
     loadBabies();
-  }, [isAuthenticated, fetchBabies]);
+    // Remover fetchBabies das dependências para evitar loop infinito
+  }, [isAuthenticated, hasInitialized]);
 
   // Redirecionar para onboarding se não houver bebês (exceto se já estiver lá)
   useEffect(() => {

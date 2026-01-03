@@ -69,15 +69,15 @@ export function useActiveRoutine(babyId: number | undefined): UseActiveRoutineRe
       activeRoutines.extraction
     );
 
-    if (!hasAnyActive) {
-      return; // Não fazer polling se não há rotina ativa
+    if (!hasAnyActive || !babyId) {
+      return; // Não fazer polling se não há rotina ativa ou babyId
     }
 
-    // Refetch a cada 30 segundos apenas se houver rotina ativa
-    // Intervalo reduzido mas ainda razoável para atualizar timers
+    // Refetch a cada 60 segundos apenas se houver rotina ativa
+    // Intervalo otimizado para reduzir carga no servidor
     const interval = setInterval(() => {
       fetchActiveRoutines();
-    }, 30000); // 30 segundos - balance entre atualização e carga no servidor
+    }, 60000); // 60 segundos - balance entre atualização e performance
     
     return () => clearInterval(interval);
   }, [
@@ -85,6 +85,7 @@ export function useActiveRoutine(babyId: number | undefined): UseActiveRoutineRe
     activeRoutines.sleep?.id,
     activeRoutines.bath?.id,
     activeRoutines.extraction?.id,
+    babyId,
     fetchActiveRoutines,
   ]);
 

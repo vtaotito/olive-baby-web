@@ -27,6 +27,7 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
   const [history, setHistory] = useState<StatsHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   const fetchStats = useCallback(async () => {
     if (!babyId) {
@@ -34,18 +35,26 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
       return;
     }
 
+    // Evitar chamadas duplicadas enquanto já está carregando
+    if (isFetching) {
+      return;
+    }
+
+    setIsFetching(true);
     setIsLoading(true);
     setError(null);
 
     try {
-      // Buscar stats atuais
-      const statsResponse = await statsService.getStats(babyId, range);
+      // Buscar stats atuais e histórico em paralelo
+      const [statsResponse, historyResponse] = await Promise.all([
+        statsService.getStats(babyId, range),
+        statsService.getHistory(babyId, '7d'),
+      ]);
+
       if (statsResponse.success) {
         setStats(statsResponse.data);
       }
 
-      // Buscar histórico para gráficos (últimos 7 dias)
-      const historyResponse = await statsService.getHistory(babyId, '7d');
       if (historyResponse.success && historyResponse.data) {
         // Processar dados do histórico para os gráficos
         const data = historyResponse.data;
@@ -65,8 +74,9 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
       setError('Erro ao carregar estatísticas');
     } finally {
       setIsLoading(false);
+      setIsFetching(false);
     }
-  }, [babyId, range]);
+  }, [babyId, range, isFetching]);
 
   useEffect(() => {
     fetchStats();

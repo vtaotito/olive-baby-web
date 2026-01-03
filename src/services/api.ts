@@ -47,6 +47,24 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// Lista de endpoints públicos que não precisam de autenticação
+const PUBLIC_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/professionals/verify-token',
+  '/professionals/activate',
+  '/invites/verify-token',
+  '/invites/accept',
+];
+
+const isPublicEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return PUBLIC_ENDPOINTS.some(endpoint => url.includes(endpoint));
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse>) => {
@@ -55,8 +73,8 @@ api.interceptors.response.use(
       _skipAuth?: boolean;
     };
 
-    // Skip refresh para endpoints públicos ou se já está tentando refresh
-    if (originalRequest._skipAuth || originalRequest.url?.includes('/auth/')) {
+    // Skip refresh para endpoints públicos
+    if (!originalRequest || isPublicEndpoint(originalRequest.url)) {
       return Promise.reject(error);
     }
 
@@ -119,7 +137,7 @@ api.interceptors.response.use(
         storage.remove('user');
         
         // Evitar redirecionamento múltiplo
-        if (!window.location.pathname.includes('/login')) {
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
         
