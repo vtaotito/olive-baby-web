@@ -15,11 +15,13 @@ import {
   ChevronLeft,
   Check,
   Sparkles,
+  X,
 } from 'lucide-react';
-import { Button, Input, Card, CardBody } from '../../components/ui';
+import { Button, Input, Card, CardBody, Modal } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { useBabyStore } from '../../stores/babyStore';
 import { useAuthStore } from '../../stores/authStore';
+import { onboardingService } from '../../services/api';
 import { cn } from '../../lib/utils';
 import type { Relationship } from '../../types';
 
@@ -55,11 +57,38 @@ type BabyFormData = z.infer<typeof babySchema>;
 
 export function OnboardingPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const { addBaby } = useBabyStore();
   const { success, error: showError } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSkipModal, setShowSkipModal] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+
+  // Handler para pular o onboarding
+  const handleSkipOnboarding = async () => {
+    setIsSkipping(true);
+    try {
+      const response = await onboardingService.skip();
+      if (response.success) {
+        // Atualizar o user no store com o novo campo
+        if (user) {
+          setUser({
+            ...user,
+            onboardingCompletedAt: response.data.onboardingCompletedAt,
+          });
+        }
+        success('Onboarding pulado', 'Você pode adicionar um bebê a qualquer momento nas configurações.');
+        navigate('/dashboard');
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      showError('Erro ao pular onboarding', error.response?.data?.message || error.message);
+    } finally {
+      setIsSkipping(false);
+      setShowSkipModal(false);
+    }
+  };
 
   const {
     register,
@@ -270,6 +299,54 @@ export function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-olive-50 via-white to-baby-green flex flex-col">
+      {/* Skip Button - Top Right */}
+      <div className="absolute top-4 right-4 z-10">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowSkipModal(true)}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <X className="w-4 h-4 mr-1" />
+          Pular onboarding
+        </Button>
+      </div>
+
+      {/* Skip Confirmation Modal */}
+      <Modal
+        isOpen={showSkipModal}
+        onClose={() => setShowSkipModal(false)}
+        title="Pular configuração inicial?"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Você poderá adicionar um bebê a qualquer momento acessando{' '}
+            <strong>Configurações → Bebês</strong>.
+          </p>
+          <p className="text-gray-500 text-sm">
+            Algumas funcionalidades só estarão disponíveis após cadastrar pelo menos um bebê.
+          </p>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setShowSkipModal(false)}
+              disabled={isSkipping}
+            >
+              Continuar configuração
+            </Button>
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={handleSkipOnboarding}
+              isLoading={isSkipping}
+            >
+              Pular por agora
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Progress Bar */}
       <div className="p-4">
         <div className="max-w-md mx-auto">
@@ -351,8 +428,8 @@ export function OnboardingPage() {
         </Card>
       </main>
 
-      {/* Skip */}
-      {currentStep > 1 && currentStep < steps.length && (
+      {/* Skip Step (for optional steps like location and measurements) */}
+      {currentStep > 1 && currentStep < steps.length && currentStep >= 5 && (
         <div className="p-4 text-center">
           <button
             type="button"

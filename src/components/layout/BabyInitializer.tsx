@@ -11,7 +11,7 @@ interface BabyInitializerProps {
 }
 
 export function BabyInitializer({ children }: BabyInitializerProps) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { babies, selectedBaby, fetchBabies, isLoading } = useBabyStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,19 +49,25 @@ export function BabyInitializer({ children }: BabyInitializerProps) {
     // Remover fetchBabies das dependências para evitar loop infinito
   }, [isAuthenticated, hasInitialized]);
 
-  // Redirecionar para onboarding se não houver bebês (exceto se já estiver lá)
+  // Verificar se o onboarding foi concluído
+  const hasCompletedOnboarding = !!user?.onboardingCompletedAt;
+
+  // Redirecionar para onboarding se não houver bebês E onboarding não concluído
+  // (exceto se já estiver lá ou em rotas permitidas)
   useEffect(() => {
     if (
       isAuthenticated &&
       !isInitializing &&
       !isLoading &&
       babies.length === 0 &&
+      !hasCompletedOnboarding &&
       location.pathname !== '/onboarding' &&
-      !location.pathname.startsWith('/settings/babies')
+      !location.pathname.startsWith('/settings/babies') &&
+      !location.pathname.startsWith('/admin')
     ) {
       navigate('/onboarding', { replace: true });
     }
-  }, [isAuthenticated, isInitializing, isLoading, babies.length, location.pathname, navigate]);
+  }, [isAuthenticated, isInitializing, isLoading, babies.length, hasCompletedOnboarding, location.pathname, navigate]);
 
   // Mostrar loader durante inicialização
   if (isAuthenticated && isInitializing) {

@@ -998,6 +998,27 @@ export const adminAiService = {
   },
 };
 
+// ====== Onboarding Service ======
+export const onboardingService = {
+  // Get onboarding status
+  getStatus: async () => {
+    const response = await api.get('/onboarding/status');
+    return response.data;
+  },
+
+  // Skip onboarding
+  skip: async () => {
+    const response = await api.post('/onboarding/skip');
+    return response.data;
+  },
+
+  // Complete onboarding
+  complete: async () => {
+    const response = await api.post('/onboarding/complete');
+    return response.data;
+  },
+};
+
 // ====== Baby Invite Service ======
 export const babyInviteService = {
   // Create invite

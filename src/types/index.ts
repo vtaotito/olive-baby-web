@@ -8,6 +8,7 @@ export interface User {
   email: string;
   role: UserRole;
   isActive: boolean;
+  onboardingCompletedAt?: string | null;
   caregiver: Caregiver | null;
 }
 
