@@ -1,20 +1,22 @@
-// Olive Baby Web - Admin Users Page (Tema Claro)
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// Olive Baby Web - Admin Users Page (Com Drawer Lateral Unificado)
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search,
   Filter,
   Crown,
-  Ban,
-  CheckCircle,
   ChevronLeft,
   ChevronRight,
-  UserCog,
+  Users,
+  Baby,
+  Activity,
+  AlertTriangle,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { adminService } from '../../services/adminApi';
-import { Button, Spinner, Modal, Input } from '../../components/ui';
-import { useToast } from '../../components/ui/Toast';
+import { KpiCard, SkeletonTable, UserProfileDrawer } from '../../components/admin';
+import { Button, Spinner } from '../../components/ui';
 import { cn } from '../../lib/utils';
 import type { AdminUser, AdminUserFilters, PlanType, UserStatus } from '../../types/admin';
 
@@ -61,164 +63,149 @@ function RoleBadge({ role }: { role: string }) {
     ADMIN: 'bg-amber-50 text-amber-700 border-amber-200',
   };
 
+  const roleLabels: Record<string, string> = {
+    PARENT: 'Pai/Mãe',
+    CAREGIVER: 'Cuidador',
+    PEDIATRICIAN: 'Pediatra',
+    SPECIALIST: 'Especialista',
+    ADMIN: 'Admin',
+  };
+
   return (
     <span className={cn('px-2.5 py-1 text-xs font-medium rounded-full border', config[role] || 'bg-gray-100 text-gray-600 border-gray-200')}>
-      {role}
+      {roleLabels[role] || role}
     </span>
   );
 }
 
-// User Actions Modal
-interface UserActionsModalProps {
-  user: AdminUser | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-function UserActionsModal({ user, isOpen, onClose }: UserActionsModalProps) {
-  const queryClient = useQueryClient();
-  const { success, error } = useToast();
-  const [blockReason, setBlockReason] = useState('');
-
-  const changePlanMutation = useMutation({
-    mutationFn: ({ userId, planType }: { userId: number; planType: PlanType }) =>
-      adminService.changeUserPlan(userId, planType),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
-      success('Plano alterado com sucesso');
-      onClose();
-    },
-    onError: () => {
-      error('Erro ao alterar plano');
-    },
-  });
-
-  const changeStatusMutation = useMutation({
-    mutationFn: ({ userId, status, reason }: { userId: number; status: UserStatus; reason?: string }) =>
-      adminService.changeUserStatus(userId, status, reason),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      success('Status alterado com sucesso');
-      onClose();
-    },
-    onError: () => {
-      error('Erro ao alterar status');
-    },
-  });
-
-  if (!user) return null;
-
-  const isLoading = changePlanMutation.isPending || changeStatusMutation.isPending;
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Ações do Usuário">
-      <div className="space-y-6">
-        {/* User Info */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-          <p className="text-gray-900 font-medium">{user.caregiver?.fullName || user.email}</p>
-          <p className="text-sm text-gray-500">{user.email}</p>
-          <div className="flex items-center gap-2 mt-3">
-            <RoleBadge role={user.role} />
-            <PlanBadge plan={user.plan} />
-            <StatusBadge status={user.status} />
-          </div>
-        </div>
-
-        {/* Plan Actions */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Alterar Plano</h4>
-          <div className="flex gap-2">
-            <Button
-              variant={user.plan?.type === 'FREE' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => changePlanMutation.mutate({ userId: user.id, planType: 'FREE' })}
-              disabled={isLoading || user.plan?.type === 'FREE'}
-            >
-              Free
-            </Button>
-            <Button
-              variant={user.plan?.type === 'PREMIUM' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => changePlanMutation.mutate({ userId: user.id, planType: 'PREMIUM' })}
-              disabled={isLoading || user.plan?.type === 'PREMIUM'}
-              leftIcon={<Crown className="w-4 h-4" />}
-            >
-              Premium
-            </Button>
-          </div>
-        </div>
-
-        {/* Status Actions */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Status do Usuário</h4>
-          {user.status === 'BLOCKED' ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => changeStatusMutation.mutate({ userId: user.id, status: 'ACTIVE' })}
-              disabled={isLoading}
-              leftIcon={<CheckCircle className="w-4 h-4" />}
-              className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
-            >
-              Desbloquear
-            </Button>
-          ) : (
-            <div className="space-y-3">
-              <Input
-                placeholder="Motivo do bloqueio (opcional)"
-                value={blockReason}
-                onChange={(e) => setBlockReason(e.target.value)}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => changeStatusMutation.mutate({ userId: user.id, status: 'BLOCKED', reason: blockReason })}
-                disabled={isLoading}
-                leftIcon={<Ban className="w-4 h-4" />}
-                className="text-rose-600 border-rose-300 hover:bg-rose-50"
-              >
-                Bloquear Usuário
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-    </Modal>
-  );
+// Activity Indicator
+function ActivityIndicator({ lastActivityAt }: { lastActivityAt?: string }) {
+  if (!lastActivityAt) return <span className="text-gray-400">—</span>;
+  
+  const daysSince = Math.floor((Date.now() - new Date(lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (daysSince === 0) {
+    return (
+      <span className="flex items-center gap-1 text-emerald-600">
+        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+        Hoje
+      </span>
+    );
+  }
+  
+  if (daysSince <= 3) {
+    return <span className="text-emerald-600">{daysSince}d</span>;
+  }
+  
+  if (daysSince <= 7) {
+    return <span className="text-amber-600">{daysSince}d</span>;
+  }
+  
+  return <span className="text-rose-600">{daysSince}d</span>;
 }
 
 export function AdminUsersPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState<AdminUserFilters>({
     page: 1,
     limit: 20,
+    status: searchParams.get('status') as UserStatus | undefined,
+    plan: searchParams.get('plan') as PlanType | undefined,
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Sync URL params with filters
+  useEffect(() => {
+    const status = searchParams.get('status') as UserStatus | undefined;
+    const plan = searchParams.get('plan') as PlanType | undefined;
+    if (status || plan) {
+      setFilters(prev => ({ ...prev, status, plan }));
+      setShowFilters(true);
+    }
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users', filters],
     queryFn: () => adminService.listUsers(filters),
   });
 
+  // Fetch summary stats
+  const { data: metricsData } = useQuery({
+    queryKey: ['admin-metrics', '7d'],
+    queryFn: () => adminService.getMetrics('7d'),
+  });
+
   const handleSearch = () => {
     setFilters(prev => ({ ...prev, query: searchQuery, page: 1 }));
   };
 
-  const handleFilterChange = (key: keyof AdminUserFilters, value: any) => {
+  const handleFilterChange = (key: keyof AdminUserFilters, value: string | undefined) => {
     setFilters(prev => ({
       ...prev,
       [key]: value || undefined,
       page: 1,
     }));
+    // Update URL
+    if (value) {
+      searchParams.set(key, value);
+    } else {
+      searchParams.delete(key);
+    }
+    setSearchParams(searchParams);
+  };
+
+  const clearFilters = () => {
+    setFilters({ page: 1, limit: 20 });
+    setSearchQuery('');
+    setSearchParams({});
   };
 
   const users = data?.data || [];
   const pagination = data?.pagination;
+  const metrics = metricsData?.data;
+
+  // Calculate inactive users
+  const inactiveCount = users.filter(u => {
+    if (!u.lastActivityAt) return true;
+    const days = Math.floor((Date.now() - new Date(u.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
+    return days > 7;
+  }).length;
 
   return (
-    <AdminLayout title="Usuários">
+    <AdminLayout
+      title="Usuários & Bebês"
+      subtitle="Gerencie usuários e visualize perfis completos"
+    >
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <KpiCard
+          title="Total de Usuários"
+          value={metrics?.totalUsers || 0}
+          icon={<Users className="w-6 h-6" />}
+          color="sky"
+        />
+        <KpiCard
+          title="Usuários Premium"
+          value={metrics?.premiumUsers || 0}
+          icon={<Crown className="w-6 h-6" />}
+          color="olive"
+        />
+        <KpiCard
+          title="Total de Bebês"
+          value={metrics?.totalBabies || 0}
+          icon={<Baby className="w-6 h-6" />}
+          color="violet"
+        />
+        <KpiCard
+          title="Inativos (7d+)"
+          value={inactiveCount}
+          icon={<AlertTriangle className="w-6 h-6" />}
+          color={inactiveCount > 10 ? 'rose' : 'amber'}
+        />
+      </div>
+
       {/* Search & Filters */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -243,19 +230,23 @@ export function AdminUsersPage() {
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
             leftIcon={<Filter className="w-4 h-4" />}
+            className={cn(showFilters && 'bg-olive-50 border-olive-300')}
           >
             Filtros
+            {(filters.plan || filters.status || filters.role) && (
+              <span className="ml-1 w-2 h-2 bg-olive-500 rounded-full" />
+            )}
           </Button>
         </div>
 
         {/* Filter Options */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Plano</label>
               <select
                 value={filters.plan || ''}
-                onChange={(e) => handleFilterChange('plan', e.target.value as PlanType || undefined)}
+                onChange={(e) => handleFilterChange('plan', e.target.value)}
                 className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos</option>
@@ -267,14 +258,14 @@ export function AdminUsersPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
               <select
                 value={filters.role || ''}
-                onChange={(e) => handleFilterChange('role', e.target.value || undefined)}
+                onChange={(e) => handleFilterChange('role', e.target.value)}
                 className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos</option>
-                <option value="PARENT">Parent</option>
-                <option value="CAREGIVER">Caregiver</option>
-                <option value="PEDIATRICIAN">Pediatrician</option>
-                <option value="SPECIALIST">Specialist</option>
+                <option value="PARENT">Pai/Mãe</option>
+                <option value="CAREGIVER">Cuidador</option>
+                <option value="PEDIATRICIAN">Pediatra</option>
+                <option value="SPECIALIST">Especialista</option>
                 <option value="ADMIN">Admin</option>
               </select>
             </div>
@@ -282,13 +273,22 @@ export function AdminUsersPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select
                 value={filters.status || ''}
-                onChange={(e) => handleFilterChange('status', e.target.value as UserStatus || undefined)}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
                 className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-olive-500"
               >
                 <option value="">Todos</option>
                 <option value="ACTIVE">Ativo</option>
                 <option value="BLOCKED">Bloqueado</option>
               </select>
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="ghost"
+                onClick={clearFilters}
+                className="text-gray-500"
+              >
+                Limpar filtros
+              </Button>
             </div>
           </div>
         )}
@@ -297,9 +297,7 @@ export function AdminUsersPage() {
       {/* Users Table */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Spinner size="lg" />
-          </div>
+          <SkeletonTable rows={10} />
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -310,47 +308,64 @@ export function AdminUsersPage() {
                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Role</th>
                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Plano</th>
                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Status</th>
-                    <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Bebês</th>
+                    <th className="text-center py-4 px-6 text-sm font-medium text-gray-500">Bebês</th>
+                    <th className="text-center py-4 px-6 text-sm font-medium text-gray-500">Última Atividade</th>
                     <th className="text-left py-4 px-6 text-sm font-medium text-gray-500">Cadastro</th>
-                    <th className="text-right py-4 px-6 text-sm font-medium text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-4 px-6">
-                        <div>
-                          <p className="text-gray-900 font-medium">
-                            {user.caregiver?.fullName || '-'}
-                          </p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <RoleBadge role={user.role} />
-                      </td>
-                      <td className="py-4 px-6">
-                        <PlanBadge plan={user.plan} />
-                      </td>
-                      <td className="py-4 px-6">
-                        <StatusBadge status={user.status} />
-                      </td>
-                      <td className="py-4 px-6 text-gray-900 font-medium">{user.babiesCount}</td>
-                      <td className="py-4 px-6 text-gray-500 text-sm">
-                        {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedUser(user)}
-                          leftIcon={<UserCog className="w-4 h-4" />}
-                        >
-                          Gerenciar
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {users.map((user) => {
+                    const isInactive = user.lastActivityAt && 
+                      Math.floor((Date.now() - new Date(user.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24)) > 7;
+                    
+                    return (
+                      <tr
+                        key={user.id}
+                        onClick={() => setSelectedUserId(user.id)}
+                        className={cn(
+                          'border-b border-gray-100 transition-colors cursor-pointer',
+                          isInactive ? 'bg-rose-50/30 hover:bg-rose-50' : 'hover:bg-gray-50'
+                        )}
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              'w-10 h-10 rounded-full flex items-center justify-center text-white font-medium',
+                              user.plan?.type === 'PREMIUM' ? 'bg-olive-500' : 'bg-gray-400'
+                            )}>
+                              {(user.caregiver?.fullName || user.email)[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-gray-900 font-medium">
+                                {user.caregiver?.fullName || '-'}
+                              </p>
+                              <p className="text-sm text-gray-500">{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <RoleBadge role={user.role} />
+                        </td>
+                        <td className="py-4 px-6">
+                          <PlanBadge plan={user.plan} />
+                        </td>
+                        <td className="py-4 px-6">
+                          <StatusBadge status={user.status} />
+                        </td>
+                        <td className="py-4 px-6 text-center">
+                          <span className="inline-flex items-center justify-center w-8 h-8 bg-violet-100 text-violet-700 rounded-full font-medium text-sm">
+                            {user.babiesCount}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-center text-sm">
+                          <ActivityIndicator lastActivityAt={user.lastActivityAt} />
+                        </td>
+                        <td className="py-4 px-6 text-gray-500 text-sm">
+                          {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {users.length === 0 && (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-gray-400">
@@ -399,11 +414,11 @@ export function AdminUsersPage() {
         )}
       </div>
 
-      {/* User Actions Modal */}
-      <UserActionsModal
-        user={selectedUser}
-        isOpen={!!selectedUser}
-        onClose={() => setSelectedUser(null)}
+      {/* User Profile Drawer */}
+      <UserProfileDrawer
+        userId={selectedUserId}
+        isOpen={!!selectedUserId}
+        onClose={() => setSelectedUserId(null)}
       />
     </AdminLayout>
   );

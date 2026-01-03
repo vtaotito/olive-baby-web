@@ -7,4 +7,4 @@ export { AdminActivationPage } from './AdminActivationPage';
 export { AdminMonetizationPage } from './AdminMonetizationPage';
 export { AdminQualityPage } from './AdminQualityPage';
 export { AdminErrorsPage } from './AdminErrorsPage';
-
+export { AdminAlertsPage } from './AdminAlertsPage';

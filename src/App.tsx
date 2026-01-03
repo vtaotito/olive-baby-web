@@ -17,6 +17,7 @@ import {
   AdminMonetizationPage,
   AdminQualityPage,
   AdminErrorsPage,
+  AdminAlertsPage,
 } from './pages/admin';
 
 // Onboarding
@@ -344,6 +345,22 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminErrorsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/alerts"
+              element={
+                <AdminRoute>
+                  <AdminAlertsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <AdminRoute>
+                  <AdminDashboardPage />
                 </AdminRoute>
               }
             />

@@ -72,6 +72,61 @@ export interface AdminMetrics {
 }
 
 // ==========================================
+// Business Health Metrics (New)
+// ==========================================
+
+export interface BusinessHealthMetrics {
+  activeUsers7d: number;
+  activeUsers7dTrend: number;
+  retentionD7: number;
+  retentionD7Trend: number;
+  conversionRate: number;
+  conversionRateTrend: number;
+  churnRisk: number;
+  churnRiskTrend: number;
+}
+
+// ==========================================
+// Recent Changes (New)
+// ==========================================
+
+export type ChangeType = 'retention_change' | 'paywall_hit' | 'cohort_warning' | 'milestone' | 'error_spike';
+
+export interface RecentChange {
+  id: string;
+  type: ChangeType;
+  title: string;
+  description?: string;
+  value?: string;
+  impact: 'positive' | 'negative' | 'neutral';
+  timestamp: string;
+  link?: string;
+}
+
+// ==========================================
+// Alerts System (New)
+// ==========================================
+
+export type AlertType = 'retention_drop' | 'inactive_users' | 'errors' | 'pending_invites' | 'churn_risk' | 'cohort_warning';
+export type AlertStatus = 'new' | 'seen' | 'resolved';
+export type AlertPriority = 'high' | 'medium' | 'low';
+
+export interface AdminAlert {
+  id: string;
+  type: AlertType;
+  priority: AlertPriority;
+  status: AlertStatus;
+  title: string;
+  description: string;
+  impact?: string;
+  affectedCount?: number;
+  createdAt: string;
+  resolvedAt?: string;
+  link?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ==========================================
 // Admin User
 // ==========================================
 
@@ -111,6 +166,11 @@ export interface AdminUserDetails extends AdminUser {
     role: string;
     status: string;
   }>;
+  // Extended data for profile drawer
+  routinesLast7d?: number;
+  routinesLast30d?: number;
+  paywallHits?: number;
+  churnRiskScore?: number;
 }
 
 // ==========================================
@@ -133,6 +193,26 @@ export interface AdminBaby {
   caregiversCount: number;
   professionalsCount: number;
   routinesCount30d: number;
+}
+
+export interface AdminBabyDetails extends AdminBaby {
+  caregivers: Array<{
+    id: number;
+    fullName: string;
+    email: string;
+    role: string;
+  }>;
+  professionals: Array<{
+    id: number;
+    fullName: string;
+    specialty: string;
+  }>;
+  recentRoutines: Array<{
+    type: string;
+    count: number;
+    lastAt: string;
+  }>;
+  insights?: string[];
 }
 
 // ==========================================
@@ -198,8 +278,16 @@ export interface ActivationFunnel {
 }
 
 // ==========================================
-// Cohorts
+// Health Status (Shared)
 // ==========================================
+
+export type HealthStatus = 'healthy' | 'warning' | 'critical' | 'neutral';
+
+// ==========================================
+// Cohorts (Enhanced)
+// ==========================================
+
+export type CohortHealthStatus = HealthStatus;
 
 export interface CohortData {
   cohortStartDate: string;
@@ -208,6 +296,20 @@ export interface CohortData {
   d1Retention: number;
   d7Retention: number;
   d30Retention: number;
+  // New fields for actionable cohorts
+  d7Delta?: number;
+  status?: CohortHealthStatus;
+  avgRoutinesPerUser?: number;
+}
+
+export interface CohortUser {
+  userId: number;
+  email: string;
+  fullName?: string;
+  createdAt: string;
+  lastActivityAt?: string;
+  routinesCount: number;
+  isRetained: boolean;
 }
 
 // ==========================================
@@ -282,3 +384,20 @@ export interface ErrorsAnalytics {
   errorRate: number;
 }
 
+// ==========================================
+// Dashboard Summary (New)
+// ==========================================
+
+export interface DashboardSummary {
+  health: BusinessHealthMetrics;
+  recentChanges: RecentChange[];
+  alerts: AdminAlert[];
+  quickStats: {
+    totalUsers: number;
+    activeUsers: number;
+    premiumUsers: number;
+    totalBabies: number;
+    routinesToday: number;
+    upgradeScore: number;
+  };
+}
