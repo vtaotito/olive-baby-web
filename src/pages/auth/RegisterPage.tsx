@@ -75,7 +75,7 @@ export function RegisterPage() {
         phone: data.phone?.replace(/\D/g, ''),
       });
       success('Conta criada!', 'Bem-vindo ao Olive Baby');
-      navigate('/onboarding');
+      navigate('/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
       showError('Erro ao criar conta', error.response?.data?.message || error.message);

@@ -20,8 +20,7 @@ import {
   AdminAlertsPage,
 } from './pages/admin';
 
-// Onboarding
-import { OnboardingPage } from './pages/onboarding';
+// Onboarding removido - usuário vai direto para dashboard
 
 // Dashboard Pages
 import { DashboardPage } from './pages/dashboard';
@@ -92,16 +91,6 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/invite/accept" element={<AcceptInvitePage />} />
-
-            {/* Onboarding */}
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <OnboardingPage />
-                </ProtectedRoute>
-              }
-            />
 
             {/* Protected Routes */}
             <Route
