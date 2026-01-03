@@ -18,6 +18,7 @@ import {
   AdminQualityPage,
   AdminErrorsPage,
   AdminAlertsPage,
+  AdminSettingsPage,
 } from './pages/admin';
 
 // Onboarding removido - usuário vai direto para dashboard
@@ -361,7 +362,7 @@ function App() {
               path="/admin/settings"
               element={
                 <AdminRoute>
-                  <AdminDashboardPage />
+                  <AdminSettingsPage />
                 </AdminRoute>
               }
             />
