@@ -1,6 +1,7 @@
 export * from './SettingsPage';
 export * from './ProfilePage';
 export * from './BabiesPage';
+export * from './BillingPage';
 export * from './NotificationsPage';
 export * from './BabyMembersPage';
 export * from './PrivacyPage';

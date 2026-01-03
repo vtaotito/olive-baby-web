@@ -6,7 +6,8 @@
 
 export type PlanType = 'FREE' | 'PREMIUM';
 export type UserStatus = 'ACTIVE' | 'BLOCKED' | 'PENDING_VERIFICATION';
-export type SubscriptionStatus = 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIAL';
+export type SubscriptionStatus = 'ACTIVE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' | 'TRIALING' | 'PAUSED';
+export type BillingInterval = 'MONTHLY' | 'YEARLY';
 
 export interface Plan {
   id: number;
@@ -400,4 +401,127 @@ export interface DashboardSummary {
     routinesToday: number;
     upgradeScore: number;
   };
+}
+
+// ==========================================
+// Billing Types
+// ==========================================
+
+export interface BillingStatus {
+  plan: PlanType;
+  planName: string;
+  subscription: {
+    status: SubscriptionStatus;
+    interval: BillingInterval;
+    currentPeriodStart: string | null;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+  } | null;
+  stripeCustomerId: string | null;
+  features: PlanFeatures;
+  limits: PlanLimits;
+}
+
+export interface AvailablePlan {
+  id: number;
+  code: string;
+  name: string;
+  type: PlanType;
+  description: string | null;
+  price: number;
+  priceYearly: number | null;
+  currency: string;
+  features: PlanFeatures;
+  limits: PlanLimits;
+  hasStripeIntegration: boolean;
+}
+
+export interface BillingEvent {
+  id: number;
+  stripeEventId: string;
+  type: string;
+  payload: Record<string, unknown>;
+  processed: boolean;
+  processedAt: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
+export interface AdminSubscription {
+  id: number;
+  userId: number;
+  planId: number;
+  status: SubscriptionStatus;
+  stripeSubscriptionId: string | null;
+  stripePriceId: string | null;
+  interval: BillingInterval;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  createdAt: string;
+  user: {
+    id: number;
+    email: string;
+    caregiver: { fullName: string } | null;
+  };
+  plan: {
+    code: string;
+    name: string;
+    type: PlanType;
+  };
+}
+
+// ==========================================
+// AI Admin Types
+// ==========================================
+
+export type AiConfigStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type KnowledgeBaseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export interface AiAssistantConfig {
+  id: number;
+  name: string;
+  systemPrompt: string;
+  guardrails: Record<string, unknown>;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  status: AiConfigStatus;
+  version: number;
+  isPublished: boolean;
+  publishedAt: string | null;
+  createdById: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KnowledgeBaseDocument {
+  id: number;
+  title: string;
+  sourceType: 'file' | 'url' | 'manual';
+  content: string;
+  tags: string[];
+  status: KnowledgeBaseStatus;
+  version: number;
+  publishedAt: string | null;
+  archivedAt: string | null;
+  createdById: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KbStats {
+  total: number;
+  published: number;
+  draft: number;
+  archived: number;
+}
+
+export interface PromptPreview {
+  config: AiAssistantConfig | { systemPrompt: string };
+  knowledgeBase: {
+    documentCount: number;
+    content: string;
+  };
+  assembledPrompt: string | null;
 }

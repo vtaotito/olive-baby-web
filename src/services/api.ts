@@ -823,6 +823,181 @@ export const settingsService = {
   },
 };
 
+// ====== Billing Service ======
+export const billingService = {
+  // Get billing status
+  getStatus: async () => {
+    const response = await api.get('/billing/me');
+    return response.data;
+  },
+
+  // Get available plans
+  getPlans: async () => {
+    const response = await api.get('/billing/plans');
+    return response.data;
+  },
+
+  // Check if Stripe is configured
+  getStripeStatus: async () => {
+    const response = await api.get('/billing/status');
+    return response.data;
+  },
+
+  // Create checkout session
+  createCheckoutSession: async (planCode: string, interval: 'monthly' | 'yearly' = 'monthly') => {
+    const response = await api.post('/billing/checkout-session', { planCode, interval });
+    return response.data;
+  },
+
+  // Create portal session
+  createPortalSession: async (returnUrl?: string) => {
+    const response = await api.post('/billing/portal-session', { returnUrl });
+    return response.data;
+  },
+
+  // Admin: Get recent subscriptions
+  getAdminSubscriptions: async () => {
+    const response = await api.get('/billing/admin/subscriptions');
+    return response.data;
+  },
+
+  // Admin: Get billing events
+  getAdminEvents: async () => {
+    const response = await api.get('/billing/admin/events');
+    return response.data;
+  },
+
+  // Admin: Create portal for user
+  createAdminPortalSession: async (userId: number, returnUrl?: string) => {
+    const response = await api.post('/billing/admin/portal-session', { userId, returnUrl });
+    return response.data;
+  },
+
+  // Admin: Update plan Stripe config
+  updatePlanStripeConfig: async (planId: number, data: {
+    stripeProductId?: string;
+    stripePriceIdMonthly?: string;
+    stripePriceIdYearly?: string;
+  }) => {
+    const response = await api.patch(`/billing/admin/plans/${planId}`, data);
+    return response.data;
+  },
+};
+
+// ====== Admin AI Service ======
+export const adminAiService = {
+  // Config endpoints
+  getConfigs: async () => {
+    const response = await api.get('/admin/ai/config');
+    return response.data;
+  },
+
+  getConfigById: async (id: number) => {
+    const response = await api.get(`/admin/ai/config/${id}`);
+    return response.data;
+  },
+
+  createConfig: async (data: {
+    name: string;
+    systemPrompt: string;
+    guardrails?: Record<string, unknown>;
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }) => {
+    const response = await api.post('/admin/ai/config', data);
+    return response.data;
+  },
+
+  updateConfig: async (id: number, data: {
+    name?: string;
+    systemPrompt?: string;
+    guardrails?: Record<string, unknown>;
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }) => {
+    const response = await api.patch(`/admin/ai/config/${id}`, data);
+    return response.data;
+  },
+
+  publishConfig: async (id: number) => {
+    const response = await api.post(`/admin/ai/config/${id}/publish`);
+    return response.data;
+  },
+
+  duplicateConfig: async (id: number) => {
+    const response = await api.post(`/admin/ai/config/${id}/duplicate`);
+    return response.data;
+  },
+
+  deleteConfig: async (id: number) => {
+    const response = await api.delete(`/admin/ai/config/${id}`);
+    return response.data;
+  },
+
+  // KB endpoints
+  listDocuments: async (filters?: { status?: string; tag?: string; q?: string }) => {
+    const response = await api.get('/admin/ai/kb', { params: filters });
+    return response.data;
+  },
+
+  getDocumentById: async (id: number) => {
+    const response = await api.get(`/admin/ai/kb/${id}`);
+    return response.data;
+  },
+
+  createDocument: async (data: {
+    title: string;
+    sourceType: 'file' | 'url' | 'manual';
+    content: string;
+    tags?: string[];
+  }) => {
+    const response = await api.post('/admin/ai/kb', data);
+    return response.data;
+  },
+
+  updateDocument: async (id: number, data: {
+    title?: string;
+    sourceType?: 'file' | 'url' | 'manual';
+    content?: string;
+    tags?: string[];
+  }) => {
+    const response = await api.patch(`/admin/ai/kb/${id}`, data);
+    return response.data;
+  },
+
+  publishDocument: async (id: number) => {
+    const response = await api.post(`/admin/ai/kb/${id}/publish`);
+    return response.data;
+  },
+
+  archiveDocument: async (id: number) => {
+    const response = await api.post(`/admin/ai/kb/${id}/archive`);
+    return response.data;
+  },
+
+  deleteDocument: async (id: number) => {
+    const response = await api.delete(`/admin/ai/kb/${id}`);
+    return response.data;
+  },
+
+  getAllTags: async () => {
+    const response = await api.get('/admin/ai/kb/tags');
+    return response.data;
+  },
+
+  getKbStats: async () => {
+    const response = await api.get('/admin/ai/kb/stats');
+    return response.data;
+  },
+
+  previewPrompt: async () => {
+    const response = await api.get('/admin/ai/preview');
+    return response.data;
+  },
+};
+
 // ====== Baby Invite Service ======
 export const babyInviteService = {
   // Create invite

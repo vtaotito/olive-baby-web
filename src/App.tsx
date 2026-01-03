@@ -34,7 +34,11 @@ import { MilestonesPage } from './pages/milestones';
 import { ExportPage } from './pages/export';
 
 // Settings Pages
-import { SettingsPage, ProfilePage, BabiesPage, NotificationsPage, BabyMembersPage, PrivacyPage, AppearancePage, HelpPage } from './pages/settings';
+import { SettingsPage, ProfilePage, BabiesPage, BillingPage, NotificationsPage, BabyMembersPage, PrivacyPage, AppearancePage, HelpPage } from './pages/settings';
+
+// Admin Billing and AI Pages
+import { AdminBillingPage } from './pages/admin/AdminBillingPage';
+import { AdminAiAssistantPage } from './pages/admin/AdminAiAssistantPage';
 
 // Team Page
 import { TeamPage } from './pages/team';
@@ -275,6 +279,14 @@ function App() {
               }
             />
             <Route
+              path="/settings/billing"
+              element={
+                <ProtectedRoute>
+                  <BillingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/settings/help"
               element={
                 <ProtectedRoute>
@@ -361,6 +373,22 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminDashboardPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/billing"
+              element={
+                <AdminRoute>
+                  <AdminBillingPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/ai-assistant"
+              element={
+                <AdminRoute>
+                  <AdminAiAssistantPage />
                 </AdminRoute>
               }
             />

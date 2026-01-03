@@ -10,6 +10,7 @@ import {
   Palette,
   HelpCircle,
   ChevronRight,
+  CreditCard,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
 import { cn } from '../../lib/utils';
@@ -17,6 +18,7 @@ import { cn } from '../../lib/utils';
 const settingsMenu = [
   { path: '/settings/profile', icon: User, label: 'Meu Perfil', description: 'Dados pessoais e conta' },
   { path: '/settings/babies', icon: Baby, label: 'Bebês', description: 'Gerenciar bebês cadastrados' },
+  { path: '/settings/billing', icon: CreditCard, label: 'Assinatura', description: 'Plano e pagamentos' },
   { path: '/settings/notifications', icon: Bell, label: 'Notificações', description: 'Alertas e lembretes' },
   { path: '/settings/privacy', icon: Shield, label: 'Privacidade', description: 'Segurança e dados' },
   { path: '/settings/appearance', icon: Palette, label: 'Aparência', description: 'Tema e personalização' },
