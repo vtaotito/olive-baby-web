@@ -1,5 +1,6 @@
 // Olive Baby Web - User Profile Drawer (Perfil Unificado)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import {
   User,
   Baby,
@@ -13,12 +14,15 @@ import {
   Zap,
   Ban,
   CheckCircle,
+  Shield,
+  ShieldOff,
 } from 'lucide-react';
 import { Drawer, DrawerSection } from './Drawer';
 import { Skeleton } from './Skeleton';
 import { StatusBadge, HealthStatus } from './StatusBadge';
 import { adminService } from '../../services/adminApi';
-import { Button, Avatar } from '../ui';
+import { Button, Avatar, Modal } from '../ui';
+import { ConfirmModal } from '../ui/Modal';
 import { useToast } from '../ui/Toast';
 import { cn } from '../../lib/utils';
 import type { AdminUserDetails, PlanType } from '../../types/admin';
@@ -32,6 +36,8 @@ interface UserProfileDrawerProps {
 export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawerProps) {
   const queryClient = useQueryClient();
   const { success, error } = useToast();
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [showDemoteModal, setShowDemoteModal] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-user-details', userId],
@@ -59,6 +65,27 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
       success('Status alterado com sucesso');
     },
     onError: () => error('Erro ao alterar status'),
+  });
+
+  const changeRoleMutation = useMutation({
+    mutationFn: ({ role }: { role: 'PARENT' | 'CAREGIVER' | 'PEDIATRICIAN' | 'SPECIALIST' | 'ADMIN' }) =>
+      adminService.changeUserRole(userId!, role),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', userId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      success(
+        variables.role === 'ADMIN' 
+          ? 'Usuário promovido para ADMIN' 
+          : 'Role alterada com sucesso'
+      );
+      setShowPromoteModal(false);
+      setShowDemoteModal(false);
+    },
+    onError: (err: any) => {
+      error(err.response?.data?.message || 'Erro ao alterar role');
+      setShowPromoteModal(false);
+      setShowDemoteModal(false);
+    },
   });
 
   const user = data?.data;
@@ -123,6 +150,12 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
                   <h3 className="text-lg font-semibold text-gray-900">
                     {user.caregiver?.fullName || 'Sem nome'}
                   </h3>
+                  {user.role === 'ADMIN' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                      <Shield className="w-3 h-3" />
+                      Admin
+                    </span>
+                  )}
                   {user.plan?.type === 'PREMIUM' && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-olive-100 text-olive-700 text-xs font-medium rounded-full">
                       <Crown className="w-3 h-3" />
@@ -295,8 +328,59 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
                   Bloquear Usuário
                 </Button>
               )}
+
+              {/* Admin Role Actions */}
+              {user.role !== 'ADMIN' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  fullWidth
+                  onClick={() => setShowPromoteModal(true)}
+                  disabled={changeRoleMutation.isPending}
+                  leftIcon={<Shield className="w-4 h-4" />}
+                  className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                >
+                  Promover para ADMIN
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  fullWidth
+                  onClick={() => setShowDemoteModal(true)}
+                  disabled={changeRoleMutation.isPending}
+                  leftIcon={<ShieldOff className="w-4 h-4" />}
+                  className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                >
+                  Remover permissão ADMIN
+                </Button>
+              )}
             </div>
           </DrawerSection>
+
+          {/* Promote to Admin Modal */}
+          <ConfirmModal
+            isOpen={showPromoteModal}
+            onClose={() => setShowPromoteModal(false)}
+            onConfirm={() => changeRoleMutation.mutate({ role: 'ADMIN' })}
+            title="Promover para ADMIN"
+            message={`Tem certeza que deseja promover ${user.caregiver?.fullName || user.email} para ADMIN? Esta ação dará acesso total ao painel administrativo.`}
+            confirmText="Promover"
+            variant="primary"
+            isLoading={changeRoleMutation.isPending}
+          />
+
+          {/* Demote from Admin Modal */}
+          <ConfirmModal
+            isOpen={showDemoteModal}
+            onClose={() => setShowDemoteModal(false)}
+            onConfirm={() => changeRoleMutation.mutate({ role: 'PARENT' })}
+            title="Remover permissão ADMIN"
+            message={`Tem certeza que deseja remover as permissões de ADMIN de ${user.caregiver?.fullName || user.email}? O usuário voltará a ser um usuário comum (PARENT).`}
+            confirmText="Remover"
+            variant="danger"
+            isLoading={changeRoleMutation.isPending}
+          />
         </div>
       ) : (
         <p className="text-center text-gray-500 py-8">Usuário não encontrado</p>

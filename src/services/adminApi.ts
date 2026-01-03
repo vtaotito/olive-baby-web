@@ -108,6 +108,17 @@ export const adminService = {
   },
 
   /**
+   * Change user role
+   */
+  changeUserRole: async (userId: number, role: 'PARENT' | 'CAREGIVER' | 'PEDIATRICIAN' | 'SPECIALIST' | 'ADMIN') => {
+    const response = await api.patch<{ success: boolean; message: string; data: { oldRole: string; newRole: string } }>(
+      `/admin/users/${userId}/role`,
+      { role }
+    );
+    return response.data;
+  },
+
+  /**
    * Impersonate user (for support)
    */
   impersonateUser: async (userId: number) => {
