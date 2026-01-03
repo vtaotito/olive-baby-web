@@ -39,6 +39,7 @@ import {
   SkeletonCard,
   SkeletonChart,
   InfoLabel,
+  ChangeType,
 } from '../../components/admin';
 import { adminService } from '../../services/adminApi';
 import { cn } from '../../lib/utils';
@@ -202,19 +203,19 @@ export function AdminDashboardPage() {
     : 0;
 
   // Generate recent changes based on data
-  const recentChanges = [
+  const recentChanges: Array<{ type: ChangeType; title: string; description: string }> = [
     ...(d7Delta !== 0 ? [{
-      type: d7Delta > 0 ? 'increase' : 'decrease' as const,
+      type: (d7Delta > 0 ? 'increase' : 'decrease') as ChangeType,
       title: `Retenção D7 ${d7Delta > 0 ? 'subiu' : 'caiu'} ${Math.abs(d7Delta).toFixed(1)}pp`,
       description: 'Comparado com a cohort anterior',
     }] : []),
     ...(usage?.paywallHits ? Object.entries(usage.paywallHits).slice(0, 2).map(([feature, count]) => ({
-      type: 'info' as const,
+      type: 'info' as ChangeType,
       title: `Paywall de ${feature.replace(/_/g, ' ')} acionado ${count}x`,
       description: `Nos últimos ${range === '7d' ? '7' : '30'} dias`,
     })) : []),
     ...(candidates.length > 0 ? [{
-      type: 'increase' as const,
+      type: 'increase' as ChangeType,
       title: `${candidates.length} candidatos a upgrade identificados`,
       description: 'Baseado em uso e paywall hits',
     }] : []),

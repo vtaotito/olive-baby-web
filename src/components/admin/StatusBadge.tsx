@@ -140,7 +140,7 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
 }
 
 // Alert Type Badge
-export type AlertType = 'retention_drop' | 'inactive_users' | 'errors' | 'pending_invites' | 'churn_risk';
+export type AlertType = 'retention_drop' | 'inactive_users' | 'errors' | 'pending_invites' | 'churn_risk' | 'cohort_warning';
 
 interface AlertTypeBadgeProps {
   type: AlertType;
@@ -154,6 +154,7 @@ export function AlertTypeBadge({ type, className }: AlertTypeBadgeProps) {
     errors: { icon: AlertCircle, color: 'bg-red-100 text-red-700', label: 'Erros recorrentes' },
     pending_invites: { icon: Clock, color: 'bg-sky-100 text-sky-700', label: 'Convites pendentes' },
     churn_risk: { icon: AlertCircle, color: 'bg-orange-100 text-orange-700', label: 'Risco de churn' },
+    cohort_warning: { icon: AlertCircle, color: 'bg-amber-100 text-amber-700', label: 'Cohort em alerta' },
   };
 
   const { icon: Icon, color, label } = config[type];
