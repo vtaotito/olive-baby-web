@@ -207,10 +207,10 @@ export const useBabyStore = create<BabyState>()(
         try {
           // Verificar todas as rotinas em paralelo para melhor performance
           const [feedingRes, sleepRes, bathRes, extractionRes] = await Promise.allSettled([
-            routineService.getActive(babyId, 'feeding'),
-            routineService.getActive(babyId, 'sleep'),
-            routineService.getActive(babyId, 'bath'),
-            routineService.getActive(babyId, 'extraction'),
+            routineService.getOpenFeeding(babyId),
+            routineService.getOpenSleep(babyId),
+            routineService.getOpenBath(babyId),
+            routineService.getOpenExtraction(babyId),
           ]);
           
           const activeRoutines: ActiveRoutines = {
