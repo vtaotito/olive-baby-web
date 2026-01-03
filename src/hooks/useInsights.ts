@@ -80,8 +80,8 @@ export function useInsights(stats: BabyStats | null, babyName?: string): UseInsi
           id: 'feeding-count-good',
           type: 'feeding',
           emoji: '🍼',
-          title: 'Mamadas no ritmo certo',
-          message: `${feedingCount} mamadas hoje — um ritmo ótimo! Cada mamada fortalece o vínculo e garante nutrição adequada.`,
+          title: 'Alimentação no ritmo certo',
+          message: `${feedingCount} alimentações hoje — um ritmo ótimo! Cada alimentação fortalece o vínculo e garante nutrição adequada.`,
           tone: 'positive',
         });
       } else if (feedingCount > 12) {
@@ -90,7 +90,7 @@ export function useInsights(stats: BabyStats | null, babyName?: string): UseInsi
           type: 'feeding',
           emoji: '🤱',
           title: 'Demanda aumentada',
-          message: `${feedingCount} mamadas hoje — pode ser um salto de desenvolvimento ou necessidade de conforto. Você está atendendo seu bebê com amor.`,
+          message: `${feedingCount} alimentações hoje — pode ser um salto de desenvolvimento ou necessidade de conforto. Você está atendendo seu bebê com amor.`,
           tone: 'neutral',
         });
       } else if (feedingCount > 0 && feedingCount < 6) {
@@ -98,8 +98,8 @@ export function useInsights(stats: BabyStats | null, babyName?: string): UseInsi
           id: 'feeding-count-low',
           type: 'feeding',
           emoji: '🍼',
-          title: 'Mamadas registradas',
-          message: `${feedingCount} mamada(s) registrada(s). Se estiver amamentando exclusivamente, ofereça o peito sempre que o bebê demonstrar sinais de fome.`,
+          title: 'Alimentações registradas',
+          message: `${feedingCount} alimentação(ões) registrada(s). Se estiver amamentando exclusivamente, ofereça o peito sempre que o bebê demonstrar sinais de fome.`,
           tone: 'neutral',
         });
       }
@@ -113,7 +113,7 @@ export function useInsights(stats: BabyStats | null, babyName?: string): UseInsi
             type: 'feeding',
             emoji: '⏱️',
             title: 'Duração consistente',
-            message: `Média de ${avgMinutes} minutos por mamada — tempo adequado para uma boa nutrição.`,
+            message: `Média de ${avgMinutes} minutos por alimentação — tempo adequado para uma boa nutrição.`,
             tone: 'positive',
           });
         }

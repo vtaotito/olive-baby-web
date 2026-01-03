@@ -32,11 +32,11 @@ interface QuickAction {
 const QUICK_ACTIONS: QuickAction[] = [
   {
     type: 'feeding',
-    label: 'Mamada',
+    label: 'Alimentação',
     icon: <Baby className="h-5 w-5" />,
     color: 'text-pink-600',
     bgColor: 'bg-pink-50 hover:bg-pink-100',
-    prompt: 'Quero registrar uma mamada para o bebê',
+    prompt: 'Quero registrar uma alimentação para o bebê',
   },
   {
     type: 'sleep',

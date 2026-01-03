@@ -31,7 +31,7 @@ interface FAQItem {
 const faqItems: FAQItem[] = [
   {
     category: 'Rotinas',
-    question: 'Como registrar uma mamada?',
+    question: 'Como registrar uma alimentação?',
     answer: 'Acesse a tela de rotinas, selecione "Alimentação" e toque em "Iniciar". Você pode escolher o tipo (peito, mamadeira, etc) e o aplicativo começará a contar o tempo. Quando terminar, toque em "Finalizar".',
   },
   {

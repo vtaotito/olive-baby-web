@@ -65,7 +65,7 @@ function generateInsights(stats: BabyStats, ageInMonths: number): Insight[] {
       bgColor: 'bg-yellow-50',
       emoji: '🍼',
       title: 'Alimentação',
-      message: `${feedingCount} mamadas hoje — ritmo ${feedingCount >= expectedFeedings * 0.8 ? 'excelente' : 'bom'}! Cada mamada é um momento de conexão.`,
+      message: `${feedingCount} alimentações hoje — ritmo ${feedingCount >= expectedFeedings * 0.8 ? 'excelente' : 'bom'}! Cada alimentação é um momento de conexão.`,
     });
   }
 

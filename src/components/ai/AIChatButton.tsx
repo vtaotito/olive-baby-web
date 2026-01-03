@@ -173,10 +173,10 @@ export function AIChatButton({ onOpenChat }: AIChatButtonProps) {
                         💤 Como está o padrão de sono?
                       </button>
                       <button
-                        onClick={() => setInputMessage('Quantas mamadas o bebê fez hoje?')}
+                        onClick={() => setInputMessage('Quantas alimentações o bebê fez hoje?')}
                         className="w-full text-left px-3 py-2 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-700 transition-colors"
                       >
-                        🍼 Quantas mamadas hoje?
+                        🍼 Quantas alimentações hoje?
                       </button>
                       <button
                         onClick={() => setInputMessage('Preciso de dicas de amamentação')}

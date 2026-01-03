@@ -105,10 +105,10 @@ export function DailySummary({ stats, isLoading }: DailySummaryProps) {
           bgColor="bg-indigo-100"
         />
 
-        {/* Mamadas */}
+        {/* Alimentações */}
         <SummaryCard
           icon={Utensils}
-          label="Mamadas"
+          label="Alimentações"
           value={feedingCount}
           subtext={feedingMinutes > 0 ? `${feedingMinutes} min total` : undefined}
           color="text-yellow-600"

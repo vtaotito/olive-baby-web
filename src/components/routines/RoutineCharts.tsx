@@ -103,12 +103,12 @@ export function RoutineCharts({ history, breastSideDistribution, isLoading }: Ro
     ],
   };
 
-  // Dados do gráfico de mamadas
+  // Dados do gráfico de alimentações
   const feedingData = {
     labels: history.labels,
     datasets: [
       {
-        label: 'Mamadas',
+        label: 'Alimentações',
         data: history.feedingCounts,
         backgroundColor: 'rgba(234, 179, 8, 0.8)',
         borderRadius: 8,
@@ -167,10 +167,10 @@ export function RoutineCharts({ history, breastSideDistribution, isLoading }: Ro
         </CardBody>
       </Card>
 
-      {/* Gráfico de Mamadas */}
+      {/* Gráfico de Alimentações */}
       <Card>
         <CardHeader 
-          title="🍼 Frequência de Mamadas" 
+          title="🍼 Frequência de Alimentações" 
           subtitle="Quantidade por dia"
         />
         <CardBody className="p-4">
@@ -199,10 +199,10 @@ export function RoutineCharts({ history, breastSideDistribution, isLoading }: Ro
         </CardBody>
       </Card>
 
-      {/* Gráfico de Lado das Mamadas */}
+      {/* Gráfico de Lado das Amamentações */}
       <Card>
         <CardHeader 
-          title="🤱 Lado das Mamadas" 
+          title="🤱 Lado das Amamentações" 
           subtitle="Distribuição semanal"
         />
         <CardBody className="p-4">

@@ -90,7 +90,7 @@ export function DaySummary({ stats, isLoading }: DaySummaryProps) {
 
           <SummaryCard
             icon={Utensils}
-            label="Mamadas"
+            label="Alimentações"
             value={feedingCount}
             subtitle={`~${Math.round(feedingMinutes)}min cada`}
             color="bg-yellow-500"

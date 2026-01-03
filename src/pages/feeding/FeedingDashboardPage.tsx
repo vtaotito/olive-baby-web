@@ -121,11 +121,11 @@ export function FeedingDashboardPage() {
           <Utensils className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">Sem dados ainda</h2>
           <p className="text-gray-600 mb-6">
-            Comece registrando as mamadas do seu bebê para ver aqui padrões, insights e acompanhar sua evolução.
+            Comece registrando as alimentações do seu bebê para ver aqui padrões, insights e acompanhar sua evolução.
           </p>
           <Button onClick={() => navigate('/routines/feeding')}>
             <Plus className="w-4 h-4 mr-2" />
-            Registrar primeira mamada
+            Registrar primeira alimentação
           </Button>
         </div>
       </DashboardLayout>
@@ -175,10 +175,10 @@ export function FeedingDashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <KPICard
               icon={<Utensils className="w-5 h-5 text-yellow-600" />}
-              label="Mamadas hoje"
+              label="Alimentações hoje"
               value={statsData.feedingCount24h || 0}
               color="bg-yellow-100"
-              hint="Recém-nascidos mamam de 8 a 12 vezes por dia em média, mas cada bebê tem seu ritmo."
+              hint="Recém-nascidos se alimentam de 8 a 12 vezes por dia em média, mas cada bebê tem seu ritmo."
             />
             <KPICard
               icon={<Clock className="w-5 h-5 text-blue-600" />}
@@ -227,10 +227,10 @@ export function FeedingDashboardPage() {
           </Card>
         )}
 
-        {/* Padrão de Mamadas */}
+        {/* Padrão de Alimentações */}
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">📊 Padrão de Mamadas</h2>
+            <h2 className="text-lg font-semibold text-gray-900">📊 Padrão de Alimentações</h2>
             <p className="text-sm text-gray-600 mt-1">
               Veja como tem sido a rotina de amamentação
             </p>
@@ -239,14 +239,14 @@ export function FeedingDashboardPage() {
             {/* Frequência por dia */}
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-3">
-                Mamadas por dia (última semana)
+                Alimentações por dia (última semana)
               </h3>
               <StatsChart
                 type="bar"
                 labels={statsData.labels || []}
                 datasets={[
                   {
-                    label: 'Mamadas',
+                    label: 'Alimentações',
                     data: statsData.feedingCountsPerDay || [],
                     backgroundColor: '#4ECDC4',
                     borderColor: '#4ECDC4',
@@ -255,7 +255,7 @@ export function FeedingDashboardPage() {
                 height={200}
               />
               <p className="text-xs text-gray-500 mt-2">
-                Quantidade de mamadas em cada dia. É normal variar um pouco, mas observar a média ajuda.
+                Quantidade de alimentações em cada dia. É normal variar um pouco, mas observar a média ajuda.
               </p>
             </div>
 
@@ -285,12 +285,12 @@ export function FeedingDashboardPage() {
           </CardBody>
         </Card>
 
-        {/* Horários de Mamada */}
+        {/* Horários de Alimentação */}
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">🕐 Horários mais comuns de mamada</h2>
+            <h2 className="text-lg font-semibold text-gray-900">🕐 Horários mais comuns de alimentação</h2>
             <p className="text-sm text-gray-600 mt-1">
-              Veja em quais horários seu bebê costuma mamar mais. Isso ajuda a entender o ritmo dele.
+              Veja em quais horários seu bebê costuma se alimentar mais. Isso ajuda a entender o ritmo dele.
             </p>
           </CardHeader>
           <CardBody>
@@ -354,7 +354,7 @@ export function FeedingDashboardPage() {
             <CardBody className="text-center py-8">
               <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">
-                Continue registrando as mamadas para receber insights personalizados!
+                Continue registrando as alimentações para receber insights personalizados!
               </p>
             </CardBody>
           </Card>
@@ -367,7 +367,7 @@ export function FeedingDashboardPage() {
             className="flex-1"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Registrar nova mamada
+            Registrar nova alimentação
           </Button>
           <Button
             variant="outline"

@@ -50,7 +50,7 @@ export function BreastSideChart({ distribution }: BreastSideChartProps) {
             const value = context.parsed || 0;
             const total = distribution.left + distribution.right + distribution.both;
             const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-            return `${label}: ${value} mamadas (${percentage}%)`;
+            return `${label}: ${value} amamentações (${percentage}%)`;
           },
         },
       },

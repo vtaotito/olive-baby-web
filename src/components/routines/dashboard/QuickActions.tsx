@@ -14,7 +14,7 @@ const actions = [
   {
     id: 'feeding',
     icon: Utensils,
-    label: 'Nova mamada',
+    label: 'Nova alimentação',
     color: 'bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700',
     path: '/routines/feeding',
   },

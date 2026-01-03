@@ -133,13 +133,13 @@ function SleepChart({ labels, data }: { labels: string[]; data: number[] }) {
   );
 }
 
-// Gráfico de Frequência de Mamadas
+// Gráfico de Frequência de Alimentações
 function FeedingChart({ labels, data }: { labels: string[]; data: number[] }) {
   const chartData = useMemo(() => ({
     labels,
     datasets: [
       {
-        label: 'Mamadas',
+        label: 'Alimentações',
         data,
         backgroundColor: 'rgba(251, 191, 36, 0.7)',
         borderColor: 'rgb(251, 191, 36)',
@@ -154,7 +154,7 @@ function FeedingChart({ labels, data }: { labels: string[]; data: number[] }) {
   return (
     <Card>
       <CardHeader 
-        title="🍼 Frequência de Mamadas" 
+        title="🍼 Frequência de Alimentações" 
         subtitle={`Média: ${avg} por dia`}
       />
       <CardBody className="h-48">
@@ -162,7 +162,7 @@ function FeedingChart({ labels, data }: { labels: string[]; data: number[] }) {
       </CardBody>
       <div className="px-4 pb-3">
         <p className="text-xs text-gray-500">
-          💡 6-12 mamadas por dia é normal para recém-nascidos
+          💡 6-12 alimentações por dia é normal para recém-nascidos
         </p>
       </div>
     </Card>
@@ -324,8 +324,8 @@ function BreastSideChart({ distribution }: { distribution: { left: number; right
   return (
     <Card>
       <CardHeader 
-        title="🤱 Lado das Mamadas" 
-        subtitle={`Total: ${total} mamadas`}
+        title="🤱 Lado das Amamentações" 
+        subtitle={`Total: ${total} amamentações`}
       />
       <CardBody className="h-48">
         <Doughnut data={chartData} options={options} />
@@ -394,7 +394,7 @@ export function RoutineCharts({ history, breastSideDistribution, isLoading }: Ro
           <SleepChart labels={history.labels} data={history.sleepHours} />
         )}
 
-        {/* Mamadas */}
+        {/* Alimentações */}
         {history.feedingCounts.some(v => v > 0) && (
           <FeedingChart labels={history.labels} data={history.feedingCounts} />
         )}

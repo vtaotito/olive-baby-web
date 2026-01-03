@@ -34,7 +34,7 @@ export function HourlyHeatmap({ hourlyCounts, hourlyLabels }: HourlyHeatmapProps
     labels,
     datasets: [
       {
-        label: 'Mamadas por hora',
+        label: 'Alimentações por hora',
         data: hourlyCounts,
         backgroundColor: hourlyCounts.map(getColor),
         borderColor: hourlyCounts.map((_, i) => 
@@ -56,8 +56,8 @@ export function HourlyHeatmap({ hourlyCounts, hourlyLabels }: HourlyHeatmapProps
         callbacks: {
           label: (context: any) => {
             const count = context.parsed.y;
-            if (count === 0) return 'Nenhuma mamada neste horário';
-            return `${count} mamada${count > 1 ? 's' : ''} às ${context.label}`;
+            if (count === 0) return 'Nenhuma alimentação neste horário';
+            return `${count} alimentaç${count > 1 ? 'ões' : 'ão'} às ${context.label}`;
           },
         },
       },
