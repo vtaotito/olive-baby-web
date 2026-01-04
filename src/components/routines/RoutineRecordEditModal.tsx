@@ -30,6 +30,7 @@ import {
   type ExtractionMetaFields,
 } from '../../utils/routineMeta';
 import { cn } from '../../lib/utils';
+import { useTimezone } from '../../hooks';
 
 // Schema base de validação
 const baseEditSchema = z.object({
@@ -65,6 +66,9 @@ export function RoutineRecordEditModal({
   // State para campos meta específicos
   const [meta, setMeta] = useState<Record<string, unknown>>({});
   const [metaErrors, setMetaErrors] = useState<string[]>([]);
+  
+  // Timezone hook para conversão correta de horários
+  const { fromUTC, toUTC } = useTimezone();
 
   const {
     register,
@@ -82,12 +86,10 @@ export function RoutineRecordEditModal({
   // Inicializar form quando abrir
   useEffect(() => {
     if (isOpen && routine) {
-      // Formatar data/hora para input datetime-local
-      const startDateTime = new Date(routine.startTime)
-        .toISOString()
-        .slice(0, 16);
+      // Formatar data/hora para input datetime-local usando timezone do usuário
+      const startDateTime = fromUTC(routine.startTime);
       const endDateTime = routine.endTime
-        ? new Date(routine.endTime).toISOString().slice(0, 16)
+        ? fromUTC(routine.endTime)
         : '';
 
       reset({
@@ -100,7 +102,7 @@ export function RoutineRecordEditModal({
       setMeta((routine.meta as Record<string, unknown>) || {});
       setMetaErrors([]);
     }
-  }, [isOpen, routine, reset]);
+  }, [isOpen, routine, reset, fromUTC]);
 
   // Handler de mudança de campo meta
   const handleMetaChange = (field: string, value: unknown) => {
@@ -129,18 +131,22 @@ export function RoutineRecordEditModal({
 
     setMetaErrors([]);
 
-    // Preparar payload
+    // Converter horários do timezone do usuário para UTC
+    const startTimeUTC = toUTC(data.startTime);
+    const endTimeUTC = data.endTime ? toUTC(data.endTime) : undefined;
+
+    // Preparar payload com horários em UTC
     let payload;
     if (routineType === 'DIAPER') {
       payload = prepareDiaperPayload({
-        dateTime: data.startTime,
+        dateTime: startTimeUTC,
         notes: data.notes,
         meta: normalizedMeta,
       });
     } else {
       payload = prepareUpdatePayload(routineType, {
-        startTime: data.startTime,
-        endTime: data.endTime,
+        startTime: startTimeUTC,
+        endTime: endTimeUTC,
         notes: data.notes,
         meta: normalizedMeta,
       });
