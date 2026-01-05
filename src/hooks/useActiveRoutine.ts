@@ -1,4 +1,5 @@
 // Olive Baby Web - useActiveRoutine Hook
+// Otimizado: usa endpoint consolidado /open-all (1 request ao invés de 4)
 import { useState, useEffect, useCallback } from 'react';
 import { routineService } from '../services/api';
 import type { RoutineLog } from '../types';
@@ -35,22 +36,26 @@ export function useActiveRoutine(babyId: number | undefined): UseActiveRoutineRe
     setIsLoading(true);
 
     try {
-      // Verificar todas as rotinas ativas em paralelo
-      const [feedingRes, sleepRes, bathRes, extractionRes] = await Promise.allSettled([
-        routineService.getOpenFeeding(babyId),
-        routineService.getOpenSleep(babyId),
-        routineService.getOpenBath(babyId),
-        routineService.getOpenExtraction(babyId),
-      ]);
-
-      setActiveRoutines({
-        feeding: feedingRes.status === 'fulfilled' && feedingRes.value.data ? feedingRes.value.data : null,
-        sleep: sleepRes.status === 'fulfilled' && sleepRes.value.data ? sleepRes.value.data : null,
-        bath: bathRes.status === 'fulfilled' && bathRes.value.data ? bathRes.value.data : null,
-        extraction: extractionRes.status === 'fulfilled' && extractionRes.value.data ? extractionRes.value.data : null,
-      });
+      // OTIMIZADO: Usar endpoint consolidado (1 request ao invés de 4)
+      const response = await routineService.getOpenRoutinesAll(babyId);
+      
+      if (response.success && response.data) {
+        setActiveRoutines({
+          feeding: response.data.feeding || null,
+          sleep: response.data.sleep || null,
+          bath: response.data.bath || null,
+          extraction: response.data.extraction || null,
+        });
+      }
     } catch (err) {
       console.error('[useActiveRoutine] Error:', err);
+      // Fallback: se o novo endpoint falhar, resetar rotinas
+      setActiveRoutines({
+        feeding: null,
+        sleep: null,
+        bath: null,
+        extraction: null,
+      });
     } finally {
       setIsLoading(false);
     }

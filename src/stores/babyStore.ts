@@ -205,30 +205,18 @@ export const useBabyStore = create<BabyState>()(
 
       checkActiveRoutines: async (babyId: number) => {
         try {
-          // Verificar todas as rotinas em paralelo para melhor performance
-          const [feedingRes, sleepRes, bathRes, extractionRes] = await Promise.allSettled([
-            routineService.getOpenFeeding(babyId),
-            routineService.getOpenSleep(babyId),
-            routineService.getOpenBath(babyId),
-            routineService.getOpenExtraction(babyId),
-          ]);
+          // OTIMIZADO: Usar endpoint consolidado (1 request ao invés de 4)
+          const response = await routineService.getOpenRoutinesAll(babyId);
           
-          const activeRoutines: ActiveRoutines = {
-            feeding: feedingRes.status === 'fulfilled' && feedingRes.value?.success && feedingRes.value?.data
-              ? feedingRes.value.data
-              : undefined,
-            sleep: sleepRes.status === 'fulfilled' && sleepRes.value?.success && sleepRes.value?.data
-              ? sleepRes.value.data
-              : undefined,
-            bath: bathRes.status === 'fulfilled' && bathRes.value?.success && bathRes.value?.data
-              ? bathRes.value.data
-              : undefined,
-            extraction: extractionRes.status === 'fulfilled' && extractionRes.value?.success && extractionRes.value?.data
-              ? extractionRes.value.data
-              : undefined,
-          };
-          
-          set({ activeRoutines });
+          if (response.success && response.data) {
+            const activeRoutines: ActiveRoutines = {
+              feeding: response.data.feeding || undefined,
+              sleep: response.data.sleep || undefined,
+              bath: response.data.bath || undefined,
+              extraction: response.data.extraction || undefined,
+            };
+            set({ activeRoutines });
+          }
         } catch (error) {
           console.error('Error checking active routines:', error);
           // Não propagar erro - apenas logar

@@ -17,13 +17,24 @@ const api: AxiosInstance = axios.create({
   validateStatus: (status) => status < 500, // Não rejeitar automaticamente 4xx
 });
 
-// Request interceptor - add auth token
+// Request interceptor - add auth token and correlation ID
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Add auth token
     const tokens = storage.get<AuthTokens>('auth_tokens');
     if (tokens?.accessToken) {
       config.headers.Authorization = `Bearer ${tokens.accessToken}`;
     }
+    
+    // Add correlation ID for request tracing
+    const correlationId = crypto.randomUUID();
+    config.headers['x-correlation-id'] = correlationId;
+    
+    // Log request in development for debugging
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${config.method?.toUpperCase()} ${config.url} [${correlationId.slice(0, 8)}...]`);
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -290,6 +301,17 @@ export const routineService = {
   // Verifica se há extraction aberto
   getOpenExtraction: async (babyId: number) => {
     const response = await api.get('/routines/extraction/open', { 
+      params: { babyId } 
+    });
+    return response.data;
+  },
+
+  // ============================================
+  // Endpoint Consolidado - Todas as Rotinas Abertas
+  // Otimização: 1 request ao invés de 4 paralelas
+  // ============================================
+  getOpenRoutinesAll: async (babyId: number) => {
+    const response = await api.get('/routines/open-all', { 
       params: { babyId } 
     });
     return response.data;
