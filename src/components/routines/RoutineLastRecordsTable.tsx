@@ -112,7 +112,16 @@ export function RoutineLastRecordsTable({
         }
         
         if (feedingMeta.complement === 'yes' && feedingMeta.complementMl) {
-          parts.push(`+${feedingMeta.complementMl}ml complemento`);
+          // Determinar tipo de complemento para exibição
+          let complementTypeLabel = '';
+          if (feedingMeta.complementIsMixed) {
+            complementTypeLabel = ' (Misto)';
+          } else if (feedingMeta.complementType === 'donated_milk' || feedingMeta.complementType === 'breast_milk') {
+            complementTypeLabel = ' (LM)';
+          } else if (feedingMeta.complementType === 'formula') {
+            complementTypeLabel = ' (Fórmula)';
+          }
+          parts.push(`+${feedingMeta.complementMl}ml complemento${complementTypeLabel}`);
         }
         
         return parts.join(' • ');

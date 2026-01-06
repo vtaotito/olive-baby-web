@@ -42,6 +42,10 @@ interface StatsHistory {
   extractionMl: number[];
   bottleMl: number[];
   complementMl: number[];
+  // Novos campos para volumetria por tipo
+  breastMilkMl?: number[];
+  formulaMl?: number[];
+  mixedMl?: number[];
 }
 
 interface RoutineChartsProps {
@@ -278,6 +282,106 @@ function VolumeChart({
   );
 }
 
+// Gráfico de Volumetria por Tipo de Leite
+function VolumeByTypeChart({ 
+  labels, 
+  breastMilk, 
+  formula, 
+  mixed 
+}: { 
+  labels: string[]; 
+  breastMilk: number[]; 
+  formula: number[]; 
+  mixed: number[];
+}) {
+  const chartData = useMemo(() => ({
+    labels,
+    datasets: [
+      {
+        label: 'Leite Materno',
+        data: breastMilk,
+        borderColor: 'rgb(236, 72, 153)',
+        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+        fill: false,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgb(236, 72, 153)',
+      },
+      {
+        label: 'Fórmula',
+        data: formula,
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: false,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgb(59, 130, 246)',
+      },
+      {
+        label: 'Misto',
+        data: mixed,
+        borderColor: 'rgb(168, 85, 247)',
+        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+        fill: false,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgb(168, 85, 247)',
+      },
+    ],
+  }), [labels, breastMilk, formula, mixed]);
+
+  const options = {
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      legend: {
+        display: true,
+        position: 'bottom' as const,
+        labels: {
+          boxWidth: 12,
+          padding: 15,
+          font: {
+            size: 11,
+          },
+        },
+      },
+    },
+  };
+
+  const totalBreastMilk = breastMilk.reduce((a, b) => a + b, 0);
+  const totalFormula = formula.reduce((a, b) => a + b, 0);
+  const totalMixed = mixed.reduce((a, b) => a + b, 0);
+  const total = totalBreastMilk + totalFormula + totalMixed;
+
+  return (
+    <Card>
+      <CardHeader 
+        title="🍼 Volumetria Ofertada (ml)" 
+        subtitle="Mamadeira + complementos por tipo"
+      />
+      <CardBody className="h-56">
+        <Line data={chartData} options={options} />
+      </CardBody>
+      {total > 0 && (
+        <div className="px-4 pb-3 flex flex-wrap gap-3 text-xs text-gray-600">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-pink-500"></span>
+            LM: {totalBreastMilk}ml
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+            Fórmula: {totalFormula}ml
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+            Misto: {totalMixed}ml
+          </span>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 // Gráfico de Distribuição dos Lados (Amamentação)
 function BreastSideChart({ distribution }: { distribution: { left: number; right: number; both: number } }) {
   const chartData = useMemo(() => ({
@@ -404,7 +508,7 @@ export function RoutineCharts({ history, breastSideDistribution, isLoading }: Ro
           <DiaperChart labels={history.labels} data={history.diaperCounts} />
         )}
 
-        {/* Volume de leite */}
+        {/* Volume de leite (extração, mamadeira, complemento) */}
         {(history.extractionMl.some(v => v > 0) || 
           history.bottleMl.some(v => v > 0) || 
           history.complementMl.some(v => v > 0)) && (
@@ -413,6 +517,18 @@ export function RoutineCharts({ history, breastSideDistribution, isLoading }: Ro
             extraction={history.extractionMl}
             bottle={history.bottleMl}
             complement={history.complementMl}
+          />
+        )}
+
+        {/* Volumetria por tipo de leite (novo gráfico) */}
+        {(history.breastMilkMl?.some(v => v > 0) || 
+          history.formulaMl?.some(v => v > 0) || 
+          history.mixedMl?.some(v => v > 0)) && (
+          <VolumeByTypeChart 
+            labels={history.labels}
+            breastMilk={history.breastMilkMl || history.labels.map(() => 0)}
+            formula={history.formulaMl || history.labels.map(() => 0)}
+            mixed={history.mixedMl || history.labels.map(() => 0)}
           />
         )}
 

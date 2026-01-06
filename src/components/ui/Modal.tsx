@@ -71,22 +71,22 @@ export function Modal({
     >
       <div
         className={cn(
-          'relative w-full bg-white rounded-2xl shadow-xl',
+          'relative w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900/50',
           'animate-in zoom-in-95 duration-200',
           sizes[size]
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between p-6 border-b border-gray-100">
+          <div className="flex items-start justify-between p-6 border-b border-gray-100 dark:border-gray-700">
             <div>
-              {title && <h2 className="text-xl font-semibold text-gray-900">{title}</h2>}
-              {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+              {title && <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>}
+              {description && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>}
             </div>
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -128,7 +128,7 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-      <p className="text-gray-600 mb-6">{message}</p>
+      <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
       <div className="flex gap-3 justify-end">
         <Button variant="secondary" onClick={onClose} disabled={isLoading}>
           {cancelText}

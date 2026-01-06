@@ -16,6 +16,7 @@ import {
   RoutineCharts,
   InsightsCards,
   RoutinesList,
+  VolumeByTypeDashboard,
 } from '../../components/routines/dashboard';
 import { InsightsCarousel } from '../../components/notifications';
 
@@ -177,6 +178,9 @@ export function DashboardPage() {
           breastSideDistribution={stats?.feeding?.breastSideDistribution as any}
           isLoading={isLoadingStats}
         />
+
+        {/* Gráfico de Volumetria por Tipo */}
+        <VolumeByTypeDashboard babyId={selectedBaby.id} />
 
         {/* Lista de rotinas */}
         <RoutinesList

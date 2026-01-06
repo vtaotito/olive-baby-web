@@ -459,6 +459,12 @@ export const statsService = {
     const response = await api.get(`/stats/${babyId}/history/${type}`, { params: { days } });
     return response.data;
   },
+
+  // Volumetria por tipo de leite (Leite Materno, Fórmula, Misto)
+  getVolumeByType: async (babyId: number, range: '7d' | '14d' | '30d' = '7d') => {
+    const response = await api.get(`/stats/${babyId}/volume-by-type`, { params: { range } });
+    return response.data;
+  },
 };
 
 // ====== Growth Service ======

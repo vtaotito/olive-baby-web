@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/ui/Toast';
+import { ThemeProvider } from './theme';
 import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute } from './components/layout';
 
 // Auth Pages
@@ -82,9 +83,10 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <BrowserRouter>
-          <BabyInitializer>
+      <ThemeProvider>
+        <ToastProvider>
+          <BrowserRouter>
+            <BabyInitializer>
             <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -395,9 +397,10 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
-          </BabyInitializer>
-        </BrowserRouter>
-      </ToastProvider>
+            </BabyInitializer>
+          </BrowserRouter>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

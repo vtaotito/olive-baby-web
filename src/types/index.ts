@@ -82,7 +82,8 @@ export interface FeedingMeta {
   solidFoods?: string | string[];
   complement?: 'yes' | 'no';
   complementMl?: number;
-  complementType?: 'formula' | 'breast_milk' | 'other';
+  complementType?: 'formula' | 'donated_milk' | 'breast_milk' | 'other';
+  complementIsMixed?: boolean;
 }
 
 // Sleep Meta

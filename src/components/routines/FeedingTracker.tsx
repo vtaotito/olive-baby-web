@@ -39,6 +39,7 @@ export function FeedingTracker() {
   const [solidDescription, setSolidDescription] = useState('');
   const [complement, setComplement] = useState(false);
   const [complementMl, setComplementMl] = useState('');
+  const [complementType, setComplementType] = useState<'breast_milk' | 'formula' | 'mixed'>('formula');
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingOpen, setIsCheckingOpen] = useState(true);
@@ -209,6 +210,15 @@ export function FeedingTracker() {
       if (complement) {
         meta.complement = 'yes';
         if (complementMl) meta.complementMl = Number(complementMl);
+        // Mapear tipo de complemento para API
+        if (complementType === 'mixed') {
+          meta.complementType = 'formula';
+          meta.complementIsMixed = true;
+        } else if (complementType === 'breast_milk') {
+          meta.complementType = 'donated_milk';
+        } else {
+          meta.complementType = 'formula';
+        }
       }
       
       const response = await routineService.closeFeeding(selectedBaby.id, meta, notes || undefined);
@@ -475,13 +485,39 @@ export function FeedingTracker() {
                 <span className="text-sm text-gray-700">Houve complemento?</span>
               </label>
               {complement && (
-                <Input
-                  label="Quantidade do complemento (ml)"
-                  type="number"
-                  placeholder="Ex: 30"
-                  value={complementMl}
-                  onChange={(e) => setComplementMl(e.target.value)}
-                />
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tipo do complemento</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {[
+                        { value: 'breast_milk', label: 'Leite materno' },
+                        { value: 'formula', label: 'Fórmula' },
+                        { value: 'mixed', label: 'Misto' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setComplementType(opt.value as typeof complementType)}
+                          className={cn(
+                            'px-3 py-2 rounded-lg text-sm transition-all',
+                            complementType === opt.value
+                              ? 'bg-olive-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Input
+                    label="Quantidade do complemento (ml)"
+                    type="number"
+                    placeholder="Ex: 30"
+                    value={complementMl}
+                    onChange={(e) => setComplementMl(e.target.value)}
+                  />
+                </>
               )}
             </CardBody>
           </Card>

@@ -28,14 +28,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
       primary: 'bg-olive-600 text-white hover:bg-olive-700 focus:ring-olive-500',
-      secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-olive-500',
+      secondary: 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-olive-500',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-olive-500',
-      outline: 'bg-transparent text-olive-600 border border-olive-600 hover:bg-olive-50 focus:ring-olive-500',
+      ghost: 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-olive-500',
+      outline: 'bg-transparent text-olive-600 dark:text-olive-400 border border-olive-600 dark:border-olive-500 hover:bg-olive-50 dark:hover:bg-olive-900/20 focus:ring-olive-500',
     };
 
     const sizes = {

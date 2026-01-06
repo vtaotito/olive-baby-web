@@ -1,5 +1,5 @@
 // Olive Baby Web - Appearance Settings Page
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Palette,
@@ -15,8 +15,9 @@ import { Card, CardBody, CardHeader, Button } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { cn } from '../../lib/utils';
 import { settingsService } from '../../services/api';
+import { useTheme, type Theme } from '../../theme';
 
-type ThemeOption = 'light' | 'dark' | 'system';
+type ThemeOption = Theme;
 
 interface ThemeConfig {
   id: ThemeOption;
@@ -53,72 +54,29 @@ const themes: ThemeConfig[] = [
 export function AppearancePage() {
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
-  const [selectedTheme, setSelectedTheme] = useState<ThemeOption>('system');
-  const [isLoading, setIsLoading] = useState(true);
+  const { theme: currentTheme, resolvedTheme, setTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load settings from API
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const response = await settingsService.getSettings();
-        if (response.success && response.data?.appearance) {
-          setSelectedTheme(response.data.appearance.theme || 'system');
-        }
-      } catch (err) {
-        console.error('Error loading settings:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSettings();
-  }, []);
-
   const handleThemeChange = async (theme: ThemeOption) => {
-    if (theme === selectedTheme) return;
+    if (theme === currentTheme) return;
 
     setIsSaving(true);
     try {
-      const response = await settingsService.updateAppearance({ theme });
+      // Apply theme immediately (localStorage)
+      setTheme(theme);
       
-      if (response.success) {
-        setSelectedTheme(theme);
-        
-        // Apply theme to document (for future dark mode implementation)
-        applyTheme(theme);
-        
-        success('Tema atualizado!', `Tema ${themes.find(t => t.id === theme)?.label} aplicado`);
-      } else {
-        throw new Error(response.message || 'Falha ao atualizar tema');
-      }
+      // Persist to backend (optional, non-blocking)
+      settingsService.updateAppearance({ theme }).catch((err) => {
+        console.warn('Failed to persist theme to backend:', err);
+      });
+      
+      success('Tema atualizado!', `Tema ${themes.find(t => t.id === theme)?.label} aplicado`);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
       showError('Erro', error.response?.data?.message || error.message || 'Falha ao atualizar tema');
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const applyTheme = (theme: ThemeOption) => {
-    const root = document.documentElement;
-    
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else if (theme === 'light') {
-      root.classList.remove('dark');
-    } else {
-      // System preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
-    }
-
-    // Store preference locally for immediate application on page load
-    localStorage.setItem('theme', theme);
   };
 
   return (
@@ -137,12 +95,7 @@ export function AppearancePage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-olive-600 animate-spin" />
-        </div>
-      ) : (
-        <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-6">
           {/* Theme Selection */}
           <Card>
             <CardHeader 
@@ -158,9 +111,9 @@ export function AppearancePage() {
                     disabled={isSaving}
                     className={cn(
                       'flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left',
-                      selectedTheme === theme.id
-                        ? 'border-olive-500 bg-olive-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                      currentTheme === theme.id
+                        ? 'border-olive-500 bg-olive-50 dark:bg-olive-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 bg-white dark:bg-gray-800'
                     )}
                   >
                     {/* Preview Box */}
@@ -181,7 +134,7 @@ export function AppearancePage() {
                     </div>
                     
                     {/* Check */}
-                    {selectedTheme === theme.id && (
+                    {currentTheme === theme.id && (
                       <div className="w-6 h-6 bg-olive-600 rounded-full flex items-center justify-center">
                         <Check className="w-4 h-4 text-white" />
                       </div>
@@ -198,7 +151,7 @@ export function AppearancePage() {
             <CardBody>
               <div className={cn(
                 'p-6 rounded-xl border-2 transition-all',
-                selectedTheme === 'dark' 
+                resolvedTheme === 'dark' 
                   ? 'bg-gray-900 border-gray-700' 
                   : 'bg-white border-gray-200'
               )}>
@@ -208,16 +161,16 @@ export function AppearancePage() {
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       'w-10 h-10 rounded-full',
-                      selectedTheme === 'dark' ? 'bg-gray-700' : 'bg-olive-100'
+                      resolvedTheme === 'dark' ? 'bg-gray-700' : 'bg-olive-100'
                     )} />
                     <div className="space-y-1">
                       <div className={cn(
                         'h-3 w-24 rounded',
-                        selectedTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                        resolvedTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
                       )} />
                       <div className={cn(
                         'h-2 w-16 rounded',
-                        selectedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                        resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                       )} />
                     </div>
                   </div>
@@ -229,16 +182,16 @@ export function AppearancePage() {
                         key={i}
                         className={cn(
                           'p-3 rounded-lg',
-                          selectedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
+                          resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
                         )}
                       >
                         <div className={cn(
                           'h-2 w-12 rounded mb-2',
-                          selectedTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
+                          resolvedTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
                         )} />
                         <div className={cn(
                           'h-6 w-8 rounded',
-                          selectedTheme === 'dark' ? 'bg-gray-700' : 'bg-olive-200'
+                          resolvedTheme === 'dark' ? 'bg-gray-700' : 'bg-olive-200'
                         )} />
                       </div>
                     ))}
@@ -249,12 +202,13 @@ export function AppearancePage() {
           </Card>
 
           {/* Info */}
-          <div className="text-center text-sm text-gray-400 py-4">
-            <p>O tema escuro será aplicado em uma atualização futura.</p>
+          <div className="text-center text-sm text-gray-400 dark:text-gray-500 py-4">
             <p>Sua preferência será salva e aplicada automaticamente.</p>
+            <p className="mt-1">
+              Tema atual: <span className="font-medium text-gray-600 dark:text-gray-300">{resolvedTheme === 'dark' ? 'Escuro' : 'Claro'}</span>
+            </p>
           </div>
         </div>
-      )}
     </DashboardLayout>
   );
 }

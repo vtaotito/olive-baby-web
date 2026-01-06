@@ -9,9 +9,9 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 function Card({ className, children, variant = 'default', ...props }: CardProps) {
   const variants = {
-    default: 'bg-white rounded-xl shadow-sm border border-gray-100',
-    elevated: 'bg-white rounded-xl shadow-lg',
-    bordered: 'bg-white rounded-xl border-2 border-gray-200',
+    default: 'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700',
+    elevated: 'bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/50',
+    bordered: 'bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-600',
   };
 
   return (
@@ -30,12 +30,12 @@ interface CardHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> 
 
 function CardHeader({ className, title, subtitle, action, children, ...props }: CardHeaderProps) {
   return (
-    <div className={cn('px-6 py-4 border-b border-gray-100', className)} {...props}>
+    <div className={cn('px-6 py-4 border-b border-gray-100 dark:border-gray-700', className)} {...props}>
       {children || (
         <div className="flex items-center justify-between">
           <div>
-            {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-            {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+            {title && <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>}
+            {subtitle && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>
@@ -62,7 +62,7 @@ interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
 
 function CardFooter({ className, children, ...props }: CardFooterProps) {
   return (
-    <div className={cn('px-6 py-4 bg-gray-50 border-t border-gray-100', className)} {...props}>
+    <div className={cn('px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700', className)} {...props}>
       {children}
     </div>
   );
