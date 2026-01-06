@@ -4,6 +4,7 @@ export * from './BabiesPage';
 export * from './BillingPage';
 export * from './NotificationsPage';
 export * from './BabyMembersPage';
+export * from './ShareBabyPage';
 export * from './PrivacyPage';
 export * from './AppearancePage';
 export * from './HelpPage';

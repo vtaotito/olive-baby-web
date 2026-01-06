@@ -34,7 +34,7 @@ import { MilestonesPage } from './pages/milestones';
 import { ExportPage } from './pages/export';
 
 // Settings Pages
-import { SettingsPage, ProfilePage, BabiesPage, BillingPage, NotificationsPage, BabyMembersPage, PrivacyPage, AppearancePage, HelpPage } from './pages/settings';
+import { SettingsPage, ProfilePage, BabiesPage, BillingPage, NotificationsPage, BabyMembersPage, ShareBabyPage, PrivacyPage, AppearancePage, HelpPage } from './pages/settings';
 
 // Admin Billing and AI Pages
 import { AdminBillingPage } from './pages/admin/AdminBillingPage';
@@ -249,6 +249,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <BabyMembersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/babies/:babyId/share"
+              element={
+                <ProtectedRoute>
+                  <ShareBabyPage />
                 </ProtectedRoute>
               }
             />

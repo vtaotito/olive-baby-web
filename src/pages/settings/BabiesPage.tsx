@@ -11,6 +11,7 @@ import {
   MapPin,
   Check,
   Users,
+  Share2,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
 import { Card, CardBody, CardHeader, Button, Modal, Avatar } from '../../components/ui';
@@ -148,8 +149,17 @@ export function BabiesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => navigate(`/settings/babies/${baby.id}/share`)}
+                    title="Compartilhar bebê"
+                    className="text-olive-600 hover:text-olive-700 hover:bg-olive-50"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => navigate(`/settings/babies/${baby.id}/members`)}
-                    title="Gerenciar membros e convites"
+                    title="Gerenciar membros"
                   >
                     <Users className="w-4 h-4" />
                   </Button>
