@@ -6,6 +6,21 @@ import type { AuthTokens, ApiResponse } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
 
+// Generate UUID with fallback for browsers that don't support crypto.randomUUID
+function generateUUID(): string {
+  // Use crypto.randomUUID if available (modern browsers with secure context)
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  
+  // Fallback: generate UUID v4 manually
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // Create axios instance com configurações otimizadas
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -27,7 +42,7 @@ api.interceptors.request.use(
     }
     
     // Add correlation ID for request tracing
-    const correlationId = crypto.randomUUID();
+    const correlationId = generateUUID();
     config.headers['x-correlation-id'] = correlationId;
     
     // Log request in development for debugging
