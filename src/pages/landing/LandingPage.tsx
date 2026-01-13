@@ -640,7 +640,7 @@ function PricingSection() {
     },
     {
       name: 'Premium',
-      price: 'R$ 14,90',
+      price: 'R$ 29,99',
       period: 'por mês',
       description: 'Para famílias que querem o máximo de organização e insights.',
       features: [

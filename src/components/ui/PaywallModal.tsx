@@ -106,7 +106,7 @@ export function PaywallModal({
         <div className="mb-6">
           <p className="text-sm text-gray-500 mb-1">A partir de</p>
           <div className="flex items-baseline justify-center gap-1">
-            <span className="text-4xl font-bold text-gray-900">R$ 29,90</span>
+            <span className="text-4xl font-bold text-gray-900">R$ 29,99</span>
             <span className="text-gray-500">/mês</span>
           </div>
         </div>

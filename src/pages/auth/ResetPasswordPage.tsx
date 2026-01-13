@@ -40,12 +40,12 @@ export function ResetPasswordPage() {
   useEffect(() => {
     const tokenParam = searchParams.get('token');
     if (!tokenParam) {
-      showError('Link inválido', 'O link de recuperação não contém um token válido.');
       navigate('/forgot-password');
     } else {
       setToken(tokenParam);
     }
-  }, [searchParams, navigate, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const {
     register,
