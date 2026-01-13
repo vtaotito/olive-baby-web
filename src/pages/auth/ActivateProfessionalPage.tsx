@@ -177,7 +177,7 @@ export function ActivateProfessionalPage() {
   return (
     <AuthLayout
       title="Ative sua conta"
-      subtitle="Complete seu cadastro para acessar o Olive Baby"
+      subtitle="Complete seu cadastro para acessar o OlieCare"
     >
       <Card>
         <CardBody>

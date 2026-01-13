@@ -74,7 +74,7 @@ export function RegisterPage() {
         cpf: data.cpf.replace(/\D/g, ''),
         phone: data.phone?.replace(/\D/g, ''),
       });
-      success('Conta criada!', 'Bem-vindo ao Olive Baby');
+      success('Conta criada!', 'Bem-vindo ao OlieCare');
       navigate('/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };

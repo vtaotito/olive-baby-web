@@ -137,7 +137,7 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
             </div>
             <div>
               <span className="text-lg font-bold text-gray-900">Admin</span>
-              <p className="text-xs text-gray-500">Olive Baby</p>
+              <p className="text-xs text-gray-500">OlieCare</p>
             </div>
           </div>
           <button

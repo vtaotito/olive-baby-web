@@ -74,7 +74,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="w-8 h-8 bg-olive-600 rounded-lg flex items-center justify-center">
               <Baby className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-olive-800 dark:text-olive-400">Olive Baby</span>
+            <span className="font-bold text-olive-800 dark:text-olive-400">OlieCare</span>
           </Link>
 
           <NotificationBell />
@@ -103,7 +103,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="w-10 h-10 bg-olive-600 rounded-xl flex items-center justify-center">
               <Baby className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-olive-800 dark:text-olive-400">Olive Baby</span>
+            <span className="text-xl font-bold text-olive-800 dark:text-olive-400">OlieCare</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

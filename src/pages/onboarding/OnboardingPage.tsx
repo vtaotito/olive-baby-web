@@ -153,7 +153,7 @@ export function OnboardingPage() {
               Olá, {user?.caregiver?.fullName?.split(' ')[0]}! 👋
             </h2>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Vamos configurar o Olive Baby para acompanhar o desenvolvimento do seu bebê.
+              Vamos configurar o OlieCare para acompanhar o desenvolvimento do seu bebê.
               Este processo leva menos de 2 minutos.
             </p>
             <Button onClick={nextStep} rightIcon={<ChevronRight className="w-5 h-5" />}>

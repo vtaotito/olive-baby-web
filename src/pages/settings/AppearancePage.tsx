@@ -100,7 +100,7 @@ export function AppearancePage() {
           <Card>
             <CardHeader 
               title="Tema" 
-              subtitle="Escolha como o Olive Baby deve aparecer"
+              subtitle="Escolha como o OlieCare deve aparecer"
             />
             <CardBody>
               <div className="grid gap-4">

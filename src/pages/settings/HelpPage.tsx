@@ -248,7 +248,7 @@ export function HelpPage() {
               <Star className="w-8 h-8 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Gostando do Olive Baby?
+              Gostando do OlieCare?
             </h3>
             <p className="text-gray-600 mb-4">
               Sua avaliação nos ajuda a continuar melhorando!
@@ -266,8 +266,8 @@ export function HelpPage() {
 
         {/* Version Info */}
         <div className="text-center text-sm text-gray-400 py-4">
-          <p>Olive Baby v1.0.0</p>
-          <p>© 2024 Olive Baby. Todos os direitos reservados.</p>
+          <p>OlieCare v1.0.0</p>
+          <p>© 2024 OlieCare. Todos os direitos reservados.</p>
         </div>
       </div>
     </DashboardLayout>

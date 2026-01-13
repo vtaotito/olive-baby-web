@@ -18,7 +18,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           <div className="w-10 h-10 bg-olive-600 rounded-xl flex items-center justify-center">
             <Baby className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-olive-800">Olive Baby</span>
+          <span className="text-xl font-bold text-olive-800">OlieCare</span>
         </Link>
       </header>
 

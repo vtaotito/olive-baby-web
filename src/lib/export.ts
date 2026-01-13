@@ -252,7 +252,7 @@ export async function generateWeeklyReport(data: PDFReportData): Promise<void> {
     color: [255, 255, 255], 
     align: 'center' 
   });
-  addText('Olive Baby - Acompanhe o desenvolvimento do seu bebê', pageWidth / 2, pageHeight - 2, { 
+  addText('OlieCare - Acompanhe o desenvolvimento do seu bebê', pageWidth / 2, pageHeight - 2, { 
     fontSize: 6, 
     color: [200, 200, 200], 
     align: 'center' 

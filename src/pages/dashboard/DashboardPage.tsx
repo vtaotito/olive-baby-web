@@ -56,7 +56,7 @@ export function DashboardPage() {
                   <Baby className="w-10 h-10 text-olive-600" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Bem-vindo(a) ao Olive Baby! 🌿
+                  Bem-vindo(a) ao OlieCare! 🌿
                 </h1>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   {babies.length > 0 

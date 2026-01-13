@@ -46,7 +46,7 @@ const settingSections: SettingSection[] = [
         id: 'app_name',
         label: 'Nome da Aplicação',
         type: 'input',
-        value: 'Olive Baby',
+        value: 'OlieCare',
         disabled: true,
       },
       {
