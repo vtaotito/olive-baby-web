@@ -5,6 +5,9 @@ import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
 import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute } from './components/layout';
 
+// Landing Page
+import { LandingPage } from './pages/landing';
+
 // Auth Pages
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
 
@@ -88,6 +91,9 @@ function App() {
           <BrowserRouter>
             <BabyInitializer>
             <Routes>
+            {/* Landing Page */}
+            <Route path="/" element={<LandingPage />} />
+            
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -394,7 +400,6 @@ function App() {
             />
 
             {/* Default Redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
             </BabyInitializer>

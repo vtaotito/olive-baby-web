@@ -1,7 +1,7 @@
 // Olive Baby Web - useTimezone Hook
 // Manages user timezone with persistence and auto-detection
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, ReactNode } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { 
@@ -14,7 +14,7 @@ import {
   formatUTCToLocalDateTime,
   formatRelativeTime,
 } from '../lib/timezone';
-import { api } from '../services/api';
+import api from '../services/api';
 
 // Types
 interface TimezoneState {
@@ -126,7 +126,7 @@ export function useTimezone() {
 /**
  * Provider component to initialize timezone on app load
  */
-export function TimezoneProvider({ children }: { children: React.ReactNode }) {
+export function TimezoneProvider({ children }: { children: ReactNode }) {
   const { loadTimezone, isLoaded } = useTimezone();
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export function TimezoneProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadTimezone, isLoaded]);
 
-  return <>{children}</>;
+  return children;
 }
 
 export default useTimezone;
