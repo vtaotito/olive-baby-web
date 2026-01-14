@@ -73,6 +73,23 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// Emitir evento customizado quando tokens são atualizados
+// Isso permite que o authStore seja sincronizado
+const emitTokensUpdated = (tokens: AuthTokens) => {
+  if (typeof window !== 'undefined') {
+    const event = new CustomEvent('auth:tokens-updated', { detail: tokens });
+    window.dispatchEvent(event);
+  }
+};
+
+// Emitir evento de sessão expirada para navegação elegante
+const emitSessionExpired = () => {
+  if (typeof window !== 'undefined') {
+    const event = new CustomEvent('auth:session-expired');
+    window.dispatchEvent(event);
+  }
+};
+
 // Lista de endpoints públicos que não precisam de autenticação
 const PUBLIC_ENDPOINTS = [
   '/auth/login',
@@ -136,15 +153,20 @@ api.interceptors.response.use(
           );
 
           if (response.data.success && response.data.data) {
+            const newTokens = response.data.data;
+            
             // Save new tokens
-            storage.set('auth_tokens', response.data.data);
+            storage.set('auth_tokens', newTokens);
+            
+            // Emitir evento para sincronizar com authStore
+            emitTokensUpdated(newTokens);
             
             // Processar fila de requisições pendentes
-            processQueue(null, response.data.data.accessToken);
+            processQueue(null, newTokens.accessToken);
             
             // Retry original request
             if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${response.data.data.accessToken}`;
+              originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
             }
             isRefreshing = false;
             return api(originalRequest);
@@ -158,14 +180,20 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         isRefreshing = false;
         
-        // Clear auth and redirect to login
+        // Clear auth storage
         storage.remove('auth_tokens');
         storage.remove('user');
         
-        // Evitar redirecionamento múltiplo
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
-        }
+        // Emitir evento de sessão expirada (permite navegação elegante via React Router)
+        emitSessionExpired();
+        
+        // Fallback: redirecionar via window.location se o evento não foi tratado
+        // Aguardar um pequeno delay para dar chance ao handler de evento
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+        }, 100);
         
         return Promise.reject(refreshError);
       }

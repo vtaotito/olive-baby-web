@@ -37,6 +37,7 @@ interface BabyState {
   setActiveRoutine: (type: keyof ActiveRoutines, routine: RoutineLog | undefined) => void;
   checkActiveRoutines: (babyId: number) => Promise<void>;
   clearBabyData: () => void;
+  restoreSelectedBaby: () => void;
 }
 
 export const useBabyStore = create<BabyState>()(
@@ -231,12 +232,38 @@ export const useBabyStore = create<BabyState>()(
           activeRoutines: {},
         });
       },
+
+      // Restaura bebê selecionado a partir dos dados persistidos
+      // Útil quando a API falha mas temos dados em cache
+      restoreSelectedBaby: () => {
+        const { babies, selectedBaby } = get();
+        
+        // Se já tem bebê selecionado e ele existe na lista, não fazer nada
+        if (selectedBaby && babies.find(b => b.id === selectedBaby.id)) {
+          return;
+        }
+        
+        // Se não tem bebê selecionado mas tem bebês na lista, selecionar o primeiro
+        if (!selectedBaby && babies.length > 0) {
+          set({ selectedBaby: babies[0] });
+          get().checkActiveRoutines(babies[0].id);
+        }
+      },
     }),
     {
       name: 'olive-baby-data',
+      // Persistir bebês e bebê selecionado para fallback
       partialize: (state) => ({
+        babies: state.babies,
         selectedBaby: state.selectedBaby,
       }),
+      // Callback executado após rehidratação do estado
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Restaurar bebê selecionado se necessário
+          state.restoreSelectedBaby?.();
+        }
+      },
     }
   )
 );

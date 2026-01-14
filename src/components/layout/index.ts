@@ -6,3 +6,4 @@ export * from './FloatingActions';
 export * from './BabyInitializer';
 export * from './AdminLayout';
 export * from './AdminRoute';
+export * from './SessionGuard';
