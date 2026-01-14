@@ -642,6 +642,9 @@ function PricingSection() {
       name: 'Premium',
       price: 'R$ 29,99',
       period: 'por mês',
+      yearlyPrice: 'R$ 287,90/ano',
+      yearlyDiscount: '20% off',
+      yearlySaving: 'Economize R$ 71,98',
       description: 'Para famílias que querem o máximo de organização e insights.',
       features: [
         'Tudo do plano grátis',
@@ -706,6 +709,21 @@ function PricingSection() {
                     /{plan.period}
                   </span>
                 </div>
+                {'yearlyPrice' in plan && plan.yearlyPrice && (
+                  <div className={`mt-2 flex items-center gap-2 ${plan.highlighted ? 'text-olive-100' : 'text-stone-500'}`}>
+                    <span className="text-sm">ou {plan.yearlyPrice}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      plan.highlighted ? 'bg-peach-400 text-stone-800' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {plan.yearlyDiscount}
+                    </span>
+                  </div>
+                )}
+                {'yearlySaving' in plan && plan.yearlySaving && (
+                  <p className={`text-xs mt-1 ${plan.highlighted ? 'text-olive-200' : 'text-green-600'}`}>
+                    {plan.yearlySaving}
+                  </p>
+                )}
                 <p className={`mt-2 ${plan.highlighted ? 'text-olive-100' : 'text-stone-500'}`}>
                   {plan.description}
                 </p>
