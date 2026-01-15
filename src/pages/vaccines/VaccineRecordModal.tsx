@@ -61,8 +61,19 @@ const skipSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+const createSchema = z.object({
+  vaccineName: z.string().min(1, 'Nome da vacina é obrigatório'),
+  doseLabel: z.string().min(1, 'Dose é obrigatória'),
+  appliedAt: z.string().min(1, 'Data é obrigatória'),
+  lotNumber: z.string().max(50).optional(),
+  clinicName: z.string().max(200).optional(),
+  professionalName: z.string().max(200).optional(),
+  notes: z.string().max(500).optional(),
+});
+
 type ApplyFormData = z.infer<typeof applySchema>;
 type SkipFormData = z.infer<typeof skipSchema>;
+type CreateFormData = z.infer<typeof createSchema>;
 
 // Status icon
 function StatusIcon({ status, isOverdue }: { status: string; isOverdue: boolean }) {
@@ -105,10 +116,13 @@ export function VaccineRecordModal({
   onSuccess,
 }: VaccineRecordModalProps) {
   const { success, error: showError } = useToast();
-  const [mode, setMode] = useState<'view' | 'apply' | 'skip'>('view');
+  const [mode, setMode] = useState<'view' | 'apply' | 'skip' | 'create'>('view');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Determine if we're creating a new record
+  const isCreating = !record;
 
   // Apply form
   const applyForm = useForm<ApplyFormData>({
@@ -130,9 +144,34 @@ export function VaccineRecordModal({
     },
   });
 
-  // Reset forms when record changes
+  // Create form
+  const createForm = useForm<CreateFormData>({
+    resolver: zodResolver(createSchema),
+    defaultValues: {
+      vaccineName: '',
+      doseLabel: '',
+      appliedAt: new Date().toISOString().split('T')[0],
+      lotNumber: '',
+      clinicName: '',
+      professionalName: '',
+      notes: '',
+    },
+  });
+
+  // Reset forms when record changes or modal opens
   useEffect(() => {
-    if (record) {
+    if (isCreating) {
+      setMode('create');
+      createForm.reset({
+        vaccineName: '',
+        doseLabel: '',
+        appliedAt: new Date().toISOString().split('T')[0],
+        lotNumber: '',
+        clinicName: '',
+        professionalName: '',
+        notes: '',
+      });
+    } else if (record) {
       setMode('view');
       applyForm.reset({
         appliedAt: record.appliedAt 
@@ -147,13 +186,42 @@ export function VaccineRecordModal({
         notes: record.notes || '',
       });
     }
-  }, [record, applyForm, skipForm]);
+  }, [record, isCreating, applyForm, skipForm, createForm]);
 
   // Handle close
   const handleClose = () => {
-    setMode('view');
+    setMode(isCreating ? 'create' : 'view');
     setShowDeleteConfirm(false);
     onClose();
+  };
+
+  // Handle create new record
+  const handleCreate = async (data: CreateFormData) => {
+    setIsSubmitting(true);
+    try {
+      const response = await vaccineService.createRecord(babyId, {
+        vaccineKey: `manual_${Date.now()}`,
+        vaccineName: data.vaccineName,
+        doseLabel: data.doseLabel,
+        doseNumber: 1,
+        recommendedAt: data.appliedAt, // For manual records, recommended = applied
+        appliedAt: data.appliedAt,
+        source: 'PNI',
+        lotNumber: data.lotNumber || null,
+        clinicName: data.clinicName || null,
+        professionalName: data.professionalName || null,
+        notes: data.notes || null,
+      });
+      
+      if (response.success) {
+        success('Vacina registrada', `${data.vaccineName} foi registrada com sucesso`);
+        onSuccess();
+      }
+    } catch (err: any) {
+      showError('Erro', err.response?.data?.message || 'Falha ao registrar vacina');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle apply
@@ -238,8 +306,6 @@ export function VaccineRecordModal({
     }
   };
 
-  if (!record) return null;
-
   return (
     <Modal 
       isOpen={isOpen} 
@@ -248,20 +314,109 @@ export function VaccineRecordModal({
       size="lg"
     >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <StatusIcon status={record.status} isOverdue={record.isOverdue} />
-          <h2 className="text-xl font-bold text-gray-900 mt-4">
-            {record.vaccineName}
-          </h2>
-          <p className="text-gray-500">{record.doseLabel}</p>
-          <p className="text-sm text-gray-400 mt-1">
-            Recomendada: {new Date(record.recommendedAt).toLocaleDateString('pt-BR')}
-          </p>
-        </div>
+        {/* Header - Create Mode */}
+        {mode === 'create' && (
+          <div className="text-center">
+            <div className="w-16 h-16 bg-olive-100 rounded-full flex items-center justify-center mx-auto">
+              <Syringe className="w-8 h-8 text-olive-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mt-4">
+              Registrar Vacina
+            </h2>
+            <p className="text-gray-500">Adicione uma vacina manualmente</p>
+          </div>
+        )}
+
+        {/* Header - View/Edit Mode */}
+        {mode !== 'create' && record && (
+          <div className="text-center">
+            <StatusIcon status={record.status} isOverdue={record.isOverdue} />
+            <h2 className="text-xl font-bold text-gray-900 mt-4">
+              {record.vaccineName}
+            </h2>
+            <p className="text-gray-500">{record.doseLabel}</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Recomendada: {new Date(record.recommendedAt).toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+        )}
+
+        {/* Create mode */}
+        {mode === 'create' && (
+          <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
+            <Input
+              label="Nome da vacina *"
+              placeholder="Ex: BCG, Hepatite B, Pentavalente"
+              error={createForm.formState.errors.vaccineName?.message}
+              {...createForm.register('vaccineName')}
+            />
+
+            <Input
+              label="Dose *"
+              placeholder="Ex: 1ª dose, dose única, reforço"
+              error={createForm.formState.errors.doseLabel?.message}
+              {...createForm.register('doseLabel')}
+            />
+
+            <Input
+              label="Data de aplicação *"
+              type="date"
+              max={new Date().toISOString().split('T')[0]}
+              error={createForm.formState.errors.appliedAt?.message}
+              {...createForm.register('appliedAt')}
+            />
+
+            <Input
+              label="Lote da vacina"
+              placeholder="Ex: 12345ABC"
+              {...createForm.register('lotNumber')}
+            />
+
+            <Input
+              label="Local/Serviço"
+              placeholder="Ex: UBS Centro, Hospital São Lucas"
+              {...createForm.register('clinicName')}
+            />
+
+            <Input
+              label="Profissional"
+              placeholder="Nome do profissional que aplicou"
+              {...createForm.register('professionalName')}
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Observações
+              </label>
+              <textarea
+                className="input min-h-[80px]"
+                placeholder="Anotações adicionais..."
+                {...createForm.register('notes')}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleClose}
+                fullWidth
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                fullWidth
+                isLoading={isSubmitting}
+              >
+                Registrar
+              </Button>
+            </div>
+          </form>
+        )}
 
         {/* View mode */}
-        {mode === 'view' && (
+        {mode === 'view' && record && (
           <>
             {/* Status info */}
             <div className={cn(
