@@ -286,7 +286,7 @@ export function ExtractionTracker() {
             </Card>
 
             <Card>
-              <CardHeader title="Lado do seio" />
+              <CardHeader title="Seio" />
               <CardBody>
                 <div className="grid grid-cols-3 gap-3">
                   {breastSides.map((side) => (
