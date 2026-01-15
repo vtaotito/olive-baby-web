@@ -106,18 +106,18 @@ export function HelpPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
           <a
-            href="mailto:suporte@olivebaby.com.br"
+            href="mailto:contact@api.oliecare.cloud"
             className="flex flex-col items-center gap-2 p-6 bg-white rounded-xl border border-gray-200 hover:border-olive-300 hover:shadow-sm transition-all"
           >
             <div className="w-12 h-12 bg-olive-100 rounded-full flex items-center justify-center">
               <Mail className="w-6 h-6 text-olive-600" />
             </div>
             <span className="font-medium text-gray-900">Email</span>
-            <span className="text-xs text-gray-500">suporte@olivebaby.com.br</span>
+            <span className="text-xs text-gray-500">contact@api.oliecare.cloud</span>
           </a>
 
           <a
-            href="https://wa.me/5511999999999"
+            href="https://wa.me/5548984218268"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center gap-2 p-6 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-sm transition-all"
@@ -126,7 +126,7 @@ export function HelpPage() {
               <MessageCircle className="w-6 h-6 text-green-600" />
             </div>
             <span className="font-medium text-gray-900">WhatsApp</span>
-            <span className="text-xs text-gray-500">Resposta rápida</span>
+            <span className="text-xs text-gray-500">+55 48 98421-8268</span>
           </a>
         </div>
 
