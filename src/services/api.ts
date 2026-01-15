@@ -1136,6 +1136,109 @@ export const babyInviteService = {
   },
 };
 
+// ====== Vaccine Service ======
+export const vaccineService = {
+  // Get available calendars
+  getCalendars: async () => {
+    const response = await api.get('/vaccines/calendars');
+    return response.data;
+  },
+
+  // Get vaccine definitions
+  getDefinitions: async (source: 'PNI' | 'SBIM' = 'PNI') => {
+    const response = await api.get('/vaccines/definitions', { params: { source } });
+    return response.data;
+  },
+
+  // Get vaccine summary for a baby
+  getSummary: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/vaccines/summary`);
+    return response.data;
+  },
+
+  // Get vaccine timeline for a baby
+  getTimeline: async (babyId: number, params?: {
+    status?: 'PENDING' | 'APPLIED' | 'SKIPPED';
+    source?: 'PNI' | 'SBIM';
+  }) => {
+    const response = await api.get(`/babies/${babyId}/vaccines/timeline`, { params });
+    return response.data;
+  },
+
+  // Sync vaccines from calendar
+  syncVaccines: async (babyId: number, source: 'PNI' | 'SBIM' = 'PNI') => {
+    const response = await api.post(`/babies/${babyId}/vaccines/sync`, { source });
+    return response.data;
+  },
+
+  // Get a specific vaccine record
+  getRecord: async (babyId: number, recordId: number) => {
+    const response = await api.get(`/babies/${babyId}/vaccines/record/${recordId}`);
+    return response.data;
+  },
+
+  // Create a manual vaccine record
+  createRecord: async (babyId: number, data: {
+    vaccineKey: string;
+    vaccineName: string;
+    doseLabel: string;
+    doseNumber?: number;
+    recommendedAt: string;
+    appliedAt?: string | null;
+    source?: 'PNI' | 'SBIM';
+    lotNumber?: string | null;
+    clinicName?: string | null;
+    professionalName?: string | null;
+    notes?: string | null;
+  }) => {
+    const response = await api.post(`/babies/${babyId}/vaccines/record`, data);
+    return response.data;
+  },
+
+  // Update a vaccine record
+  updateRecord: async (babyId: number, recordId: number, data: {
+    appliedAt?: string | null;
+    status?: 'PENDING' | 'APPLIED' | 'SKIPPED';
+    lotNumber?: string | null;
+    clinicName?: string | null;
+    professionalName?: string | null;
+    notes?: string | null;
+  }) => {
+    const response = await api.patch(`/babies/${babyId}/vaccines/record/${recordId}`, data);
+    return response.data;
+  },
+
+  // Mark vaccine as applied
+  markAsApplied: async (babyId: number, recordId: number, data: {
+    appliedAt: string;
+    lotNumber?: string;
+    clinicName?: string;
+    professionalName?: string;
+    notes?: string;
+  }) => {
+    const response = await api.post(`/babies/${babyId}/vaccines/record/${recordId}/apply`, data);
+    return response.data;
+  },
+
+  // Mark vaccine as skipped
+  markAsSkipped: async (babyId: number, recordId: number, notes?: string) => {
+    const response = await api.post(`/babies/${babyId}/vaccines/record/${recordId}/skip`, { notes });
+    return response.data;
+  },
+
+  // Reset vaccine to pending
+  resetToPending: async (babyId: number, recordId: number) => {
+    const response = await api.post(`/babies/${babyId}/vaccines/record/${recordId}/reset`);
+    return response.data;
+  },
+
+  // Delete a vaccine record
+  deleteRecord: async (babyId: number, recordId: number) => {
+    const response = await api.delete(`/babies/${babyId}/vaccines/record/${recordId}`);
+    return response.data;
+  },
+};
+
 // ====== Notification Service ======
 export const notificationService = {
   // List notifications

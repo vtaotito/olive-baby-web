@@ -8,7 +8,8 @@ import {
   Users, 
   FileDown, 
   MessageSquare, 
-  Sparkles 
+  Sparkles,
+  Syringe,
 } from 'lucide-react';
 import { Modal } from './Modal';
 import { Button } from './Button';
@@ -32,6 +33,7 @@ const PREMIUM_FEATURES = [
   { icon: FileDown, label: 'Exportação ilimitada (PDF/CSV)' },
   { icon: MessageSquare, label: 'Assistente IA Olive' },
   { icon: Sparkles, label: 'Insights avançados' },
+  { icon: Syringe, label: 'Calendário de vacinas completo' },
   { icon: Zap, label: 'Histórico completo' },
 ];
 

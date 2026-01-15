@@ -35,6 +35,7 @@ export interface PlanFeatures {
   aiChat: boolean;
   multiCaregivers: boolean;
   prioritySupport: boolean;
+  vaccines: boolean;
 }
 
 export interface Subscription {

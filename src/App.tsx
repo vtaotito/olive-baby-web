@@ -34,6 +34,9 @@ import { DashboardPage } from './pages/dashboard';
 import { GrowthPage } from './pages/growth';
 import { MilestonesPage } from './pages/milestones';
 
+// Vaccines
+import { VaccinesPage } from './pages/vaccines';
+
 // Export Page
 import { ExportPage } from './pages/export';
 
@@ -184,6 +187,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MilestonesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Vaccines */}
+            <Route
+              path="/vaccines"
+              element={
+                <ProtectedRoute>
+                  <VaccinesPage />
                 </ProtectedRoute>
               }
             />

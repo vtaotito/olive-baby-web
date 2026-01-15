@@ -18,6 +18,7 @@ const DEFAULT_FREE_FEATURES: PlanFeatures = {
   aiChat: false,
   multiCaregivers: false,
   prioritySupport: false,
+  vaccines: false,
 };
 
 const DEFAULT_PREMIUM_LIMITS: PlanLimits = {
@@ -34,6 +35,7 @@ const DEFAULT_PREMIUM_FEATURES: PlanFeatures = {
   aiChat: true,
   multiCaregivers: true,
   prioritySupport: true,
+  vaccines: true,
 };
 
 export type FeatureKey = keyof PlanFeatures;
@@ -146,6 +148,7 @@ export const FEATURE_DISPLAY_NAMES: Record<FeatureKey, string> = {
   aiChat: 'Assistente IA',
   multiCaregivers: 'Múltiplos Cuidadores',
   prioritySupport: 'Suporte Prioritário',
+  vaccines: 'Calendário de Vacinas',
 };
 
 export const RESOURCE_DISPLAY_NAMES: Record<ResourceKey, string> = {
