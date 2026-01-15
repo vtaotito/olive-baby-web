@@ -48,6 +48,7 @@ interface InviteData {
     name: string;
     birthDate: string;
   };
+  userExists?: boolean;
 }
 
 // ====== Constants ======
@@ -131,9 +132,11 @@ export function AcceptInvitePage() {
         setInviteData(response.data);
         setStatus('VALID');
         
-        // Check if user already exists (for non-authenticated users)
+        // Use userExists from backend response (for non-authenticated users)
         if (!isAuthenticated) {
-          await checkUserExists(response.data.invite.emailInvited);
+          const userExistsFromBackend = response.data.userExists ?? false;
+          setUserExists(userExistsFromBackend);
+          setMode(userExistsFromBackend ? 'login' : 'register');
         }
       } else {
         setStatus('INVALID');
@@ -159,26 +162,6 @@ export function AcceptInvitePage() {
       }
     }
   }, [token, isAuthenticated]);
-
-  const checkUserExists = async (email: string) => {
-    try {
-      // Try to login with invalid password to check if user exists
-      await authService.login(email, '__check_user_exists__');
-      setUserExists(true);
-      setMode('login');
-    } catch (err: unknown) {
-      const error = err as { response?: { status?: number; data?: { message?: string } } };
-      // 401 means user exists but wrong password
-      // 404 means user doesn't exist
-      if (error.response?.status === 401) {
-        setUserExists(true);
-        setMode('login');
-      } else {
-        setUserExists(false);
-        setMode('register');
-      }
-    }
-  };
 
   // ====== Effects ======
   useEffect(() => {
