@@ -1134,6 +1134,24 @@ export const babyInviteService = {
     const response = await api.delete(`/babies/${babyId}/invites/${inviteId}`);
     return response.data;
   },
+
+  // Get pending invites for logged user
+  getPendingInvites: async () => {
+    const response = await api.get('/invites/pending');
+    return response.data;
+  },
+
+  // Accept invite by ID (for logged users viewing in notifications)
+  acceptInviteById: async (inviteId: number) => {
+    const response = await api.post(`/invites/${inviteId}/accept`);
+    return response.data;
+  },
+
+  // Reject invite
+  rejectInvite: async (inviteId: number) => {
+    const response = await api.post(`/invites/${inviteId}/reject`);
+    return response.data;
+  },
 };
 
 // ====== Vaccine Service ======
