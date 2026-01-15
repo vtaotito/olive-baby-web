@@ -1135,21 +1135,23 @@ export const babyInviteService = {
     return response.data;
   },
 
-  // Get pending invites for logged user
+  // Get pending invites for logged user (family + professional invites)
   getPendingInvites: async () => {
     const response = await api.get('/invites/pending');
     return response.data;
   },
 
   // Accept invite by ID (for logged users viewing in notifications)
-  acceptInviteById: async (inviteId: number) => {
-    const response = await api.post(`/invites/${inviteId}/accept`);
+  // inviteType: 'FAMILY' | 'PROFESSIONAL'
+  acceptInviteById: async (inviteId: number, inviteType: string = 'FAMILY') => {
+    const response = await api.post(`/invites/${inviteId}/accept`, { inviteType });
     return response.data;
   },
 
   // Reject invite
-  rejectInvite: async (inviteId: number) => {
-    const response = await api.post(`/invites/${inviteId}/reject`);
+  // inviteType: 'FAMILY' | 'PROFESSIONAL'
+  rejectInvite: async (inviteId: number, inviteType: string = 'FAMILY') => {
+    const response = await api.post(`/invites/${inviteId}/reject`, { inviteType });
     return response.data;
   },
 };

@@ -37,6 +37,7 @@ type TabType = 'invites' | 'unread' | 'archived';
 // Types for pending invites
 interface PendingInvite {
   id: number;
+  inviteType: 'FAMILY' | 'PROFESSIONAL'; // Tipo do convite
   babyId: number;
   babyName: string;
   babyBirthDate: string;
@@ -48,6 +49,9 @@ interface PendingInvite {
   inviterName: string;
   expiresAt: string;
   createdAt: string;
+  // Campos específicos de profissional
+  specialty?: string;
+  allBabies?: Array<{ id: number; name: string; role: string }>;
 }
 
 const typeIcons: Record<NotificationType, typeof Lightbulb> = {
@@ -122,7 +126,8 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
 
   // Accept invite mutation
   const acceptInviteMutation = useMutation({
-    mutationFn: (inviteId: number) => babyInviteService.acceptInviteById(inviteId),
+    mutationFn: ({ inviteId, inviteType }: { inviteId: number; inviteType: string }) => 
+      babyInviteService.acceptInviteById(inviteId, inviteType),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pending-invites'] });
       queryClient.invalidateQueries({ queryKey: ['babies'] });
@@ -137,7 +142,8 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
 
   // Reject invite mutation
   const rejectInviteMutation = useMutation({
-    mutationFn: (inviteId: number) => babyInviteService.rejectInvite(inviteId),
+    mutationFn: ({ inviteId, inviteType }: { inviteId: number; inviteType: string }) => 
+      babyInviteService.rejectInvite(inviteId, inviteType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-invites'] });
       success('Convite recusado');
@@ -372,7 +378,10 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                             <div className="flex items-center gap-2 mt-3">
                               <Button
                                 size="sm"
-                                onClick={() => acceptInviteMutation.mutate(invite.id)}
+                                onClick={() => acceptInviteMutation.mutate({ 
+                                  inviteId: invite.id, 
+                                  inviteType: invite.inviteType || 'FAMILY' 
+                                })}
                                 disabled={acceptInviteMutation.isPending || rejectInviteMutation.isPending}
                                 isLoading={acceptInviteMutation.isPending}
                                 leftIcon={<Check className="w-4 h-4" />}
@@ -382,7 +391,10 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => rejectInviteMutation.mutate(invite.id)}
+                                onClick={() => rejectInviteMutation.mutate({ 
+                                  inviteId: invite.id, 
+                                  inviteType: invite.inviteType || 'FAMILY' 
+                                })}
                                 disabled={acceptInviteMutation.isPending || rejectInviteMutation.isPending}
                                 isLoading={rejectInviteMutation.isPending}
                                 leftIcon={<XCircle className="w-4 h-4" />}
