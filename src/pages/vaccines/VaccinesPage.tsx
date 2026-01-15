@@ -360,7 +360,21 @@ export function VaccinesPage() {
         window.location.href = response.data.url;
       }
     } catch (err: any) {
-      showError('Erro', 'Falha ao iniciar checkout');
+      // If user already has active subscription, redirect to portal
+      if (err.response?.status === 409 || err.response?.data?.message?.includes('já possui uma assinatura ativa')) {
+        try {
+          const portalResponse = await billingService.createPortalSession();
+          if (portalResponse.success && portalResponse.data?.url) {
+            window.location.href = portalResponse.data.url;
+          } else {
+            showError('Erro', 'Você já possui uma assinatura ativa. Use o portal para gerenciar.');
+          }
+        } catch (portalErr: any) {
+          showError('Erro', 'Você já possui uma assinatura ativa. Use o portal para gerenciar.');
+        }
+      } else {
+        showError('Erro', err.response?.data?.message || 'Falha ao iniciar checkout');
+      }
     }
   };
 

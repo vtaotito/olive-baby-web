@@ -1,9 +1,11 @@
 // Olive Baby Web - useEntitlements Hook
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
+import { billingService } from '../services/api';
 import type { PlanFeatures, PlanLimits, PlanType } from '../types/admin';
 
-// Default values for FREE plan
+// Default values for FREE plan (fallback)
 const DEFAULT_FREE_LIMITS: PlanLimits = {
   maxBabies: 1,
   maxProfessionals: 0,
@@ -59,14 +61,18 @@ export interface EntitlementsResult {
   
   // Helper
   isAdmin: boolean;
+  isLoading: boolean;
 }
 
 /**
  * Hook to check user entitlements (plan features and limits)
+ * Fetches data from /billing/me endpoint
  * 
  * Usage:
  * ```tsx
- * const { can, isWithinLimit, isPremium } = useEntitlements();
+ * const { can, isWithinLimit, isPremium, isLoading } = useEntitlements();
+ * 
+ * if (isLoading) return <Spinner />;
  * 
  * if (can('exportPdf')) {
  *   // Show export button
@@ -78,29 +84,54 @@ export interface EntitlementsResult {
  * ```
  */
 export function useEntitlements(): EntitlementsResult {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+
+  // Fetch billing status from backend
+  const { data: billingData, isLoading } = useQuery({
+    queryKey: ['billing', 'status'],
+    queryFn: async () => {
+      const response = await billingService.getStatus();
+      return response.data;
+    },
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+  });
 
   return useMemo(() => {
-    // Determine plan type from user (for now, we'll check based on role or default to FREE)
-    // In a full implementation, this would come from the user object with plan info
     const isAdmin = user?.role === 'ADMIN';
     
-    // TODO: When backend returns plan info in user object, use that instead
-    // For now, assume FREE plan for all non-admin users
-    const planType: PlanType = isAdmin ? 'PREMIUM' : 'FREE';
+    // Use billing data from backend if available, otherwise fallback to defaults
+    let planType: PlanType = 'FREE';
+    let planName = 'Free';
+    let features: PlanFeatures = { ...DEFAULT_FREE_FEATURES };
+    let limits: PlanLimits = { ...DEFAULT_FREE_LIMITS };
+
+    if (billingData) {
+      // Use data from backend
+      planType = billingData.planType || 'FREE';
+      planName = billingData.planName || (planType === 'PREMIUM' ? 'Premium' : 'Free');
+      features = billingData.features || (planType === 'PREMIUM' ? DEFAULT_PREMIUM_FEATURES : DEFAULT_FREE_FEATURES);
+      limits = billingData.limits || (planType === 'PREMIUM' ? DEFAULT_PREMIUM_LIMITS : DEFAULT_FREE_LIMITS);
+    } else if (isAdmin) {
+      // Fallback for admin users
+      planType = 'PREMIUM';
+      planName = 'Premium';
+      features = DEFAULT_PREMIUM_FEATURES;
+      limits = DEFAULT_PREMIUM_LIMITS;
+    }
+
     const isPremium = planType === 'PREMIUM';
     const isFree = planType === 'FREE';
-    const planName = isPremium ? 'Premium' : 'Free';
-
-    // Get limits and features based on plan
-    const limits = isPremium ? DEFAULT_PREMIUM_LIMITS : DEFAULT_FREE_LIMITS;
-    const features = isPremium ? DEFAULT_PREMIUM_FEATURES : DEFAULT_FREE_FEATURES;
 
     // Check if user can use a feature
     const can = (feature: FeatureKey): boolean => {
       // Admins can do everything
       if (isAdmin) return true;
-      return features[feature] === true;
+      // Check if feature is enabled and subscription is active
+      const featureEnabled = features[feature] === true;
+      const isActive = billingData?.isActive !== false; // Default to true if not provided
+      return featureEnabled && isActive;
     };
 
     // Check if user is within a resource limit
@@ -136,8 +167,9 @@ export function useEntitlements(): EntitlementsResult {
       isWithinLimit,
       getRemainingQuota,
       isAdmin,
+      isLoading,
     };
-  }, [user]);
+  }, [user, billingData]);
 }
 
 // Feature display names for UI
