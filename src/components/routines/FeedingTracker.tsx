@@ -393,7 +393,7 @@ export function FeedingTracker() {
         {/* Breast Side Selection */}
         {feedingType === 'breast' && !activeFeeding && (
           <Card>
-            <CardHeader title="Seio" />
+            <CardHeader title="Lado do peito" />
             <CardBody>
               <div className="grid grid-cols-3 gap-3">
                 {breastSides.map((side) => (
