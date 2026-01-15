@@ -99,7 +99,7 @@ export function useInsights(stats: BabyStats | null, babyName?: string): UseInsi
           type: 'feeding',
           emoji: '🍼',
           title: 'Alimentações registradas',
-          message: `${feedingCount} alimentação(ões) registrada(s). Se estiver amamentando exclusivamente, ofereça o peito sempre que o bebê demonstrar sinais de fome.`,
+          message: `${feedingCount} alimentação(ões) registrada(s). Se estiver amamentando exclusivamente, ofereça o seio sempre que o bebê demonstrar sinais de fome.`,
           tone: 'neutral',
         });
       }

@@ -1,8 +1,9 @@
 // Olive Baby Web - Assistant Chat Component
 import { useEffect, useRef, useState } from 'react';
-import { Send, Loader2, Bot, User, AlertCircle, Sparkles, RotateCcw } from 'lucide-react';
+import { Send, Loader2, Bot, User, AlertCircle, Sparkles, RotateCcw, Crown } from 'lucide-react';
 import { useAiStore } from '../../stores/aiStore';
 import { useBabyStore } from '../../stores/babyStore';
+import { useEntitlements } from '../../hooks/useEntitlements';
 import { Button } from '../ui/Button';
 import { cn } from '../../lib/utils';
 import type { AiChatMessage } from '../../types';
@@ -18,6 +19,7 @@ export function AssistantChat({ onCitationsClick, className }: AssistantChatProp
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { selectedBaby } = useBabyStore();
+  const { can, isPremium } = useEntitlements();
   const {
     currentSession,
     messages,
@@ -27,6 +29,11 @@ export function AssistantChat({ onCitationsClick, className }: AssistantChatProp
     createSession,
     sendMessage,
   } = useAiStore();
+
+  // Count user messages for Free users
+  const userMessageCount = messages.filter(m => m.role === 'user').length;
+  const isFreeUser = !isPremium;
+  const hasReachedLimit = isFreeUser && userMessageCount >= 2;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -45,6 +52,12 @@ export function AssistantChat({ onCitationsClick, className }: AssistantChatProp
     e.preventDefault();
     
     if (!input.trim() || isSending) return;
+
+    // Check limit for Free users
+    if (hasReachedLimit) {
+      setInput('');
+      return;
+    }
 
     // Create session if none exists
     if (!currentSession && selectedBaby) {
@@ -155,6 +168,19 @@ export function AssistantChat({ onCitationsClick, className }: AssistantChatProp
           </div>
         )}
 
+        {/* Free user limit warning */}
+        {isFreeUser && userMessageCount > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 text-amber-800 rounded-lg border border-amber-200">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <p className="text-sm">
+              {userMessageCount === 1 
+                ? 'Você tem 1 interação restante no plano Gratuito. Assine o Premium para conversas ilimitadas.'
+                : 'Você atingiu o limite de 2 interações no plano Gratuito. Assine o Premium para continuar conversando.'
+              }
+            </p>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -184,8 +210,8 @@ export function AssistantChat({ onCitationsClick, className }: AssistantChatProp
           />
           <Button
             type="submit"
-            disabled={!input.trim() || isSending}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 py-3"
+            disabled={!input.trim() || isSending || hasReachedLimit}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 py-3 disabled:opacity-50"
           >
             {isSending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -194,6 +220,25 @@ export function AssistantChat({ onCitationsClick, className }: AssistantChatProp
             )}
           </Button>
         </div>
+        {hasReachedLimit && (
+          <div className="mt-2 p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200">
+            <div className="flex items-center gap-2 text-amber-800 mb-2">
+              <Crown className="h-4 w-4" />
+              <p className="text-sm font-semibold">Limite atingido no plano Gratuito</p>
+            </div>
+            <p className="text-xs text-amber-700 mb-2">
+              Assine o Premium para conversas ilimitadas com a Olive Assistant.
+            </p>
+            <Button
+              size="sm"
+              onClick={() => window.location.href = '/settings/billing'}
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              <Crown className="h-3 w-3 mr-2" />
+              Assinar Premium
+            </Button>
+          </div>
+        )}
         <p className="text-xs text-gray-400 mt-2 text-center">
           ⚠️ A Olive não substitui o pediatra. Em caso de emergência, procure atendimento médico.
         </p>

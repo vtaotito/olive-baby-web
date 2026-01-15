@@ -279,7 +279,7 @@ export function FeedingDashboardPage() {
                 height={200}
               />
               <p className="text-xs text-gray-500 mt-2">
-                Total de minutos que seu bebê passou no peito em cada dia.
+                Total de minutos que seu bebê passou no seio em cada dia.
               </p>
             </div>
           </CardBody>

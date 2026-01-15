@@ -203,11 +203,11 @@ export function RoutineRecordEditModal({
           </div>
         </div>
 
-        {/* Lado do peito (apenas para amamentação) */}
+        {/* Lado do seio (apenas para amamentação) */}
         {feedingMeta.feedingType === 'breast' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lado do Peito
+              Lado do Seio
             </label>
             <div className="grid grid-cols-3 gap-2">
               {BREAST_SIDES.map((side) => (

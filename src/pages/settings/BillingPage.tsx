@@ -263,6 +263,7 @@ export function BillingPage() {
                     {key === 'exportCsv' && 'Exportar CSV'}
                     {key === 'advancedInsights' && 'Insights Avançados'}
                     {key === 'aiChat' && 'Chat com IA'}
+                    {key === 'vaccines' && 'Calendário de Vacinas'}
                     {key === 'multiCaregivers' && 'Múltiplos Cuidadores'}
                     {key === 'prioritySupport' && 'Suporte Prioritário'}
                   </span>
@@ -366,7 +367,13 @@ export function BillingPage() {
                       {plan.features.aiChat && (
                         <li className="flex items-center gap-2 text-gray-700">
                           <Check className="w-5 h-5 text-green-500" />
-                          Chat com Assistente IA
+                          Chat com Assistente IA (ilimitado)
+                        </li>
+                      )}
+                      {plan.features.vaccines && (
+                        <li className="flex items-center gap-2 text-gray-700">
+                          <Check className="w-5 h-5 text-green-500" />
+                          Calendário de Vacinas completo
                         </li>
                       )}
                       {plan.features.multiCaregivers && (

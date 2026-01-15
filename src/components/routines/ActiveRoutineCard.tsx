@@ -115,7 +115,7 @@ export function ActiveRoutineCard({ routine, type, onFinish }: ActiveRoutineCard
     const details: string[] = [];
 
     if (type === 'feeding') {
-      if (meta?.feedingType === 'breast') details.push('Peito');
+      if (meta?.feedingType === 'breast') details.push('Seio');
       if (meta?.feedingType === 'bottle') details.push('Mamadeira');
       if (meta?.feedingType === 'solid') details.push('Sólidos');
       if (meta?.breastSide === 'left') details.push('Lado esquerdo');

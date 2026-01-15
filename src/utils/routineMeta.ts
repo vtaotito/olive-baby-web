@@ -266,7 +266,7 @@ export function validateRoutineMeta<T extends RoutineType>(
       }
       
       if (feedingMeta.feedingType === 'breast' && !feedingMeta.breastSide) {
-        errors.push({ field: 'breastSide', message: 'Lado do peito é obrigatório para amamentação' });
+        errors.push({ field: 'breastSide', message: 'Lado do seio é obrigatório para amamentação' });
       }
       
       if (feedingMeta.complement === 'yes' && !feedingMeta.complementMl && feedingMeta.complementMl !== 0) {
