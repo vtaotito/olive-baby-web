@@ -261,6 +261,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
         </nav>
 
+        {/* Notifications (Desktop) */}
+        <div className="hidden lg:flex items-center justify-center p-2 border-t border-gray-100 dark:border-gray-700">
+          <NotificationBell />
+          <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Notificações</span>
+        </div>
+
         {/* User Menu */}
         <div className="p-4 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
