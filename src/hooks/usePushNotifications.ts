@@ -1,30 +1,34 @@
 // Olive Baby Web - Push Notifications Hook
-// Gerencia a subscription de Web Push e registro do device token na API
+// Gerencia push notifications usando FCM (primario) com fallback para Web Push (VAPID)
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { deviceTokenService } from '../services/api';
 import { storage } from '../lib/utils';
+import { getFCMToken, isFCMSupported, onForegroundMessage } from '../config/firebase';
 
 // ==========================================
 // Types
 // ==========================================
 
 type PushPermission = 'default' | 'granted' | 'denied' | 'unsupported';
+type PushMethod = 'fcm' | 'webpush' | null;
 
 interface PushNotificationState {
   permission: PushPermission;
   isSubscribed: boolean;
   isLoading: boolean;
   error: string | null;
+  method: PushMethod;
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<void>;
   testPush: () => Promise<void>;
 }
 
 // Keys de localStorage
-const PUSH_SUBSCRIPTION_KEY = 'olive-baby-push-subscription';
+const PUSH_TOKEN_KEY = 'olive-baby-push-token';
+const PUSH_METHOD_KEY = 'olive-baby-push-method';
 
 // ==========================================
-// Helper: URL-safe base64 to Uint8Array (para VAPID key)
+// Helper: URL-safe base64 to Uint8Array (para VAPID key fallback)
 // ==========================================
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -88,6 +92,73 @@ function getDeviceInfo(): { deviceName: string; osVersion: string } {
 }
 
 // ==========================================
+// FCM Subscribe Strategy
+// ==========================================
+
+async function subscribeFCM(): Promise<{ token: string; method: 'fcm' } | null> {
+  try {
+    const supported = await isFCMSupported();
+    if (!supported) {
+      console.log('[Push] FCM nao suportado, tentando Web Push...');
+      return null;
+    }
+
+    // Buscar VAPID key do Firebase Console via API
+    const vapidResponse = await deviceTokenService.getVapidPublicKey();
+    if (!vapidResponse.success || !vapidResponse.data?.publicKey) {
+      console.warn('[Push] Nao foi possivel obter VAPID key do servidor');
+      return null;
+    }
+
+    // Usar o SW existente da PWA
+    const registration = await navigator.serviceWorker.ready;
+
+    // Obter FCM token usando nosso SW
+    const token = await getFCMToken(vapidResponse.data.publicKey, registration);
+
+    if (token) {
+      console.log('[Push] FCM token obtido com sucesso');
+      return { token, method: 'fcm' };
+    }
+
+    return null;
+  } catch (error) {
+    console.warn('[Push] Erro no FCM, tentando Web Push...', error);
+    return null;
+  }
+}
+
+// ==========================================
+// Web Push Subscribe Strategy (Fallback)
+// ==========================================
+
+async function subscribeWebPush(): Promise<{ token: string; method: 'webpush' } | null> {
+  try {
+    // Buscar VAPID key do servidor
+    const vapidResponse = await deviceTokenService.getVapidPublicKey();
+    if (!vapidResponse.success || !vapidResponse.data?.publicKey) {
+      throw new Error('Nao foi possivel obter a chave VAPID do servidor');
+    }
+
+    const vapidPublicKey = vapidResponse.data.publicKey;
+    const registration = await navigator.serviceWorker.ready;
+
+    // Subscribe via PushManager (Web Push API)
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
+    });
+
+    const token = JSON.stringify(subscription.toJSON());
+    console.log('[Push] Web Push subscription obtida');
+    return { token, method: 'webpush' };
+  } catch (error) {
+    console.error('[Push] Erro no Web Push:', error);
+    return null;
+  }
+}
+
+// ==========================================
 // Hook
 // ==========================================
 
@@ -101,10 +172,18 @@ export function usePushNotifications(): PushNotificationState {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [method, setMethod] = useState<PushMethod>(() => {
+    try {
+      return (storage.get(PUSH_METHOD_KEY) as PushMethod) || null;
+    } catch {
+      return null;
+    }
+  });
   const initRef = useRef(false);
+  const foregroundUnsubRef = useRef<(() => void) | null>(null);
 
   // Check if push is supported
-  const isPushSupported = 
+  const isPushSupported =
     typeof window !== 'undefined' &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
@@ -117,11 +196,23 @@ export function usePushNotifications(): PushNotificationState {
 
     const checkExistingSubscription = async () => {
       try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        setIsSubscribed(!!subscription);
+        // Verificar se temos token salvo
+        const savedToken = storage.get(PUSH_TOKEN_KEY);
+        const savedMethod = storage.get(PUSH_METHOD_KEY) as PushMethod;
 
-        // Update permission state
+        if (savedToken && savedMethod) {
+          setIsSubscribed(true);
+          setMethod(savedMethod);
+        } else {
+          // Verificar via PushManager
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+          setIsSubscribed(!!subscription);
+          if (subscription) {
+            setMethod('webpush');
+          }
+        }
+
         setPermission(Notification.permission as PushPermission);
       } catch (err) {
         console.warn('[Push] Erro ao verificar subscription existente:', err);
@@ -131,10 +222,45 @@ export function usePushNotifications(): PushNotificationState {
     checkExistingSubscription();
   }, [isPushSupported]);
 
-  // Subscribe to push notifications
+  // Setup foreground message listener
+  useEffect(() => {
+    if (!isSubscribed) return;
+
+    const setupForegroundListener = async () => {
+      const unsub = await onForegroundMessage((payload) => {
+        // Mostrar notificacao em foreground usando Notification API
+        if (payload.notification) {
+          const { title, body, image } = payload.notification;
+          if (Notification.permission === 'granted' && title) {
+            new Notification(title, {
+              body: body || '',
+              icon: image || '/favicon-192.png',
+              tag: 'olive-baby-foreground',
+              data: payload.data,
+            });
+          }
+        }
+      });
+
+      if (unsub) {
+        foregroundUnsubRef.current = unsub;
+      }
+    };
+
+    setupForegroundListener();
+
+    return () => {
+      if (foregroundUnsubRef.current) {
+        foregroundUnsubRef.current();
+        foregroundUnsubRef.current = null;
+      }
+    };
+  }, [isSubscribed]);
+
+  // Subscribe to push notifications (FCM primeiro, fallback Web Push)
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!isPushSupported) {
-      setError('Push notifications não são suportadas neste navegador');
+      setError('Push notifications nao sao suportadas neste navegador');
       return false;
     }
 
@@ -147,51 +273,44 @@ export function usePushNotifications(): PushNotificationState {
       setPermission(permResult as PushPermission);
 
       if (permResult !== 'granted') {
-        setError('Permissão de notificação negada');
+        setError('Permissao de notificacao negada');
         setIsLoading(false);
         return false;
       }
 
-      // 2. Get VAPID public key from API
-      const vapidResponse = await deviceTokenService.getVapidPublicKey();
-      if (!vapidResponse.success || !vapidResponse.data?.publicKey) {
-        throw new Error('Não foi possível obter a chave VAPID do servidor');
+      // 2. Tentar FCM primeiro, depois fallback para Web Push
+      let result: { token: string; method: PushMethod } | null = await subscribeFCM();
+      if (!result) {
+        result = await subscribeWebPush();
       }
 
-      const vapidPublicKey = vapidResponse.data.publicKey;
+      if (!result) {
+        throw new Error('Nao foi possivel ativar push notifications');
+      }
 
-      // 3. Get service worker registration
-      const registration = await navigator.serviceWorker.ready;
-
-      // 4. Subscribe to push manager
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
-      });
-
-      // 5. Get device info
+      // 3. Get device info
       const { deviceName, osVersion } = getDeviceInfo();
 
-      // 6. Register the subscription token with the API
-      const subscriptionJson = JSON.stringify(subscription.toJSON());
-      
+      // 4. Registrar token na API
       await deviceTokenService.register({
-        token: subscriptionJson,
+        token: result.token,
         platform: 'WEB',
         deviceName,
         osVersion,
-        appVersion: '1.0.0', // TODO: get from package.json or build
+        appVersion: '1.1.0',
       });
 
-      // 7. Save locally for reference
+      // 5. Salvar localmente
       try {
-        storage.set(PUSH_SUBSCRIPTION_KEY, subscriptionJson);
+        storage.set(PUSH_TOKEN_KEY, result.token);
+        storage.set(PUSH_METHOD_KEY, result.method);
       } catch {
         // Ignore storage errors
       }
 
       setIsSubscribed(true);
-      console.log('[Push] Subscription registrada com sucesso');
+      setMethod(result.method);
+      console.log(`[Push] Subscription registrada via ${result.method}`);
       return true;
     } catch (err: any) {
       const errorMsg = err?.message || 'Erro ao ativar push notifications';
@@ -209,30 +328,37 @@ export function usePushNotifications(): PushNotificationState {
     setError(null);
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-
-      if (subscription) {
-        // Unregister from API
-        const subscriptionJson = JSON.stringify(subscription.toJSON());
+      // Obter token salvo para desregistrar na API
+      const savedToken = storage.get(PUSH_TOKEN_KEY);
+      if (savedToken) {
         try {
-          await deviceTokenService.unregister(subscriptionJson);
+          await deviceTokenService.unregister(savedToken as string);
         } catch {
           // Continue even if API call fails
         }
-
-        // Unsubscribe from browser
-        await subscription.unsubscribe();
       }
 
-      // Clean local storage
+      // Remover subscription do PushManager (Web Push)
       try {
-        storage.remove(PUSH_SUBSCRIPTION_KEY);
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+      } catch {
+        // Ignore
+      }
+
+      // Limpar localStorage
+      try {
+        storage.remove(PUSH_TOKEN_KEY);
+        storage.remove(PUSH_METHOD_KEY);
       } catch {
         // Ignore
       }
 
       setIsSubscribed(false);
+      setMethod(null);
       console.log('[Push] Subscription removida');
     } catch (err: any) {
       console.error('[Push] Erro ao remover subscription:', err);
@@ -262,6 +388,7 @@ export function usePushNotifications(): PushNotificationState {
     isSubscribed,
     isLoading,
     error,
+    method,
     subscribe,
     unsubscribe,
     testPush,

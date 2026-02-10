@@ -1,13 +1,13 @@
 // Olive Baby PWA - Push Notification Event Handlers
-// Este arquivo é importado pelo Service Worker gerado pelo vite-plugin-pwa
-// Lida com eventos push (receber) e notificationclick (abrir app)
+// Este arquivo e importado pelo Service Worker gerado pelo vite-plugin-pwa
+// Lida com eventos push (FCM e Web Push) e notificationclick (abrir app)
 
 // ==========================================
-// Push Event - Receber notificação
+// Push Event - Receber notificacao (FCM + Web Push)
 // ==========================================
 self.addEventListener('push', (event) => {
   if (!event.data) {
-    console.warn('[SW Push] Notificação recebida sem dados');
+    console.warn('[SW Push] Notificacao recebida sem dados');
     return;
   }
 
@@ -22,15 +22,28 @@ self.addEventListener('push', (event) => {
     };
   }
 
-  const title = payload.title || 'OlieCare';
+  // FCM envia com formato { notification: { title, body, image }, data: { ... } }
+  // Web Push envia com formato { title, body, icon, data: { ... } }
+  // Normalizar para um formato unico:
+  const notification = payload.notification || {};
+  const title = notification.title || payload.title || 'OlieCare';
+  const body = notification.body || payload.body || '';
+  const image = notification.image || payload.image || undefined;
+  const data = payload.data || {};
+
   const options = {
-    body: payload.body || '',
-    icon: payload.icon || '/favicon-192.png',
+    body,
+    icon: notification.icon || payload.icon || '/favicon-192.png',
     badge: payload.badge || '/favicon-72.png',
-    image: payload.image || undefined,
-    tag: payload.tag || 'olive-baby-notification',
+    image,
+    tag: data.tag || payload.tag || 'olive-baby-notification',
     renotify: payload.renotify || false,
-    data: payload.data || {},
+    data: {
+      // Merge data do FCM com data do payload
+      ...data,
+      url: data.url || payload.url || data.link || '/dashboard',
+      type: data.type || payload.type || 'general',
+    },
     actions: payload.actions || [
       { action: 'open', title: 'Abrir' },
       { action: 'dismiss', title: 'Dispensar' },
@@ -63,7 +76,7 @@ self.addEventListener('notificationclick', (event) => {
   // Abrir ou focar janela existente
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Verificar se já tem uma janela aberta
+      // Verificar se ja tem uma janela aberta
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           // Navegar para a URL correta e focar
@@ -72,7 +85,7 @@ self.addEventListener('notificationclick', (event) => {
         }
       }
 
-      // Se não tem janela aberta, abrir nova
+      // Se nao tem janela aberta, abrir nova
       if (self.clients.openWindow) {
         return self.clients.openWindow(targetUrl);
       }
@@ -85,5 +98,5 @@ self.addEventListener('notificationclick', (event) => {
 // ==========================================
 self.addEventListener('notificationclose', (event) => {
   const data = event.notification.data || {};
-  console.log('[SW Push] Notificação fechada:', data.type || 'unknown');
+  console.log('[SW Push] Notificacao fechada:', data.type || 'unknown');
 });

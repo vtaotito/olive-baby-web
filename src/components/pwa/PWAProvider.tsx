@@ -1,9 +1,10 @@
 // Olive Baby Web - PWA Provider Component
-// Orquestra todos os componentes PWA: instalação, atualização, offline e push notifications
+// Orquestra todos os componentes PWA: instalacao, atualizacao, offline, push notifications e Firebase Analytics
 import { useEffect, useRef } from 'react';
 import { usePWA } from '../../hooks/usePWA';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { useAuthStore } from '../../stores/authStore';
+import { getFirebaseAnalytics } from '../../config/firebase';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
 import { PWAUpdatePrompt } from './PWAUpdatePrompt';
 import { PWAOfflineBanner } from './PWAOfflineBanner';
@@ -35,6 +36,17 @@ export function PWAProvider({ children }: PWAProviderProps) {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const autoSubscribeRef = useRef(false);
+  const analyticsInitRef = useRef(false);
+
+  // Initialize Firebase Analytics on mount (non-blocking)
+  useEffect(() => {
+    if (analyticsInitRef.current) return;
+    analyticsInitRef.current = true;
+
+    getFirebaseAnalytics().catch((err) => {
+      console.warn('[PWA] Firebase Analytics init falhou:', err);
+    });
+  }, []);
 
   // Auto-subscribe to push notifications when:
   // 1. User is authenticated
