@@ -9,3 +9,4 @@ export type { FeatureKey, ResourceKey, EntitlementsResult } from './useEntitleme
 export { useTimezone, useTimezoneStore, TimezoneProvider } from './useTimezone';
 export { useSessionManager, useSyncTokens } from './useSessionManager';
 export { usePWA } from './usePWA';
+export { usePushNotifications } from './usePushNotifications';

@@ -85,6 +85,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Importar handlers de push notification no Service Worker
+        importScripts: ['/sw-push.js'],
         // Estratégia de caching
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Cache de runtime para API calls

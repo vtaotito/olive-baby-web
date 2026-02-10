@@ -1259,6 +1259,58 @@ export const vaccineService = {
   },
 };
 
+// ====== Device Token Service (Push Notifications) ======
+export const deviceTokenService = {
+  // Get VAPID public key (for Web Push subscription)
+  getVapidPublicKey: async () => {
+    const response = await api.get('/device-tokens/vapid-public-key');
+    return response.data;
+  },
+
+  // Get push notification capabilities
+  getCapabilities: async () => {
+    const response = await api.get('/device-tokens/capabilities');
+    return response.data;
+  },
+
+  // Register a device token
+  register: async (data: {
+    token: string;
+    platform: 'WEB' | 'ANDROID' | 'IOS' | 'EXPO';
+    deviceName?: string;
+    deviceModel?: string;
+    osVersion?: string;
+    appVersion?: string;
+  }) => {
+    const response = await api.post('/device-tokens', data);
+    return response.data;
+  },
+
+  // Unregister a device token (on logout)
+  unregister: async (token: string) => {
+    const response = await api.delete('/device-tokens', { data: { token } });
+    return response.data;
+  },
+
+  // List user's device tokens
+  list: async () => {
+    const response = await api.get('/device-tokens');
+    return response.data;
+  },
+
+  // Remove device token by ID
+  removeById: async (id: number) => {
+    const response = await api.delete(`/device-tokens/${id}`);
+    return response.data;
+  },
+
+  // Test push notification
+  testPush: async () => {
+    const response = await api.post('/device-tokens/test');
+    return response.data;
+  },
+};
+
 // ====== Notification Service ======
 export const notificationService = {
   // List notifications
