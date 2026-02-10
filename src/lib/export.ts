@@ -80,6 +80,8 @@ export async function captureChartAsImage(elementId: string): Promise<string | n
       backgroundColor: '#ffffff',
       scale: 2,
       logging: false,
+      useCORS: true,
+      allowTaint: true,
     });
     return canvas.toDataURL('image/png');
   } catch (error) {
@@ -88,175 +90,355 @@ export async function captureChartAsImage(elementId: string): Promise<string | n
   }
 }
 
+// ====== PDF Drawing Helpers ======
+
+const COLORS = {
+  primary: [99, 118, 98] as [number, number, number],       // olive
+  primaryDark: [70, 88, 69] as [number, number, number],     // olive dark
+  text: [51, 51, 51] as [number, number, number],
+  textLight: [128, 128, 128] as [number, number, number],
+  lightGray: [220, 220, 220] as [number, number, number],
+  white: [255, 255, 255] as [number, number, number],
+  bgCard: [248, 248, 248] as [number, number, number],
+  feeding: [234, 179, 8] as [number, number, number],       // yellow
+  sleep: [59, 130, 246] as [number, number, number],         // blue
+  diaper: [34, 197, 94] as [number, number, number],         // green
+  bath: [147, 51, 234] as [number, number, number],          // purple
+  extraction: [236, 72, 153] as [number, number, number],    // pink
+};
+
+function addText(
+  pdf: jsPDF,
+  text: string,
+  x: number,
+  y: number,
+  options?: {
+    fontSize?: number;
+    color?: [number, number, number];
+    bold?: boolean;
+    align?: 'left' | 'center' | 'right';
+    maxWidth?: number;
+  }
+) {
+  const {
+    fontSize = 12,
+    color = COLORS.text,
+    bold = false,
+    align = 'left',
+  } = options || {};
+
+  pdf.setFontSize(fontSize);
+  pdf.setTextColor(...color);
+  pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+  pdf.text(text, x, y, { align, maxWidth: options?.maxWidth });
+}
+
+/** Draw a small filled circle as bullet / icon placeholder */
+function drawBullet(
+  pdf: jsPDF,
+  x: number,
+  y: number,
+  color: [number, number, number],
+  radius: number = 3
+) {
+  pdf.setFillColor(...color);
+  pdf.circle(x, y - 1, radius, 'F');
+}
+
+function addFooter(pdf: jsPDF, pageWidth: number, pageHeight: number) {
+  pdf.setFillColor(...COLORS.primary);
+  pdf.rect(0, pageHeight - 12, pageWidth, 12, 'F');
+  addText(pdf, `Gerado em ${formatDateBR(new Date())} as ${formatTimeBR(new Date())}`, pageWidth / 2, pageHeight - 5, {
+    fontSize: 7,
+    color: COLORS.white,
+    align: 'center',
+  });
+  addText(pdf, 'OlieCare - Acompanhe o desenvolvimento do seu bebe', pageWidth / 2, pageHeight - 1.5, {
+    fontSize: 6,
+    color: [200, 220, 200] as [number, number, number],
+    align: 'center',
+  });
+}
+
+// ====== Main PDF Generation ======
+
 export async function generateWeeklyReport(data: PDFReportData): Promise<void> {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 15;
+  const contentWidth = pageWidth - margin * 2;
   let yPos = margin;
 
-  // Colors
-  const primaryColor = [99, 118, 98] as [number, number, number]; // olive
-  const textColor = [51, 51, 51] as [number, number, number];
-  const lightGray = [200, 200, 200] as [number, number, number];
+  // ================================
+  // PAGE 1 - Header & Stats
+  // ================================
 
-  // Helper function to add text
-  const addText = (text: string, x: number, y: number, options?: { 
-    fontSize?: number; 
-    color?: [number, number, number]; 
-    bold?: boolean;
-    align?: 'left' | 'center' | 'right';
-  }) => {
-    const { fontSize = 12, color = textColor, bold = false, align = 'left' } = options || {};
-    pdf.setFontSize(fontSize);
-    pdf.setTextColor(...color);
-    pdf.setFont('helvetica', bold ? 'bold' : 'normal');
-    
-    let xPos = x;
-    if (align === 'center') {
-      xPos = pageWidth / 2;
-    } else if (align === 'right') {
-      xPos = pageWidth - margin;
-    }
-    
-    pdf.text(text, xPos, y, { align });
-  };
+  // Header band
+  pdf.setFillColor(...COLORS.primary);
+  pdf.rect(0, 0, pageWidth, 32, 'F');
 
-  // Header
-  pdf.setFillColor(...primaryColor);
-  pdf.rect(0, 0, pageWidth, 35, 'F');
-  
-  addText('🍼 Olive Baby', margin, 15, { fontSize: 24, color: [255, 255, 255], bold: true });
-  addText('Relatório Semanal', margin, 25, { fontSize: 14, color: [255, 255, 255] });
-  addText(data.dateRange, pageWidth - margin, 20, { fontSize: 12, color: [255, 255, 255], align: 'right' });
-  
-  yPos = 50;
+  // Accent line
+  pdf.setFillColor(...COLORS.primaryDark);
+  pdf.rect(0, 32, pageWidth, 1.5, 'F');
+
+  addText(pdf, 'Olive Baby', margin, 14, { fontSize: 22, color: COLORS.white, bold: true });
+  addText(pdf, 'Relatorio Semanal', margin, 22, { fontSize: 12, color: [200, 220, 200] as [number, number, number] });
+  addText(pdf, data.dateRange, pageWidth - margin, 14, {
+    fontSize: 11,
+    color: COLORS.white,
+    align: 'right',
+  });
+
+  yPos = 42;
 
   // Baby Info
-  addText(`Bebê: ${data.babyName}`, margin, yPos, { fontSize: 16, bold: true, color: primaryColor });
-  addText(`Idade: ${data.babyAge}`, margin, yPos + 8, { fontSize: 12 });
-  
-  yPos += 25;
+  addText(pdf, `Bebe: ${data.babyName}`, margin, yPos, { fontSize: 16, bold: true, color: COLORS.primary });
+  addText(pdf, `Idade: ${data.babyAge}`, margin + pdf.getTextWidth(`Bebe: ${data.babyName}  `), yPos, {
+    fontSize: 12,
+    color: COLORS.textLight,
+  });
 
-  // Divider
-  pdf.setDrawColor(...lightGray);
-  pdf.line(margin, yPos, pageWidth - margin, yPos);
   yPos += 10;
 
-  // Stats Section
-  addText('📊 Resumo da Semana', margin, yPos, { fontSize: 14, bold: true, color: primaryColor });
-  yPos += 12;
+  // Divider
+  pdf.setDrawColor(...COLORS.lightGray);
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, yPos, pageWidth - margin, yPos);
+  yPos += 8;
 
-  // Stats Grid
-  const statsColWidth = (pageWidth - margin * 2) / 3;
-  
-  // Row 1
-  const stats1 = [
-    { emoji: '🍼', label: 'Alimentações', value: `${data.stats.feeding.count}x`, sub: `Média: ${data.stats.feeding.avgDuration}min` },
-    { emoji: '😴', label: 'Sono Total', value: `${data.stats.sleep.totalHours.toFixed(1)}h`, sub: `Média: ${data.stats.sleep.avgHours.toFixed(1)}h/dia` },
-    { emoji: '👶', label: 'Trocas de Fralda', value: `${data.stats.diaper.total}x`, sub: `Xixi: ${data.stats.diaper.pee} | Cocô: ${data.stats.diaper.poop}` },
+  // Section title
+  addText(pdf, 'Resumo da Semana', margin, yPos, { fontSize: 14, bold: true, color: COLORS.primary });
+  yPos += 10;
+
+  // ================================
+  // Stats Grid - Row 1 (3 cards)
+  // ================================
+  const cardWidth = (contentWidth - 8) / 3; // 4mm gap between cards
+  const cardHeight = 32;
+
+  const statsRow1 = [
+    {
+      color: COLORS.feeding,
+      label: 'Alimentacoes',
+      value: `${data.stats.feeding.count}x`,
+      sub: `Media: ${data.stats.feeding.avgDuration}min`,
+    },
+    {
+      color: COLORS.sleep,
+      label: 'Sono Total',
+      value: `${data.stats.sleep.totalHours.toFixed(1)}h`,
+      sub: `Media: ${data.stats.sleep.avgHours.toFixed(1)}h/dia`,
+    },
+    {
+      color: COLORS.diaper,
+      label: 'Trocas de Fralda',
+      value: `${data.stats.diaper.total}x`,
+      sub: `Xixi: ${data.stats.diaper.pee} | Coco: ${data.stats.diaper.poop}`,
+    },
   ];
 
-  stats1.forEach((stat, index) => {
-    const x = margin + index * statsColWidth;
-    pdf.setFillColor(245, 245, 245);
-    pdf.roundedRect(x, yPos, statsColWidth - 5, 30, 3, 3, 'F');
-    addText(`${stat.emoji} ${stat.label}`, x + 5, yPos + 8, { fontSize: 10 });
-    addText(stat.value, x + 5, yPos + 18, { fontSize: 14, bold: true, color: primaryColor });
-    addText(stat.sub, x + 5, yPos + 25, { fontSize: 8, color: [128, 128, 128] });
+  statsRow1.forEach((stat, index) => {
+    const x = margin + index * (cardWidth + 4);
+
+    // Card background
+    pdf.setFillColor(...COLORS.bgCard);
+    pdf.roundedRect(x, yPos, cardWidth, cardHeight, 2, 2, 'F');
+
+    // Color accent bar on left
+    pdf.setFillColor(...stat.color);
+    pdf.rect(x, yPos + 2, 2, cardHeight - 4, 'F');
+
+    // Label
+    addText(pdf, stat.label, x + 7, yPos + 8, { fontSize: 9, color: COLORS.textLight });
+
+    // Value
+    addText(pdf, stat.value, x + 7, yPos + 18, { fontSize: 16, bold: true, color: COLORS.primary });
+
+    // Sub text
+    addText(pdf, stat.sub, x + 7, yPos + 25, { fontSize: 8, color: COLORS.textLight });
   });
 
-  yPos += 40;
+  yPos += cardHeight + 6;
 
-  // Row 2
-  const stats2 = [
-    { emoji: '🛁', label: 'Banhos', value: `${data.stats.bath.count}x` },
-    { emoji: '🥛', label: 'Extração de Leite', value: `${data.stats.extraction.totalMl}ml`, sub: `${data.stats.extraction.sessions} sessões` },
+  // ================================
+  // Stats Grid - Row 2 (2 cards)
+  // ================================
+  const cardWidthRow2 = (contentWidth - 4) / 2;
+  const cardHeightRow2 = 28;
+
+  const statsRow2 = [
+    {
+      color: COLORS.bath,
+      label: 'Banhos',
+      value: `${data.stats.bath.count}x`,
+      sub: '',
+    },
+    {
+      color: COLORS.extraction,
+      label: 'Extracao de Leite',
+      value: `${data.stats.extraction.totalMl}ml`,
+      sub: `${data.stats.extraction.sessions} sessoes`,
+    },
   ];
 
-  stats2.forEach((stat, index) => {
-    const x = margin + index * statsColWidth;
-    pdf.setFillColor(245, 245, 245);
-    pdf.roundedRect(x, yPos, statsColWidth - 5, 25, 3, 3, 'F');
-    addText(`${stat.emoji} ${stat.label}`, x + 5, yPos + 8, { fontSize: 10 });
-    addText(stat.value, x + 5, yPos + 18, { fontSize: 14, bold: true, color: primaryColor });
+  statsRow2.forEach((stat, index) => {
+    const x = margin + index * (cardWidthRow2 + 4);
+
+    pdf.setFillColor(...COLORS.bgCard);
+    pdf.roundedRect(x, yPos, cardWidthRow2, cardHeightRow2, 2, 2, 'F');
+
+    pdf.setFillColor(...stat.color);
+    pdf.rect(x, yPos + 2, 2, cardHeightRow2 - 4, 'F');
+
+    addText(pdf, stat.label, x + 7, yPos + 8, { fontSize: 9, color: COLORS.textLight });
+    addText(pdf, stat.value, x + 7, yPos + 18, { fontSize: 16, bold: true, color: COLORS.primary });
+
     if (stat.sub) {
-      addText(stat.sub, x + statsColWidth - 10, yPos + 18, { fontSize: 8, color: [128, 128, 128], align: 'right' });
+      addText(pdf, stat.sub, x + 7 + pdf.getTextWidth(stat.value + '  '), yPos + 18, {
+        fontSize: 9,
+        color: COLORS.textLight,
+      });
     }
   });
 
-  yPos += 35;
+  yPos += cardHeightRow2 + 8;
 
+  // ================================
   // Charts Section
-  if (data.chartImages.feeding || data.chartImages.sleep || data.chartImages.diaper) {
-    // Check if we need a new page
-    if (yPos > pageHeight - 100) {
-      pdf.addPage();
-      yPos = margin;
-    }
+  // ================================
+  const hasCharts =
+    data.chartImages.feeding || data.chartImages.sleep || data.chartImages.diaper;
 
-    pdf.setDrawColor(...lightGray);
+  if (hasCharts) {
+    // Divider
+    pdf.setDrawColor(...COLORS.lightGray);
+    pdf.setLineWidth(0.5);
     pdf.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+
+    addText(pdf, 'Graficos da Semana', margin, yPos, {
+      fontSize: 14,
+      bold: true,
+      color: COLORS.primary,
+    });
     yPos += 10;
 
-    addText('📈 Gráficos da Semana', margin, yPos, { fontSize: 14, bold: true, color: primaryColor });
-    yPos += 15;
+    const chartFullWidth = contentWidth;
+    const chartHalfWidth = (contentWidth - 6) / 2;
+    const chartHeight = 55;
 
-    const chartWidth = (pageWidth - margin * 2 - 10) / 2;
-    const chartHeight = 50;
+    // Feeding & Sleep side by side
+    if (data.chartImages.feeding || data.chartImages.sleep) {
+      if (data.chartImages.feeding && data.chartImages.sleep) {
+        // Both charts - side by side
+        drawBullet(pdf, margin + 2, yPos + 1, COLORS.feeding, 2);
+        addText(pdf, 'Alimentacoes', margin + 6, yPos + 2, {
+          fontSize: 9,
+          bold: true,
+          color: COLORS.text,
+        });
 
-    // Feeding Chart
-    if (data.chartImages.feeding) {
-      addText('Alimentações', margin, yPos, { fontSize: 10, bold: true });
-      yPos += 5;
-      try {
-        pdf.addImage(data.chartImages.feeding, 'PNG', margin, yPos, chartWidth, chartHeight);
-      } catch (e) {
-        console.error('Error adding feeding chart:', e);
+        drawBullet(pdf, margin + chartHalfWidth + 8, yPos + 1, COLORS.sleep, 2);
+        addText(pdf, 'Sono (horas)', margin + chartHalfWidth + 12, yPos + 2, {
+          fontSize: 9,
+          bold: true,
+          color: COLORS.text,
+        });
+
+        yPos += 5;
+
+        try {
+          pdf.addImage(
+            data.chartImages.feeding,
+            'PNG',
+            margin,
+            yPos,
+            chartHalfWidth,
+            chartHeight
+          );
+        } catch (e) {
+          console.error('Error adding feeding chart:', e);
+        }
+
+        try {
+          pdf.addImage(
+            data.chartImages.sleep,
+            'PNG',
+            margin + chartHalfWidth + 6,
+            yPos,
+            chartHalfWidth,
+            chartHeight
+          );
+        } catch (e) {
+          console.error('Error adding sleep chart:', e);
+        }
+
+        yPos += chartHeight + 8;
+      } else {
+        // Single chart - full width
+        const singleChart = data.chartImages.feeding || data.chartImages.sleep;
+        const singleLabel = data.chartImages.feeding ? 'Alimentacoes' : 'Sono (horas)';
+        const singleColor = data.chartImages.feeding ? COLORS.feeding : COLORS.sleep;
+
+        drawBullet(pdf, margin + 2, yPos + 1, singleColor, 2);
+        addText(pdf, singleLabel, margin + 6, yPos + 2, {
+          fontSize: 9,
+          bold: true,
+          color: COLORS.text,
+        });
+        yPos += 5;
+
+        try {
+          pdf.addImage(singleChart!, 'PNG', margin, yPos, chartFullWidth, chartHeight);
+        } catch (e) {
+          console.error('Error adding single chart:', e);
+        }
+
+        yPos += chartHeight + 8;
       }
     }
 
-    // Sleep Chart
-    if (data.chartImages.sleep) {
-      addText('Sono (horas)', margin + chartWidth + 10, yPos - 5, { fontSize: 10, bold: true });
-      try {
-        pdf.addImage(data.chartImages.sleep, 'PNG', margin + chartWidth + 10, yPos, chartWidth, chartHeight);
-      } catch (e) {
-        console.error('Error adding sleep chart:', e);
-      }
-    }
-
-    yPos += chartHeight + 15;
-
-    // Diaper Chart
+    // Diaper chart - check if we need a new page
     if (data.chartImages.diaper) {
-      if (yPos > pageHeight - 80) {
+      const diaperChartHeight = 55;
+      const spaceNeeded = diaperChartHeight + 25; // chart + label + footer
+
+      if (yPos + spaceNeeded > pageHeight - 15) {
+        addFooter(pdf, pageWidth, pageHeight);
         pdf.addPage();
         yPos = margin;
       }
-      addText('Distribuição de Fraldas', margin, yPos, { fontSize: 10, bold: true });
+
+      drawBullet(pdf, margin + 2, yPos + 1, COLORS.diaper, 2);
+      addText(pdf, 'Distribuicao de Fraldas', margin + 6, yPos + 2, {
+        fontSize: 9,
+        bold: true,
+        color: COLORS.text,
+      });
       yPos += 5;
+
       try {
-        pdf.addImage(data.chartImages.diaper, 'PNG', margin, yPos, chartWidth, chartHeight);
+        pdf.addImage(
+          data.chartImages.diaper,
+          'PNG',
+          margin,
+          yPos,
+          chartHalfWidth,
+          diaperChartHeight
+        );
       } catch (e) {
         console.error('Error adding diaper chart:', e);
       }
     }
   }
 
-  // Footer
-  pdf.setFillColor(...primaryColor);
-  pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
-  addText(`Gerado em ${formatDateBR(new Date())} às ${formatTimeBR(new Date())}`, pageWidth / 2, pageHeight - 6, { 
-    fontSize: 8, 
-    color: [255, 255, 255], 
-    align: 'center' 
-  });
-  addText('OlieCare - Acompanhe o desenvolvimento do seu bebê', pageWidth / 2, pageHeight - 2, { 
-    fontSize: 6, 
-    color: [200, 200, 200], 
-    align: 'center' 
-  });
+  // Footer on every page
+  const pageCount = pdf.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    addFooter(pdf, pageWidth, pageHeight);
+  }
 
   // Save PDF
   const filename = `olive-baby-relatorio-${data.babyName.toLowerCase().replace(/\s/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;

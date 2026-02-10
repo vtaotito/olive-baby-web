@@ -43,6 +43,8 @@ interface StatsChartProps {
   datasets: ChartDataset[];
   title?: string;
   height?: number;
+  /** Disable animations - useful for PDF capture where charts need to be immediately rendered */
+  disableAnimation?: boolean;
 }
 
 const defaultColors = [
@@ -53,7 +55,7 @@ const defaultColors = [
   { border: 'rgb(236, 72, 153)', background: 'rgba(236, 72, 153, 0.2)' },
 ];
 
-export function StatsChart({ type, labels, datasets, title, height = 300 }: StatsChartProps) {
+export function StatsChart({ type, labels, datasets, title, height = 300, disableAnimation = false }: StatsChartProps) {
   const chartData = {
     labels,
     datasets: datasets.map((ds, index) => ({
@@ -68,6 +70,7 @@ export function StatsChart({ type, labels, datasets, title, height = 300 }: Stat
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    ...(disableAnimation ? { animation: false as const } : {}),
     plugins: {
       legend: {
         position: 'top' as const,
