@@ -8,3 +8,4 @@ export { useEntitlements, FEATURE_DISPLAY_NAMES, RESOURCE_DISPLAY_NAMES } from '
 export type { FeatureKey, ResourceKey, EntitlementsResult } from './useEntitlements';
 export { useTimezone, useTimezoneStore, TimezoneProvider } from './useTimezone';
 export { useSessionManager, useSyncTokens } from './useSessionManager';
+export { usePWA } from './usePWA';

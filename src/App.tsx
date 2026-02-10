@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
 import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard } from './components/layout';
+import { PWAProvider } from './components/pwa';
 
 // Landing Page
 import { LandingPage } from './pages/landing';
@@ -91,6 +92,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
+          <PWAProvider>
           <BrowserRouter>
             <SessionGuard>
             <BabyInitializer>
@@ -419,6 +421,7 @@ function App() {
             </BabyInitializer>
             </SessionGuard>
           </BrowserRouter>
+          </PWAProvider>
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
