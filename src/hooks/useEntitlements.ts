@@ -174,8 +174,8 @@ export function useEntitlements(): EntitlementsResult {
 
 // Feature display names for UI
 export const FEATURE_DISPLAY_NAMES: Record<FeatureKey, string> = {
-  exportPdf: 'Exportar PDF',
-  exportCsv: 'Exportar CSV',
+  exportPdf: 'Exportar PDF (descontinuado)',
+  exportCsv: 'Exportar Dados (CSV)',
   advancedInsights: 'Insights Avançados',
   aiChat: 'Assistente IA',
   multiCaregivers: 'Múltiplos Cuidadores',

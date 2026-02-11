@@ -403,8 +403,8 @@ function FeaturesSection() {
     },
     {
       icon: FileText,
-      title: 'Relatórios',
-      description: 'Exporte dados em PDF para levar nas consultas pediátricas.',
+      title: 'Exportação de Dados',
+      description: 'Exporte dados em CSV para levar nas consultas pediátricas.',
       color: 'stone',
     },
   ];
@@ -656,7 +656,7 @@ function PricingSection() {
         'Chat com Assistente IA (ilimitado)',
         'Calendário de Vacinas completo',
         'Lembretes inteligentes',
-        'Exportação de relatórios PDF',
+        'Exportação de dados (CSV)',
         'Compartilhamento com cuidadores',
         'Suporte prioritário',
       ],

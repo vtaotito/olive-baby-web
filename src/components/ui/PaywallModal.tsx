@@ -30,7 +30,7 @@ interface PaywallModalProps {
 const PREMIUM_FEATURES = [
   { icon: Baby, label: 'Até 5 bebês cadastrados' },
   { icon: Users, label: 'Até 10 profissionais vinculados' },
-  { icon: FileDown, label: 'Exportação ilimitada (PDF/CSV)' },
+  { icon: FileDown, label: 'Exportação ilimitada (CSV)' },
   { icon: MessageSquare, label: 'Assistente IA Olive' },
   { icon: Sparkles, label: 'Insights avançados' },
   { icon: Syringe, label: 'Calendário de vacinas completo' },
