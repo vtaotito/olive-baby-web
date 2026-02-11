@@ -123,8 +123,9 @@ function App() {
             
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            {/* Registro e recuperação de senha não disponíveis no domínio profissional */}
+            <Route path="/register" element={isProfessionalDomain() ? <Navigate to="/login" replace /> : <RegisterPage />} />
+            <Route path="/forgot-password" element={isProfessionalDomain() ? <Navigate to="/login" replace /> : <ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/invite/accept" element={<AcceptInvitePage />} />
 

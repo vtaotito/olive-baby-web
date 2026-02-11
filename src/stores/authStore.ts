@@ -12,7 +12,7 @@ interface AuthState {
   isAuthenticated: boolean;
   
   // Actions
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (data: {
     email: string;
     password: string;
@@ -48,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
             });
             storage.set('auth_tokens', tokens);
+            return user;
           } else {
             throw new Error(response.message || 'Erro ao fazer login');
           }
