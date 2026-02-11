@@ -8,13 +8,14 @@ const THEME_KEY = 'olive-baby-theme';
  * Get the stored theme from localStorage
  */
 export function getStoredTheme(): Theme {
-  if (typeof window === 'undefined') return 'system';
+  if (typeof window === 'undefined') return 'light';
   
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === 'light' || stored === 'dark' || stored === 'system') {
     return stored;
   }
-  return 'system';
+  // Padrão: tema claro para todas as aplicações (OlieCare, Prof, Admin)
+  return 'light';
 }
 
 /**
