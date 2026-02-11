@@ -21,6 +21,7 @@ import {
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
 import { useBabyStore } from '../../stores/babyStore';
+import { getAdminUrl } from '../../lib/domain';
 import { Avatar, Button } from '../ui';
 import { formatAge } from '../../lib/utils';
 import { QuickActionsFooter } from '../routines/dashboard/QuickActionsFooter';
@@ -241,22 +242,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
           </ul>
 
-          {/* Admin Link - Only for ADMIN role */}
+          {/* Admin Link - Only for ADMIN role, redirects to admin subdomain */}
           {user?.role === 'ADMIN' && (
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Link
-                to="/admin"
+              <a
+                href={getAdminUrl()}
                 onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors',
-                  location.pathname.startsWith('/admin')
-                    ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400'
-                    : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'
-                )}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
               >
                 <Shield className="w-5 h-5" />
                 <span className="font-medium">Admin Console</span>
-              </Link>
+              </a>
             </div>
           )}
         </nav>
