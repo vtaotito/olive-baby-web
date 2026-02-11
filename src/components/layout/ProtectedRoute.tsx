@@ -1,12 +1,14 @@
 // Olive Baby Web - Protected Route Component
+// Protege rotas de cuidadores/famílias. Redireciona profissionais e admins para seus portais.
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { isAdminDomain } from '../../lib/domain';
 import { PageLoader } from '../ui/Spinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
+
+const PROFESSIONAL_ROLES = ['PEDIATRICIAN', 'SPECIALIST'];
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuthStore();
@@ -20,12 +22,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // No subdominio admin, usuarios ADMIN so acessam o console admin
-  // Redireciona rotas normais (dashboard, routines, etc) para /admin
-  if (isAdminDomain() && user?.role === 'ADMIN') {
+  // Redirecionar admin para o console admin
+  if (user?.role === 'ADMIN') {
     return <Navigate to="/admin" replace />;
   }
 
-  // Nota: O BabyInitializer cuida de carregar bebês e redirecionar para onboarding
+  // Redirecionar profissionais para o portal profissional
+  if (user && PROFESSIONAL_ROLES.includes(user.role)) {
+    return <Navigate to="/prof/dashboard" replace />;
+  }
+
   return <>{children}</>;
 }

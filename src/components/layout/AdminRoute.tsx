@@ -1,20 +1,15 @@
 // Olive Baby Web - Admin Route Protection
-// Admin routes so sao acessiveis no subdominio adm.oliecare.cloud (ou localhost em dev)
+// Login unificado: admins podem acessar /admin de qualquer domínio
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { isMainDomain, isAdminDomain } from '../../lib/domain';
 import { PageLoader } from '../ui/Spinner';
 
 interface AdminRouteProps {
   children: React.ReactNode;
 }
 
-/**
- * Protected route that only allows ADMIN role on the admin subdomain
- * On the main domain (oliecare.cloud), redirects to /dashboard
- * On admin subdomain, non-admin users go to /login
- * On localhost, allows access (for development)
- */
+const PROFESSIONAL_ROLES = ['PEDIATRICIAN', 'SPECIALIST'];
+
 export function AdminRoute({ children }: AdminRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuthStore();
   const location = useLocation();
@@ -23,20 +18,15 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <PageLoader />;
   }
 
-  // Block admin routes on main domain (production only)
-  if (isMainDomain() && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Check if user has ADMIN role
   if (user?.role !== 'ADMIN') {
-    // No subdominio admin, redireciona para login com mensagem
-    if (isAdminDomain()) {
-      return <Navigate to="/login" replace />;
+    // Redirecionar para o portal correto baseado na role
+    if (user && PROFESSIONAL_ROLES.includes(user.role)) {
+      return <Navigate to="/prof/dashboard" replace />;
     }
     return <Navigate to="/dashboard" replace />;
   }

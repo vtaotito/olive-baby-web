@@ -5,7 +5,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
 import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard, ProfessionalRoute, ProfessionalLayout } from './components/layout';
 import { PWAProvider } from './components/pwa';
-import { isAdminDomain, isProfessionalDomain } from './lib/domain';
+import { useAuthStore } from './stores/authStore';
 
 // Landing Page
 import { LandingPage } from './pages/landing';
@@ -98,6 +98,40 @@ const queryClient = new QueryClient({
   },
 });
 
+const PROFESSIONAL_ROLES = ['PEDIATRICIAN', 'SPECIALIST'];
+
+/**
+ * Retorna o redirect correto baseado na role do usuário autenticado
+ */
+function getHomeForRole(role?: string): string {
+  if (!role) return '/login';
+  if (role === 'ADMIN') return '/admin';
+  if (PROFESSIONAL_ROLES.includes(role)) return '/prof/dashboard';
+  return '/dashboard';
+}
+
+/**
+ * Componente para a rota "/" - Landing page OU redirect baseado na role
+ */
+function HomeRoute() {
+  const { isAuthenticated, user } = useAuthStore();
+  if (isAuthenticated && user) {
+    return <Navigate to={getHomeForRole(user.role)} replace />;
+  }
+  return <LandingPage />;
+}
+
+/**
+ * Componente para rota "*" - redirect inteligente baseado na role
+ */
+function CatchAllRoute() {
+  const { isAuthenticated, user } = useAuthStore();
+  if (isAuthenticated && user) {
+    return <Navigate to={getHomeForRole(user.role)} replace />;
+  }
+  return <Navigate to="/login" replace />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -108,25 +142,13 @@ function App() {
             <SessionGuard>
             <BabyInitializer>
             <Routes>
-            {/* Landing Page - Admin: login | Prof: dashboard | Main: landing */}
-            <Route
-              path="/"
-              element={
-                isAdminDomain() ? (
-                  <Navigate to="/login" replace />
-                ) : isProfessionalDomain() ? (
-                  <Navigate to="/prof/dashboard" replace />
-                ) : (
-                  <LandingPage />
-                )
-              }
-            />
+            {/* Home: Landing page para visitantes, redirect baseado em role para logados */}
+            <Route path="/" element={<HomeRoute />} />
             
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
-            {/* Registro e recuperação de senha não disponíveis no domínio profissional */}
-            <Route path="/register" element={isProfessionalDomain() ? <Navigate to="/login" replace /> : <RegisterPage />} />
-            <Route path="/forgot-password" element={isProfessionalDomain() ? <Navigate to="/login" replace /> : <ForgotPasswordPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/invite/accept" element={<AcceptInvitePage />} />
 
@@ -500,22 +522,8 @@ function App() {
               }
             />
 
-            {/* Default Redirect - Admin: /admin | Prof: /prof/dashboard | Main: /dashboard */}
-            <Route
-              path="*"
-              element={
-                <Navigate
-                  to={
-                    isAdminDomain()
-                      ? '/admin'
-                      : isProfessionalDomain()
-                      ? '/prof/dashboard'
-                      : '/dashboard'
-                  }
-                  replace
-                />
-              }
-            />
+            {/* Catch-all: redirect inteligente baseado na role */}
+            <Route path="*" element={<CatchAllRoute />} />
           </Routes>
             </BabyInitializer>
             </SessionGuard>
