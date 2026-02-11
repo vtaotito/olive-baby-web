@@ -594,6 +594,18 @@ export const milestoneService = {
     const response = await api.delete(`/babies/${babyId}/milestones/${milestoneId}`);
     return response.data;
   },
+
+  // Get milestone progress for a baby
+  getProgress: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/milestones/progress`);
+    return response.data;
+  },
+
+  // Get predefined milestones
+  getPredefined: async () => {
+    const response = await api.get('/milestones/predefined');
+    return response.data;
+  },
 };
 
 // ====== Export Service ======
