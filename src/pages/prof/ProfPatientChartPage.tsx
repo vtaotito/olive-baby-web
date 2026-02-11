@@ -786,7 +786,7 @@ export function ProfPatientChartPage() {
             <MetricCard icon={Utensils} iconBg="bg-amber-100 dark:bg-amber-900/30" iconColor="text-amber-600 dark:text-amber-400" value={routineCounts.FEEDING} label="Alimentações hoje" />
             <MetricCard icon={Moon} iconBg="bg-blue-100 dark:bg-blue-900/30" iconColor="text-blue-600 dark:text-blue-400" value={`${totalSleepHoursToday}h`} label="Sono hoje" />
             <MetricCard icon={Droplets} iconBg="bg-orange-100 dark:bg-orange-900/30" iconColor="text-orange-600 dark:text-orange-400" value={routineCounts.DIAPER} label="Fraldas hoje" />
-            <MetricCard icon={Calendar} iconBg="bg-purple-100 dark:bg-purple-900/30" iconColor="text-purple-600 dark:text-purple-400" value={visits.length} label="Consultas" subtitle={visits[0] ? `Última: ${format(new Date(visits[0].visitDate), 'dd/MM')}` : undefined} />
+            <MetricCard icon={Calendar} iconBg="bg-purple-100 dark:bg-purple-900/30" iconColor="text-purple-600 dark:text-purple-400" value={visits.length} label="Consultas" subtitle={visits[0] ? `Última: ${format(new Date(visits[0].visitDate), 'dd/MM/yyyy')}` : undefined} />
           </div>
 
           {/* Cards Grid */}

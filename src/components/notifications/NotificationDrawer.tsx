@@ -202,7 +202,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
     if (diffMins < 60) return `${diffMins}min`;
     if (diffHours < 24) return `${diffHours}h`;
     if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    return date.toLocaleDateString('pt-BR');
   };
 
   if (!isOpen) return null;

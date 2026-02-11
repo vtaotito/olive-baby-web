@@ -74,7 +74,7 @@ export function DaySummary({ stats, isLoading }: DaySummaryProps) {
             Resumo das últimas 24h
           </h2>
           <span className="text-sm text-gray-500">
-            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {new Date().toLocaleDateString('pt-BR')}
           </span>
         </div>
 

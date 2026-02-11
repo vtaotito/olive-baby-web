@@ -275,16 +275,10 @@ export function AdminActivationPage() {
                       <td className="py-4 px-6">
                         <div>
                           <p className="text-sm font-medium text-gray-900">
-                            {new Date(cohort.cohortStartDate).toLocaleDateString('pt-BR', {
-                              day: '2-digit',
-                              month: 'short',
-                            })}
+                            {new Date(cohort.cohortStartDate).toLocaleDateString('pt-BR')}
                           </p>
                           <p className="text-xs text-gray-500">
-                            até {new Date(cohort.cohortEndDate).toLocaleDateString('pt-BR', {
-                              day: '2-digit',
-                              month: 'short',
-                            })}
+                            até {new Date(cohort.cohortEndDate).toLocaleDateString('pt-BR')}
                           </p>
                         </div>
                       </td>
@@ -382,7 +376,7 @@ export function AdminActivationPage() {
       <Drawer
         isOpen={!!selectedCohort}
         onClose={() => setSelectedCohort(null)}
-        title={selectedCohort ? `Cohort: ${new Date(selectedCohort.cohortStartDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}` : ''}
+        title={selectedCohort ? `Cohort: ${new Date(selectedCohort.cohortStartDate).toLocaleDateString('pt-BR')}` : ''}
         subtitle={selectedCohort ? `${selectedCohort.usersInCohort} usuários` : ''}
         width="lg"
       >

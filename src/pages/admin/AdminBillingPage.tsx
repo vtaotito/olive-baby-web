@@ -100,7 +100,8 @@ export function AdminBillingPage() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('pt-BR');
+    const d = new Date(dateString);
+    return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
   };
 
   const getStatusBadge = (status: string) => {

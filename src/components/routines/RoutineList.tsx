@@ -86,7 +86,7 @@ function formatDate(dateStr: string): string {
 
   if (date.toDateString() === today.toDateString()) return 'Hoje';
   if (date.toDateString() === yesterday.toDateString()) return 'Ontem';
-  return date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('pt-BR');
 }
 
 function getRoutineDetails(routine: RoutineLog): string {

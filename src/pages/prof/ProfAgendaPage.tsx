@@ -5,9 +5,11 @@ import {
   CheckCircle2, XCircle, UserCheck, AlertTriangle, MoreVertical, X,
   Stethoscope, Syringe, Phone, FileText, Baby, Timer, Eye,
 } from 'lucide-react';
-import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal } from '../../components/ui';
-import { AppointmentFormModal } from '../../components/prof';
-import { appointmentService } from '../../services/api';
+import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal, Input } from '../../components/ui';
+import { appointmentService, professionalService } from '../../services/api';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { format, addDays, startOfWeek, endOfWeek, isToday, isSameDay, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
@@ -43,6 +45,97 @@ function getStatusConfig(status: string) {
   return STATUS_CONFIG[status] || STATUS_CONFIG.SCHEDULED;
 }
 
+// ─── Appointment Inline Form ─────────────────────────────────
+
+const APPT_TYPES = [
+  { value: 'CONSULTA_ROTINA', label: 'Consulta de rotina' },
+  { value: 'RETORNO', label: 'Retorno' },
+  { value: 'VACINA', label: 'Vacina' },
+  { value: 'URGENCIA', label: 'Urgência' },
+  { value: 'TELEMEDICINA', label: 'Telemedicina' },
+  { value: 'OUTRO', label: 'Outro' },
+] as const;
+
+const apptSchema = z.object({
+  date: z.string().min(1, 'Data é obrigatória'),
+  startTime: z.string().min(1, 'Horário é obrigatório'),
+  babyId: z.number().min(1, 'Selecione o paciente'),
+  type: z.enum(['CONSULTA_ROTINA', 'RETORNO', 'VACINA', 'URGENCIA', 'TELEMEDICINA', 'OUTRO']),
+  durationMinutes: z.number().min(15).max(120).optional(),
+  notes: z.string().optional(),
+});
+
+function AppointmentInlineForm({ defaultDate, onSuccess, onCancel }: { defaultDate?: Date; onSuccess: () => void; onCancel: () => void }) {
+  const { success, error: showError } = useToast();
+  const [patients, setPatients] = useState<any[]>([]);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(apptSchema),
+    defaultValues: {
+      date: defaultDate ? format(defaultDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+      startTime: '09:00',
+      type: 'CONSULTA_ROTINA' as const,
+      durationMinutes: 30,
+      notes: '',
+    },
+  });
+
+  useEffect(() => {
+    professionalService.getMyPatients().then((r: any) => setPatients(r?.data || []));
+  }, []);
+
+  const inputCls = 'block w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+
+  const onSubmit = async (data: any) => {
+    try {
+      const startAt = new Date(`${data.date}T${data.startTime}:00`);
+      await appointmentService.create({
+        babyId: data.babyId,
+        startAt: startAt.toISOString(),
+        durationMinutes: data.durationMinutes || 30,
+        type: data.type,
+        notes: data.notes || undefined,
+      });
+      success('Agendamento criado', 'Consulta agendada com sucesso');
+      onSuccess();
+    } catch (err: any) {
+      showError('Erro', err?.response?.data?.message || 'Falha ao agendar');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paciente</label>
+        <select {...register('babyId', { valueAsNumber: true })} className={inputCls}>
+          <option value={0}>Selecione...</option>
+          {patients.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {errors.babyId && <p className="text-sm text-red-600 mt-1">{(errors.babyId as any).message}</p>}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Input label="Data" type="date" {...register('date')} error={errors.date?.message as string} />
+        <Input label="Horário" type="time" {...register('startTime')} error={errors.startTime?.message as string} />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+          <select {...register('type')} className={inputCls}>
+            {APPT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </div>
+        <Input label="Duração (min)" type="number" min={15} max={120} step={15} {...register('durationMinutes', { valueAsNumber: true })} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observações</label>
+        <textarea {...register('notes')} rows={2} className={inputCls} placeholder="Observações opcionais..." />
+      </div>
+      <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" isLoading={isSubmitting}>Agendar</Button>
+      </div>
+    </form>
+  );
+}
+
 // ─── Component ──────────────────────────────────────────────
 
 export function ProfAgendaPage() {
@@ -51,8 +144,8 @@ export function ProfAgendaPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [appointmentFormDate, setAppointmentFormDate] = useState<Date | undefined>();
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -172,8 +265,8 @@ export function ProfAgendaPage() {
         <Button
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={() => {
-            setSelectedDate(undefined);
-            setAppointmentModalOpen(true);
+            setAppointmentFormDate(undefined);
+            setShowAppointmentForm(true);
           }}
         >
           Nova consulta
@@ -331,7 +424,7 @@ export function ProfAgendaPage() {
                 variant="outline"
                 size="sm"
                 leftIcon={<Plus className="w-4 h-4" />}
-                onClick={() => { setSelectedDate(selectedDay); setAppointmentModalOpen(true); }}
+                onClick={() => { setAppointmentFormDate(selectedDay); setShowAppointmentForm(true); }}
               >
                 Agendar
               </Button>
@@ -436,7 +529,7 @@ export function ProfAgendaPage() {
                             {apt.confirmedAt && (
                               <div>
                                 <p className="text-xs text-gray-400">Confirmado em</p>
-                                <p className="font-medium text-gray-800 dark:text-gray-200">{format(new Date(apt.confirmedAt), 'dd/MM HH:mm')}</p>
+                                <p className="font-medium text-gray-800 dark:text-gray-200">{format(new Date(apt.confirmedAt), 'dd/MM/yyyy HH:mm')}</p>
                               </div>
                             )}
                           </div>
@@ -526,13 +619,22 @@ export function ProfAgendaPage() {
         </div>
       )}
 
-      {/* Modals */}
-      <AppointmentFormModal
-        isOpen={appointmentModalOpen}
-        onClose={() => setAppointmentModalOpen(false)}
-        defaultDate={selectedDate}
-        onSuccess={load}
-      />
+      {/* Inline Appointment Form */}
+      {showAppointmentForm && (
+        <Card className="border-olive-200 dark:border-olive-800 ring-1 ring-olive-100 dark:ring-olive-900">
+          <CardHeader
+            title="Novo agendamento"
+            action={<Button size="sm" variant="ghost" onClick={() => setShowAppointmentForm(false)}><span className="text-gray-500">Fechar</span></Button>}
+          />
+          <CardBody>
+            <AppointmentInlineForm
+              defaultDate={appointmentFormDate}
+              onSuccess={() => { setShowAppointmentForm(false); load(); }}
+              onCancel={() => setShowAppointmentForm(false)}
+            />
+          </CardBody>
+        </Card>
+      )}
 
       <ConfirmModal
         isOpen={cancelModalOpen}
