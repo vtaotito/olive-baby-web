@@ -96,7 +96,7 @@ export function ProfAgendaPage() {
           <div className="flex items-center gap-3">
             <CalendarDays className="w-5 h-5 text-olive-600 dark:text-olive-400" />
             <span className="font-semibold text-gray-900 dark:text-white capitalize">{weekLabel}</span>
-            {!weekDays.some(isToday) && (
+            {!weekDays.some(d => isToday(d)) && (
               <Button
                 variant="outline"
                 size="sm"
