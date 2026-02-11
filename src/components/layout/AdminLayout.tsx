@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
+import { isAdminDomain } from '../../lib/domain';
 import { Avatar, Button } from '../ui';
 
 interface AdminLayoutProps {
@@ -148,16 +149,18 @@ export function AdminLayout({ children, title, subtitle }: AdminLayoutProps) {
           </button>
         </div>
 
-        {/* Back to App */}
-        <div className="px-3 py-3 border-b border-gray-100">
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-olive-700 hover:bg-olive-50 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Voltar ao App</span>
-          </Link>
-        </div>
+        {/* Back to App - Escondido no subdominio admin */}
+        {!isAdminDomain() && (
+          <div className="px-3 py-3 border-b border-gray-100">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-olive-700 hover:bg-olive-50 rounded-lg transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Voltar ao App</span>
+            </Link>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
