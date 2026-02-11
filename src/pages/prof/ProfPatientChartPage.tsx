@@ -8,8 +8,12 @@ import {
   Droplets, Bath, Star, CheckCircle2, Circle,
   Activity, Clock, ChevronDown, ChevronUp,
 } from 'lucide-react';
-import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal } from '../../components/ui';
-import { VisitFormModal, PrescriptionFormModal, MedicalCertificateFormModal, ClinicalInfoFormModal } from '../../components/prof';
+import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal, Input } from '../../components/ui';
+import { ClinicalInfoFormModal } from '../../components/prof';
+import { useToast } from '../../components/ui/Toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { GrowthChart, StatsChart, WHOGrowthChart } from '../../components/charts';
 import { cn } from '../../lib/utils';
 import {
@@ -116,6 +120,277 @@ function ProgressRing({ percentage, size = 80, strokeWidth = 8 }: { percentage: 
   );
 }
 
+// ─── Visit Inline Form ──────────────────────────────────────
+
+const VISIT_TYPES = [
+  { value: 'CONSULTA_ROTINA', label: 'Consulta de rotina' },
+  { value: 'RETORNO', label: 'Retorno' },
+  { value: 'URGENCIA', label: 'Urgência' },
+  { value: 'VACINA', label: 'Vacina' },
+  { value: 'OUTRO', label: 'Outro' },
+] as const;
+
+const visitSchema = z.object({
+  visitDate: z.string().min(1, 'Data é obrigatória'),
+  visitType: z.enum(['CONSULTA_ROTINA', 'RETORNO', 'URGENCIA', 'VACINA', 'OUTRO']),
+  chiefComplaint: z.string().optional(),
+  history: z.string().optional(),
+  physicalExam: z.string().optional(),
+  assessment: z.string().optional(),
+  plan: z.string().optional(),
+  weightKg: z.union([z.number(), z.string()]).optional(),
+  heightCm: z.union([z.number(), z.string()]).optional(),
+  headCircumferenceCm: z.union([z.number(), z.string()]).optional(),
+  nextVisitDate: z.string().optional(),
+});
+
+function VisitInlineForm({ babyId, visit, onSuccess, onCancel }: { babyId: number; visit?: any; onSuccess: () => void; onCancel: () => void }) {
+  const { success, error: showError } = useToast();
+  const isEdit = !!visit?.id;
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(visitSchema),
+    defaultValues: {
+      visitDate: visit?.visitDate ? format(new Date(visit.visitDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+      visitType: (visit?.visitType as any) || 'CONSULTA_ROTINA',
+      chiefComplaint: visit?.chiefComplaint || '',
+      history: visit?.history || '',
+      physicalExam: visit?.physicalExam || '',
+      assessment: visit?.assessment || '',
+      plan: visit?.plan || '',
+      weightKg: visit?.weightKg ?? '',
+      heightCm: visit?.heightCm ?? '',
+      headCircumferenceCm: visit?.headCircumferenceCm ?? '',
+      nextVisitDate: visit?.nextVisitDate ? format(new Date(visit.nextVisitDate), 'yyyy-MM-dd') : '',
+    },
+  });
+
+  const onSubmit = async (data: any) => {
+    try {
+      const payload = {
+        visitDate: new Date(data.visitDate).toISOString(),
+        visitType: data.visitType,
+        chiefComplaint: data.chiefComplaint || undefined,
+        history: data.history || undefined,
+        physicalExam: data.physicalExam || undefined,
+        assessment: data.assessment || undefined,
+        plan: data.plan || undefined,
+        weightKg: data.weightKg ? Number(data.weightKg) : undefined,
+        heightCm: data.heightCm ? Number(data.heightCm) : undefined,
+        headCircumferenceCm: data.headCircumferenceCm ? Number(data.headCircumferenceCm) : undefined,
+        nextVisitDate: data.nextVisitDate ? new Date(data.nextVisitDate).toISOString() : undefined,
+      };
+      if (isEdit) {
+        await clinicalVisitService.update(babyId, visit.id, payload);
+        success('Consulta atualizada', 'Registro salvo com sucesso');
+      } else {
+        await clinicalVisitService.create(babyId, payload);
+        success('Consulta registrada', 'Consulta salva com sucesso');
+      }
+      onSuccess();
+    } catch (err: any) {
+      showError('Erro', err?.response?.data?.message || 'Falha ao salvar');
+    }
+  };
+
+  const inputCls = 'block w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input label="Data" type="date" {...register('visitDate')} error={errors.visitDate?.message as string} />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+          <select {...register('visitType')} className={inputCls}>
+            {VISIT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </div>
+      </div>
+      <Input label="Queixa principal" {...register('chiefComplaint')} />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">História / Anamnese</label>
+        <textarea {...register('history')} rows={3} className={inputCls} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Exame físico</label>
+        <textarea {...register('physicalExam')} rows={3} className={inputCls} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avaliação</label>
+          <textarea {...register('assessment')} rows={2} className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Conduta / Plano</label>
+          <textarea {...register('plan')} rows={2} className={inputCls} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Input label="Peso (kg)" type="number" step="0.01" {...register('weightKg')} />
+        <Input label="Comprimento (cm)" type="number" step="0.1" {...register('heightCm')} />
+        <Input label="PC (cm)" type="number" step="0.1" {...register('headCircumferenceCm')} />
+      </div>
+      <Input label="Próxima consulta" type="date" {...register('nextVisitDate')} />
+      <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" isLoading={isSubmitting}>{isEdit ? 'Salvar alterações' : 'Registrar consulta'}</Button>
+      </div>
+    </form>
+  );
+}
+
+// ─── Prescription Inline Form ───────────────────────────────
+
+const prescriptionSchema = z.object({
+  prescriptionDate: z.string().min(1, 'Data é obrigatória'),
+  validUntil: z.string().optional(),
+  instructions: z.string().optional(),
+});
+
+function PrescriptionInlineForm({ babyId, onSuccess, onCancel }: { babyId: number; onSuccess: () => void; onCancel: () => void }) {
+  const { success, error: showError } = useToast();
+  const [items, setItems] = useState([{ medication: '', dosage: '', frequency: '', duration: '' }]);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(prescriptionSchema),
+    defaultValues: { prescriptionDate: format(new Date(), 'yyyy-MM-dd'), validUntil: '', instructions: '' },
+  });
+
+  const addItem = () => setItems(p => [...p, { medication: '', dosage: '', frequency: '', duration: '' }]);
+  const removeItem = (i: number) => { if (items.length > 1) setItems(p => p.filter((_, idx) => idx !== i)); };
+  const updateItem = (i: number, field: string, v: string) => setItems(p => { const n = [...p]; (n[i] as any)[field] = v; return n; });
+
+  const inputCls = 'block w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+
+  const onSubmit = async (data: any) => {
+    const validItems = items.filter(i => i.medication.trim() && i.dosage.trim());
+    if (validItems.length === 0) { showError('Erro', 'Adicione pelo menos um medicamento'); return; }
+    try {
+      await prescriptionService.create(babyId, {
+        prescriptionDate: new Date(data.prescriptionDate).toISOString(),
+        validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : undefined,
+        instructions: data.instructions || undefined,
+        items: validItems.map(i => ({ medication: i.medication.trim(), dosage: i.dosage.trim(), frequency: i.frequency?.trim() || undefined, duration: i.duration?.trim() || undefined })),
+      });
+      success('Receita criada', 'Receita salva com sucesso');
+      onSuccess();
+    } catch (err: any) {
+      showError('Erro', err?.response?.data?.message || 'Falha ao salvar');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input label="Data" type="date" {...register('prescriptionDate')} error={errors.prescriptionDate?.message as string} />
+        <Input label="Válida até" type="date" {...register('validUntil')} />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instruções gerais</label>
+        <textarea {...register('instructions')} rows={2} className={inputCls} />
+      </div>
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Medicamentos</label>
+          <Button type="button" variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={addItem}>Adicionar</Button>
+        </div>
+        <div className="space-y-3">
+          {items.map((item, idx) => (
+            <div key={idx} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-500">#{idx + 1}</span>
+                {items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Input label="Medicamento" value={item.medication} onChange={e => updateItem(idx, 'medication', e.target.value)} placeholder="Ex: Paracetamol" />
+                <Input label="Posologia" value={item.dosage} onChange={e => updateItem(idx, 'dosage', e.target.value)} placeholder="Ex: 10 gotas" />
+                <Input label="Frequência" value={item.frequency} onChange={e => updateItem(idx, 'frequency', e.target.value)} placeholder="Ex: 8/8h" />
+                <Input label="Duração" value={item.duration} onChange={e => updateItem(idx, 'duration', e.target.value)} placeholder="Ex: 5 dias" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" isLoading={isSubmitting}>Salvar receita</Button>
+      </div>
+    </form>
+  );
+}
+
+// ─── Certificate Inline Form ────────────────────────────────
+
+const CERT_TYPES = [
+  { value: 'ATESTADO', label: 'Atestado médico' },
+  { value: 'DECLARACAO_VACINA', label: 'Declaração de vacina' },
+  { value: 'DECLARACAO_CRECHE', label: 'Declaração para creche' },
+] as const;
+
+const certSchema = z.object({
+  type: z.enum(['ATESTADO', 'DECLARACAO_VACINA', 'DECLARACAO_CRECHE']),
+  validFrom: z.string().min(1, 'Data inicial é obrigatória'),
+  validUntil: z.string().optional(),
+  content: z.string().min(1, 'Conteúdo é obrigatório'),
+});
+
+function CertificateInlineForm({ babyId, babyName, onSuccess, onCancel }: { babyId: number; babyName?: string; onSuccess: () => void; onCancel: () => void }) {
+  const { success, error: showError } = useToast();
+  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(certSchema),
+    defaultValues: { type: 'ATESTADO' as const, validFrom: format(new Date(), 'yyyy-MM-dd'), validUntil: '', content: '' },
+  });
+
+  const certType = watch('type');
+  const templates: Record<string, string> = {
+    ATESTADO: `Atesto para os devidos fins que o(a) paciente ${babyName || '[nome]'}, esteve sob meus cuidados médicos, necessitando de afastamento de suas atividades por __ dias, a partir de ${format(new Date(), 'dd/MM/yyyy')}.`,
+    DECLARACAO_VACINA: `Declaro que o(a) paciente ${babyName || '[nome]'} encontra-se em dia com as vacinas do calendário nacional de imunização, conforme cartão de vacinação.`,
+    DECLARACAO_CRECHE: `Declaro que o(a) paciente ${babyName || '[nome]'} está apto(a) a frequentar creche/escola, não apresentando condições que impeçam a convivência em ambiente coletivo.`,
+  };
+
+  const inputCls = 'block w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+
+  const onSubmit = async (data: any) => {
+    try {
+      await medicalCertificateService.create(babyId, {
+        type: data.type,
+        validFrom: new Date(data.validFrom).toISOString(),
+        validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : undefined,
+        content: data.content,
+      });
+      success('Documento criado', 'Atestado/declaração salvo com sucesso');
+      onSuccess();
+    } catch (err: any) {
+      showError('Erro', err?.response?.data?.message || 'Falha ao salvar');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+        <select {...register('type')} className={inputCls}>
+          {CERT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input label="Válido de" type="date" {...register('validFrom')} error={errors.validFrom?.message as string} />
+        <Input label="Válido até" type="date" {...register('validUntil')} />
+      </div>
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Conteúdo</label>
+          <Button type="button" variant="ghost" size="sm" onClick={() => reset(prev => ({ ...prev, content: templates[certType] || '' }))}>Usar modelo</Button>
+        </div>
+        <textarea {...register('content')} rows={6} className={inputCls} placeholder="Digite o texto do atestado/declaração..." />
+        {errors.content && <p className="text-sm text-red-600 mt-1">{errors.content.message as string}</p>}
+      </div>
+      <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit" isLoading={isSubmitting}>Gerar documento</Button>
+      </div>
+    </form>
+  );
+}
+
 // ─── Main Component ────────────────────────────────────────
 
 export function ProfPatientChartPage() {
@@ -136,13 +411,15 @@ export function ProfPatientChartPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [routineFilter, setRoutineFilter] = useState<string>('ALL');
-  const [visitModalOpen, setVisitModalOpen] = useState(false);
+  const [showVisitForm, setShowVisitForm] = useState(false);
   const [editingVisit, setEditingVisit] = useState<any>(null);
-  const [prescriptionModalOpen, setPrescriptionModalOpen] = useState(false);
-  const [certificateModalOpen, setCertificateModalOpen] = useState(false);
+  const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
+  const [showCertificateForm, setShowCertificateForm] = useState(false);
   const [clinicalInfoModalOpen, setClinicalInfoModalOpen] = useState(false);
   const [deleteVisitId, setDeleteVisitId] = useState<number | null>(null);
   const [expandedMilestoneCategory, setExpandedMilestoneCategory] = useState<string | null>(null);
+  const [prescriptionItems, setPrescriptionItems] = useState<{ medication: string; dosage: string; frequency: string; duration: string }[]>([{ medication: '', dosage: '', frequency: '', duration: '' }]);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const loadData = useCallback(async () => {
     if (!babyId) return;
@@ -247,18 +524,27 @@ export function ProfPatientChartPage() {
 
   const vaccinePercentage = vaccineSummary ? Math.round((vaccineSummary.applied / Math.max(vaccineSummary.total, 1)) * 100) : 0;
 
-  // Calcular percentual de marcos com proteção contra NaN
-  const milestonePercentage = (() => {
+  // Calcular totais combinados (predefinidos + personalizados)
+  const milestoneTotals = useMemo(() => {
     if (milestoneProgress) {
-      const completed = milestoneProgress.completedPredefined ?? milestoneProgress.completed ?? 0;
-      const total = milestoneProgress.totalPredefined ?? milestoneProgress.total ?? 0;
-      return total > 0 ? Math.round((completed / total) * 100) : 0;
+      const completedPredefined = milestoneProgress.completedPredefined ?? 0;
+      const totalPredefined = milestoneProgress.totalPredefined ?? 9;
+      const totalCompleted = milestoneProgress.totalCompleted ?? achievedMilestones.length;
+      // Marcos custom = total completados - completados predefinidos
+      const customCount = Math.max(0, totalCompleted - completedPredefined);
+      const grandTotal = totalPredefined + customCount;
+      const grandCompleted = totalCompleted;
+      return { completed: grandCompleted, total: grandTotal };
     }
     if (milestones.length > 0) {
-      return Math.round((achievedMilestones.length / milestones.length) * 100);
+      return { completed: achievedMilestones.length, total: milestones.length };
     }
-    return 0;
-  })();
+    return { completed: 0, total: 0 };
+  }, [milestoneProgress, milestones, achievedMilestones]);
+
+  const milestonePercentage = milestoneTotals.total > 0
+    ? Math.round((milestoneTotals.completed / milestoneTotals.total) * 100)
+    : 0;
 
   // Routine chart data (last 7 days)
   const routineChartData = useMemo(() => {
@@ -451,11 +737,7 @@ export function ProfPatientChartPage() {
                       <ProgressRing percentage={milestonePercentage} />
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">
-                          {(() => {
-                            const completed = milestoneProgress?.completedPredefined ?? milestoneProgress?.completed ?? achievedMilestones.length;
-                            const total = milestoneProgress?.totalPredefined ?? milestoneProgress?.total ?? milestones.length;
-                            return `${completed}/${total}`;
-                          })()}
+                          {milestoneTotals.completed}/{milestoneTotals.total}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">marcos alcançados</p>
                       </div>
@@ -463,10 +745,8 @@ export function ProfPatientChartPage() {
                     {/* Age-based quick assessment */}
                     {baby?.birthDate && (() => {
                       const ageMonths = differenceInMonths(new Date(), parseISO(baby.birthDate));
-                      const totalPredefined = milestoneProgress?.totalPredefined ?? milestoneProgress?.total ?? milestones.length;
-                      const completed = milestoneProgress?.completedPredefined ?? milestoneProgress?.completed ?? achievedMilestones.length;
                       const expectedPct = Math.min(100, Math.round((ageMonths / 24) * 100));
-                      const actualPct = totalPredefined > 0 ? Math.round((completed / totalPredefined) * 100) : 0;
+                      const actualPct = milestonePercentage;
                       const gap = expectedPct - actualPct;
                       const isDelayed = gap > 20;
                       const isAtRisk = gap > 10 && gap <= 20;
@@ -790,8 +1070,7 @@ export function ProfPatientChartPage() {
          ═══════════════════════════════════════════════════════════ */}
       {activeTab === 'milestones' && (() => {
         const ageMonths = baby?.birthDate ? differenceInMonths(new Date(), parseISO(baby.birthDate)) : 0;
-        const totalPredefined = milestoneProgress?.totalPredefined ?? milestoneProgress?.total ?? milestones.length;
-        const completedCount = milestoneProgress?.completedPredefined ?? milestoneProgress?.completed ?? achievedMilestones.length;
+        const { completed: completedCount, total: totalAll } = milestoneTotals;
 
         // Categorize milestone status with age context
         const categorizedMilestones = Object.entries(milestonesByCategory).map(([category, items]) => {
@@ -812,7 +1091,7 @@ export function ProfPatientChartPage() {
 
         // Overall assessment
         const expectedPct = Math.min(100, Math.round((ageMonths / 24) * 100));
-        const actualPct = totalPredefined > 0 ? Math.round((completedCount / totalPredefined) * 100) : 0;
+        const actualPct = milestonePercentage;
         const gap = expectedPct - actualPct;
         const developmentStatus = gap > 20 ? 'delayed' : gap > 10 ? 'at-risk' : 'adequate';
 
@@ -841,7 +1120,7 @@ export function ProfPatientChartPage() {
                     <div className="flex flex-wrap gap-4 mt-3 text-sm">
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">Marcos alcançados: </span>
-                        <span className="font-semibold text-gray-900 dark:text-white">{completedCount}/{totalPredefined}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{completedCount}/{totalAll}</span>
                       </div>
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">Idade: </span>
@@ -1101,134 +1380,190 @@ export function ProfPatientChartPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          TAB: CONSULTAS
+          TAB: CONSULTAS (Inline Form)
          ═══════════════════════════════════════════════════════════ */}
       {activeTab === 'visits' && (
-        <Card>
-          <CardHeader
-            title="Histórico de Consultas"
-            subtitle={`${visits.length} consulta${visits.length !== 1 ? 's' : ''}`}
-            action={
-              <Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => { setEditingVisit(null); setVisitModalOpen(true); }}>
-                Nova consulta
-              </Button>
-            }
-          />
-          <CardBody className="p-0">
-            {visits.length === 0 ? (
-              <div className="flex flex-col items-center py-12">
-                <Calendar className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhuma consulta registrada</p>
-                <Button variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => { setEditingVisit(null); setVisitModalOpen(true); }}>
-                  Registrar primeira consulta
-                </Button>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {visits.map((v) => (
-                  <li key={v.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{format(new Date(v.visitDate), 'dd')}</span>
-                      <span className="text-[10px] text-blue-500 dark:text-blue-400 uppercase">{format(new Date(v.visitDate), 'MMM', { locale: ptBR })}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">{String(v.visitType).replace(/_/g, ' ')}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{v.chiefComplaint || 'Sem queixa principal'}</p>
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0">
-                      <Button size="sm" variant="ghost" onClick={() => { setEditingVisit(v); setVisitModalOpen(true); }}><Pencil className="w-4 h-4" /></Button>
-                      <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={() => setDeleteVisitId(v.id)}><Trash2 className="w-4 h-4" /></Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardBody>
-        </Card>
+        <div className="space-y-6">
+          {/* Inline Visit Form */}
+          {showVisitForm && (
+            <Card className="border-olive-200 dark:border-olive-800 ring-1 ring-olive-100 dark:ring-olive-900">
+              <CardHeader
+                title={editingVisit ? 'Editar consulta' : 'Nova consulta'}
+                action={<Button size="sm" variant="ghost" onClick={() => { setShowVisitForm(false); setEditingVisit(null); }}><span className="text-gray-500">Fechar</span></Button>}
+              />
+              <CardBody>
+                <VisitInlineForm
+                  babyId={parseInt(babyId!)}
+                  visit={editingVisit}
+                  onSuccess={() => { setShowVisitForm(false); setEditingVisit(null); loadData(); }}
+                  onCancel={() => { setShowVisitForm(false); setEditingVisit(null); }}
+                />
+              </CardBody>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader
+              title="Histórico de Consultas"
+              subtitle={`${visits.length} consulta${visits.length !== 1 ? 's' : ''}`}
+              action={
+                !showVisitForm ? (
+                  <Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => { setEditingVisit(null); setShowVisitForm(true); }}>
+                    Nova consulta
+                  </Button>
+                ) : undefined
+              }
+            />
+            <CardBody className="p-0">
+              {visits.length === 0 && !showVisitForm ? (
+                <div className="flex flex-col items-center py-12">
+                  <Calendar className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhuma consulta registrada</p>
+                  <Button variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => { setEditingVisit(null); setShowVisitForm(true); }}>
+                    Registrar primeira consulta
+                  </Button>
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {visits.map((v) => (
+                    <li key={v.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{format(new Date(v.visitDate), 'dd')}</span>
+                        <span className="text-[10px] text-blue-500 dark:text-blue-400 uppercase">{format(new Date(v.visitDate), 'MMM', { locale: ptBR })}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{String(v.visitType).replace(/_/g, ' ')}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{v.chiefComplaint || 'Sem queixa principal'}</p>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Button size="sm" variant="ghost" onClick={() => { setEditingVisit(v); setShowVisitForm(true); }}><Pencil className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={() => setDeleteVisitId(v.id)}><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardBody>
+          </Card>
+        </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          TAB: RECEITAS
+          TAB: RECEITAS (Inline Form)
          ═══════════════════════════════════════════════════════════ */}
       {activeTab === 'prescriptions' && (
-        <Card>
-          <CardHeader
-            title="Receitas Médicas"
-            subtitle={`${prescriptions.length} receita${prescriptions.length !== 1 ? 's' : ''}`}
-            action={<Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setPrescriptionModalOpen(true)}>Nova receita</Button>}
-          />
-          <CardBody className="p-0">
-            {prescriptions.length === 0 ? (
-              <div className="flex flex-col items-center py-12">
-                <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhuma receita emitida</p>
-                <Button variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setPrescriptionModalOpen(true)}>Emitir receita</Button>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {prescriptions.map((p) => (
-                  <li key={p.id} className="flex items-center gap-4 px-6 py-4">
-                    <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">Receita - {format(new Date(p.prescriptionDate), 'dd/MM/yyyy')}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{(p.items as any[])?.length || 0} medicamento(s)</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardBody>
-        </Card>
+        <div className="space-y-6">
+          {showPrescriptionForm && (
+            <Card className="border-olive-200 dark:border-olive-800 ring-1 ring-olive-100 dark:ring-olive-900">
+              <CardHeader
+                title="Nova receita"
+                action={<Button size="sm" variant="ghost" onClick={() => setShowPrescriptionForm(false)}><span className="text-gray-500">Fechar</span></Button>}
+              />
+              <CardBody>
+                <PrescriptionInlineForm
+                  babyId={parseInt(babyId!)}
+                  onSuccess={() => { setShowPrescriptionForm(false); loadData(); }}
+                  onCancel={() => setShowPrescriptionForm(false)}
+                />
+              </CardBody>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader
+              title="Receitas Médicas"
+              subtitle={`${prescriptions.length} receita${prescriptions.length !== 1 ? 's' : ''}`}
+              action={!showPrescriptionForm ? <Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowPrescriptionForm(true)}>Nova receita</Button> : undefined}
+            />
+            <CardBody className="p-0">
+              {prescriptions.length === 0 && !showPrescriptionForm ? (
+                <div className="flex flex-col items-center py-12">
+                  <FileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhuma receita emitida</p>
+                  <Button variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowPrescriptionForm(true)}>Emitir receita</Button>
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {prescriptions.map((p) => (
+                    <li key={p.id} className="flex items-center gap-4 px-6 py-4">
+                      <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">Receita - {format(new Date(p.prescriptionDate), 'dd/MM/yyyy')}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{(p.items as any[])?.length || 0} medicamento(s)</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardBody>
+          </Card>
+        </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          TAB: ATESTADOS
+          TAB: ATESTADOS (Inline Form)
          ═══════════════════════════════════════════════════════════ */}
       {activeTab === 'certificates' && (
-        <Card>
-          <CardHeader
-            title="Atestados e Declarações"
-            subtitle={`${certificates.length} documento${certificates.length !== 1 ? 's' : ''}`}
-            action={<Button size="sm" leftIcon={<FileText className="w-4 h-4" />} onClick={() => setCertificateModalOpen(true)}>Novo atestado</Button>}
-          />
-          <CardBody className="p-0">
-            {certificates.length === 0 ? (
-              <div className="flex flex-col items-center py-12">
-                <Award className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhum atestado emitido</p>
-                <Button variant="outline" size="sm" leftIcon={<FileText className="w-4 h-4" />} onClick={() => setCertificateModalOpen(true)}>Emitir atestado</Button>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {certificates.map((c) => (
-                  <li key={c.id} className="flex items-center gap-4 px-6 py-4">
-                    <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Award className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">{String(c.type).replace(/_/g, ' ')}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Válido de {format(new Date(c.validFrom), 'dd/MM/yyyy')}{c.validUntil ? ` até ${format(new Date(c.validUntil), 'dd/MM/yyyy')}` : ''}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardBody>
-        </Card>
+        <div className="space-y-6">
+          {showCertificateForm && (
+            <Card className="border-olive-200 dark:border-olive-800 ring-1 ring-olive-100 dark:ring-olive-900">
+              <CardHeader
+                title="Novo atestado / declaração"
+                action={<Button size="sm" variant="ghost" onClick={() => setShowCertificateForm(false)}><span className="text-gray-500">Fechar</span></Button>}
+              />
+              <CardBody>
+                <CertificateInlineForm
+                  babyId={parseInt(babyId!)}
+                  babyName={baby?.name}
+                  onSuccess={() => { setShowCertificateForm(false); loadData(); }}
+                  onCancel={() => setShowCertificateForm(false)}
+                />
+              </CardBody>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader
+              title="Atestados e Declarações"
+              subtitle={`${certificates.length} documento${certificates.length !== 1 ? 's' : ''}`}
+              action={!showCertificateForm ? <Button size="sm" leftIcon={<FileText className="w-4 h-4" />} onClick={() => setShowCertificateForm(true)}>Novo atestado</Button> : undefined}
+            />
+            <CardBody className="p-0">
+              {certificates.length === 0 && !showCertificateForm ? (
+                <div className="flex flex-col items-center py-12">
+                  <Award className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">Nenhum atestado emitido</p>
+                  <Button variant="outline" size="sm" leftIcon={<FileText className="w-4 h-4" />} onClick={() => setShowCertificateForm(true)}>Emitir atestado</Button>
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {certificates.map((c) => (
+                    <li key={c.id} className="flex items-center gap-4 px-6 py-4">
+                      <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Award className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{String(c.type).replace(/_/g, ' ')}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Válido de {format(new Date(c.validFrom), 'dd/MM/yyyy')}{c.validUntil ? ` até ${format(new Date(c.validUntil), 'dd/MM/yyyy')}` : ''}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardBody>
+          </Card>
+        </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          MODALS
+          MODALS (only ClinicalInfo + ConfirmModal remain)
          ═══════════════════════════════════════════════════════════ */}
       {babyId && (
         <>
-          <VisitFormModal isOpen={visitModalOpen} onClose={() => { setVisitModalOpen(false); setEditingVisit(null); }} babyId={parseInt(babyId)} visit={editingVisit} onSuccess={loadData} />
-          <PrescriptionFormModal isOpen={prescriptionModalOpen} onClose={() => setPrescriptionModalOpen(false)} babyId={parseInt(babyId)} onSuccess={loadData} />
-          <MedicalCertificateFormModal isOpen={certificateModalOpen} onClose={() => setCertificateModalOpen(false)} babyId={parseInt(babyId)} babyName={baby?.name} onSuccess={loadData} />
           <ClinicalInfoFormModal isOpen={clinicalInfoModalOpen} onClose={() => setClinicalInfoModalOpen(false)} babyId={parseInt(babyId)} initialData={clinicalInfo} onSuccess={loadData} />
           <ConfirmModal
             isOpen={!!deleteVisitId}
