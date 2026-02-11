@@ -43,9 +43,9 @@ export function ClinicalInfoFormModal({ isOpen, onClose, babyId, initialData, on
       setAllergies(allergiesData?.length ? allergiesData : [{ substance: '', reaction: '' }]);
       setConditions(
         conditionsData?.length
-          ? Array.isArray(conditionsData) && typeof conditionsData[0] === 'object'
+          ? Array.isArray(conditionsData) && conditionsData[0] && typeof conditionsData[0] === 'object' && 'name' in (conditionsData[0] as object)
             ? (conditionsData as Condition[])
-            : (conditionsData as string[]).map((c) => ({ name: c, notes: '' }))
+            : (conditionsData as unknown as string[]).map((c) => ({ name: c, notes: '' }))
           : [{ name: '', notes: '' }]
       );
       setFamilyHistory(initialData.familyHistory || '');

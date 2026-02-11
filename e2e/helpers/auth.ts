@@ -68,8 +68,10 @@ export class AuthHelper {
 
   /**
    * Limpa autenticação (logout + limpa storage)
+   * Navega para a base URL primeiro para garantir acesso ao localStorage (mesmo origin)
    */
   async clearAuth() {
+    await this.page.goto('/');
     await this.page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();

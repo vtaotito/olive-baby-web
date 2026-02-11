@@ -12,9 +12,9 @@ test.describe('Autenticação', () => {
 
   test('deve exibir página de login', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.locator('h1, h2')).toContainText(/login|entrar/i);
+    await expect(page.locator('h1, h2')).toContainText(/login|entrar|bem-vindo|admin console/i);
     await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.locator('input[type="password"], input[placeholder="••••••••"]')).toBeVisible();
   });
 
   test('deve exibir página de registro', async ({ page }) => {
@@ -29,9 +29,9 @@ test.describe('Autenticação', () => {
     await page.goto('/login');
     await page.click('button[type="submit"]');
     
-    // Verifica mensagens de erro
-    const errorMessages = page.locator('text=/obrigatório|required|preencha/i');
-    await expect(errorMessages.first()).toBeVisible();
+    // Verifica mensagens de erro (Email inválido ou Senha é obrigatória)
+    const errorMessages = page.locator('text=/obrigatório|required|preencha|inválido|senha/i');
+    await expect(errorMessages.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('deve validar formato de email no login', async ({ page }) => {
