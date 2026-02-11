@@ -707,6 +707,142 @@ export const professionalService = {
   },
 };
 
+// ====== Clinic Service (Professional Portal) ======
+export const clinicService = {
+  getMyClinics: async () => {
+    const response = await api.get('/clinics/my-clinics');
+    return response.data;
+  },
+  getBySlug: async (slug: string) => {
+    const response = await api.get(`/clinics/by-slug/${slug}`);
+    return response.data;
+  },
+  get: async (id: number) => {
+    const response = await api.get(`/clinics/${id}`);
+    return response.data;
+  },
+  create: async (data: { name: string; slug: string; [k: string]: unknown }) => {
+    const response = await api.post('/clinics', data);
+    return response.data;
+  },
+  update: async (id: number, data: Record<string, unknown>) => {
+    const response = await api.patch(`/clinics/${id}`, data);
+    return response.data;
+  },
+};
+
+// ====== Appointment Service ======
+export const appointmentService = {
+  list: async (params?: { startDate?: string; endDate?: string; clinicId?: number }) => {
+    const response = await api.get('/appointments', { params });
+    return response.data;
+  },
+  getAvailableSlots: async (date: string, duration?: number, clinicId?: number) => {
+    const response = await api.get('/appointments/available-slots', { params: { date, duration, clinicId } });
+    return response.data;
+  },
+  create: async (data: { babyId: number; startAt: string; endAt?: string; durationMinutes?: number; type?: string; title?: string; notes?: string; clinicId?: number }) => {
+    const response = await api.post('/appointments', data);
+    return response.data;
+  },
+  get: async (id: number) => {
+    const response = await api.get(`/appointments/${id}`);
+    return response.data;
+  },
+  updateStatus: async (id: number, status: string, visitId?: number) => {
+    const response = await api.patch(`/appointments/${id}/status`, { status, visitId });
+    return response.data;
+  },
+  cancel: async (id: number, reason?: string) => {
+    const response = await api.post(`/appointments/${id}/cancel`, { reason });
+    return response.data;
+  },
+  getSchedule: async (clinicId?: number) => {
+    const response = await api.get('/appointments/schedule', { params: { clinicId } });
+    return response.data;
+  },
+  upsertSchedule: async (data: { dayOfWeek: number; startTime: string; endTime: string; slotDuration?: number; clinicId?: number }) => {
+    const response = await api.post('/appointments/schedule', data);
+    return response.data;
+  },
+  listExceptions: async (startDate?: string, endDate?: string) => {
+    const response = await api.get('/appointments/exceptions', { params: { startDate, endDate } });
+    return response.data;
+  },
+  createException: async (data: { exceptionDate: string; type: string; startTime?: string; endTime?: string; reason?: string; clinicId?: number }) => {
+    const response = await api.post('/appointments/exceptions', data);
+    return response.data;
+  },
+};
+
+// ====== Clinical Visit Service ======
+export const clinicalVisitService = {
+  list: async (babyId: number, params?: { limit?: number; offset?: number }) => {
+    const response = await api.get(`/babies/${babyId}/visits`, { params });
+    return response.data;
+  },
+  get: async (babyId: number, visitId: number) => {
+    const response = await api.get(`/babies/${babyId}/visits/${visitId}`);
+    return response.data;
+  },
+  create: async (babyId: number, data: Record<string, unknown>) => {
+    const response = await api.post(`/babies/${babyId}/visits`, data);
+    return response.data;
+  },
+  update: async (babyId: number, visitId: number, data: Record<string, unknown>) => {
+    const response = await api.patch(`/babies/${babyId}/visits/${visitId}`, data);
+    return response.data;
+  },
+  delete: async (babyId: number, visitId: number) => {
+    const response = await api.delete(`/babies/${babyId}/visits/${visitId}`);
+    return response.data;
+  },
+};
+
+// ====== Baby Clinical Info Service ======
+export const clinicalInfoService = {
+  get: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/clinical-info`);
+    return response.data;
+  },
+  upsert: async (babyId: number, data: Record<string, unknown>) => {
+    const response = await api.put(`/babies/${babyId}/clinical-info`, data);
+    return response.data;
+  },
+};
+
+// ====== Prescription Service ======
+export const prescriptionService = {
+  list: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/prescriptions`);
+    return response.data;
+  },
+  get: async (babyId: number, prescriptionId: number) => {
+    const response = await api.get(`/babies/${babyId}/prescriptions/${prescriptionId}`);
+    return response.data;
+  },
+  create: async (babyId: number, data: Record<string, unknown>) => {
+    const response = await api.post(`/babies/${babyId}/prescriptions`, data);
+    return response.data;
+  },
+};
+
+// ====== Medical Certificate Service ======
+export const medicalCertificateService = {
+  list: async (babyId: number) => {
+    const response = await api.get(`/babies/${babyId}/certificates`);
+    return response.data;
+  },
+  get: async (babyId: number, certificateId: number) => {
+    const response = await api.get(`/babies/${babyId}/certificates/${certificateId}`);
+    return response.data;
+  },
+  create: async (babyId: number, data: Record<string, unknown>) => {
+    const response = await api.post(`/babies/${babyId}/certificates`, data);
+    return response.data;
+  },
+};
+
 // ====== AI Assistant Service ======
 export const aiService = {
   // Health check
