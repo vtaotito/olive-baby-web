@@ -56,6 +56,29 @@
     <link rel="canonical" href="https://oliecare.cloud/" />
   </head>
   <body>
+    <!-- Script inline para aplicar tema ANTES do React carregar (previne flash escuro) -->
+    <script>
+      (function() {
+        var THEME_KEY = 'olive-baby-theme';
+        var VERSION_KEY = 'olive-baby-theme-v';
+        var CURRENT_V = '2';
+        // Migração: se versão mudou, reset para light
+        if (localStorage.getItem(VERSION_KEY) !== CURRENT_V) {
+          localStorage.setItem(THEME_KEY, 'light');
+          localStorage.setItem(VERSION_KEY, CURRENT_V);
+        }
+        var theme = localStorage.getItem(THEME_KEY) || 'light';
+        // Resolver 'system' para preferência do OS
+        if (theme === 'system') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

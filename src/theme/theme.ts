@@ -3,12 +3,34 @@
 export type Theme = 'light' | 'dark' | 'system';
 
 const THEME_KEY = 'olive-baby-theme';
+const THEME_VERSION_KEY = 'olive-baby-theme-v';
+// Incrementar esta versão para forçar reset do tema para todos os usuários
+const CURRENT_THEME_VERSION = '2';
+
+/**
+ * Migrate theme to current version.
+ * When the version changes, stored theme is reset to 'light' (default).
+ * After migration, users can choose any theme and it will persist.
+ */
+function migrateThemeIfNeeded(): void {
+  if (typeof window === 'undefined') return;
+
+  const storedVersion = localStorage.getItem(THEME_VERSION_KEY);
+  if (storedVersion !== CURRENT_THEME_VERSION) {
+    // Reset para tema claro na primeira visita com nova versão
+    localStorage.setItem(THEME_KEY, 'light');
+    localStorage.setItem(THEME_VERSION_KEY, CURRENT_THEME_VERSION);
+  }
+}
 
 /**
  * Get the stored theme from localStorage
  */
 export function getStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
+
+  // Garantir que a migração aconteça antes de ler o tema
+  migrateThemeIfNeeded();
   
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === 'light' || stored === 'dark' || stored === 'system') {
