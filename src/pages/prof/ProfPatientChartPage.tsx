@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal } from '../../components/ui';
 import { VisitFormModal, PrescriptionFormModal, MedicalCertificateFormModal, ClinicalInfoFormModal } from '../../components/prof';
-import { GrowthChart, StatsChart } from '../../components/charts';
+import { GrowthChart, StatsChart, WHOGrowthChart } from '../../components/charts';
 import { cn } from '../../lib/utils';
 import {
   routineService,
@@ -417,19 +417,43 @@ export function ProfPatientChartPage() {
               </CardBody>
             </Card>
 
-            {/* Marcos de Desenvolvimento */}
+            {/* Marcos de Desenvolvimento - Enhanced */}
             <Card className="hover:shadow-md transition-shadow">
               <CardHeader title="Marcos de Desenvolvimento" />
               <CardBody>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 mb-3">
                   <ProgressRing percentage={milestonePercentage} />
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-white">
-                      {milestoneProgress ? `${milestoneProgress.completed}/${milestoneProgress.total}` : `${achievedMilestones.length}/${milestones.length}`}
+                      {milestoneProgress ? `${milestoneProgress.completedPredefined || milestoneProgress.completed}/${milestoneProgress.totalPredefined || milestoneProgress.total}` : `${achievedMilestones.length}/${milestones.length}`}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">marcos alcançados</p>
                   </div>
                 </div>
+                {/* Age-based quick assessment */}
+                {baby?.birthDate && (() => {
+                  const ageMonths = differenceInMonths(new Date(), parseISO(baby.birthDate));
+                  const totalPredefined = milestoneProgress?.totalPredefined || milestones.length;
+                  const completed = milestoneProgress?.completedPredefined || achievedMilestones.length;
+                  // Expected: ~linear progression
+                  const expectedPct = Math.min(100, Math.round((ageMonths / 24) * 100));
+                  const actualPct = totalPredefined > 0 ? Math.round((completed / totalPredefined) * 100) : 0;
+                  const gap = expectedPct - actualPct;
+                  const isDelayed = gap > 20;
+                  const isAtRisk = gap > 10 && gap <= 20;
+                  return (
+                    <div className={cn(
+                      'mt-2 px-3 py-2 rounded-lg text-xs font-medium',
+                      isDelayed ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                        : isAtRisk ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
+                        : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                    )}>
+                      {isDelayed && <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Possível atraso no desenvolvimento</span>}
+                      {isAtRisk && <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Atenção: acompanhar evolução</span>}
+                      {!isDelayed && !isAtRisk && <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Desenvolvimento adequado para a idade</span>}
+                    </div>
+                  );
+                })()}
               </CardBody>
             </Card>
 
@@ -606,7 +630,7 @@ export function ProfPatientChartPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          TAB: CRESCIMENTO
+          TAB: CRESCIMENTO (Enhanced - WHO Growth Curves)
          ═══════════════════════════════════════════════════════════ */}
       {activeTab === 'growth' && (
         <div className="space-y-6">
@@ -638,178 +662,317 @@ export function ProfPatientChartPage() {
             </div>
           )}
 
+          {/* WHO Growth Chart */}
           <Card>
-            <CardHeader title="Curva de Crescimento" subtitle={`${growth.length} medição(ões)`} />
+            <CardHeader
+              title="Curvas de Crescimento OMS"
+              subtitle={`${growth.length} medição(ões) · Referência: OMS 0-24 meses`}
+            />
             <CardBody>
               {growth.length === 0 ? (
                 <div className="flex flex-col items-center py-12">
                   <TrendingUp className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
                   <p className="text-gray-500 dark:text-gray-400">Nenhuma medição registrada</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Os gráficos aparecerão quando houver dados de crescimento</p>
                 </div>
+              ) : baby?.birthDate ? (
+                <WHOGrowthChart
+                  birthDate={baby.birthDate}
+                  measurements={growth.slice().reverse().map((g) => ({
+                    date: g.measurementDate || g.measuredAt,
+                    weightKg: g.weightGrams ? Number(g.weightGrams) / 1000 : g.weightKg ? Number(g.weightKg) : undefined,
+                    lengthCm: g.lengthCm ? Number(g.lengthCm) : g.heightCm ? Number(g.heightCm) : undefined,
+                    headCm: g.headCircumferenceCm ? Number(g.headCircumferenceCm) : undefined,
+                  }))}
+                />
               ) : (
-                <>
-                  <div className="mb-6 h-72">
-                    <GrowthChart
-                      data={growth.slice().reverse().map((g) => ({
-                        date: format(new Date(g.measurementDate || g.measuredAt), 'dd/MM'),
-                        weight: g.weightGrams ? Number(g.weightGrams) / 1000 : g.weightKg ? Number(g.weightKg) : undefined,
-                        length: g.lengthCm ? Number(g.lengthCm) : g.heightCm ? Number(g.heightCm) : undefined,
-                      }))}
-                    />
-                  </div>
-
-                  {/* Head circumference chart */}
-                  {growth.some(g => g.headCircumferenceCm) && (
-                    <div className="mb-6 h-48">
-                      <StatsChart
-                        type="line"
-                        labels={growth.slice().reverse().map(g => format(new Date(g.measurementDate || g.measuredAt), 'dd/MM'))}
-                        datasets={[{
-                          label: 'Perímetro Cefálico (cm)',
-                          data: growth.slice().reverse().map(g => Number(g.headCircumferenceCm) || 0),
-                          borderColor: 'rgb(59, 130, 246)',
-                          backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                        }]}
-                      />
-                    </div>
-                  )}
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-200 dark:border-gray-700">
-                          <th className="text-left py-2 px-3 text-gray-500 dark:text-gray-400 font-medium">Data</th>
-                          <th className="text-right py-2 px-3 text-gray-500 dark:text-gray-400 font-medium">Peso</th>
-                          <th className="text-right py-2 px-3 text-gray-500 dark:text-gray-400 font-medium">Altura</th>
-                          <th className="text-right py-2 px-3 text-gray-500 dark:text-gray-400 font-medium">PC</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {growth.map((g) => (
-                          <tr key={g.id} className="border-b border-gray-100 dark:border-gray-700/50">
-                            <td className="py-2 px-3 text-gray-900 dark:text-white">{format(new Date(g.measurementDate || g.measuredAt), 'dd/MM/yyyy')}</td>
-                            <td className="py-2 px-3 text-right text-gray-700 dark:text-gray-300">
-                              {g.weightGrams ? `${(Number(g.weightGrams) / 1000).toFixed(2)} kg` : g.weightKg ? `${Number(g.weightKg).toFixed(2)} kg` : '-'}
-                            </td>
-                            <td className="py-2 px-3 text-right text-gray-700 dark:text-gray-300">
-                              {(g.lengthCm || g.heightCm) ? `${g.lengthCm || g.heightCm} cm` : '-'}
-                            </td>
-                            <td className="py-2 px-3 text-right text-gray-700 dark:text-gray-300">
-                              {g.headCircumferenceCm ? `${g.headCircumferenceCm} cm` : '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                <div className="flex flex-col items-center py-12">
+                  <AlertTriangle className="w-12 h-12 text-amber-400 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">Data de nascimento necessária para exibir curvas OMS</p>
+                </div>
               )}
+            </CardBody>
+          </Card>
+
+          {/* Measurements table */}
+          <Card>
+            <CardHeader title="Histórico de Medições" subtitle={`${growth.length} registro(s)`} />
+            <CardBody>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-2.5 px-3 text-gray-500 dark:text-gray-400 font-medium">Data</th>
+                      <th className="text-left py-2.5 px-3 text-gray-500 dark:text-gray-400 font-medium">Idade</th>
+                      <th className="text-right py-2.5 px-3 text-gray-500 dark:text-gray-400 font-medium">Peso</th>
+                      <th className="text-right py-2.5 px-3 text-gray-500 dark:text-gray-400 font-medium">Altura</th>
+                      <th className="text-right py-2.5 px-3 text-gray-500 dark:text-gray-400 font-medium">PC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {growth.map((g, idx) => {
+                      const measureDate = new Date(g.measurementDate || g.measuredAt);
+                      const ageAtMeasure = baby?.birthDate ? (() => {
+                        const months = differenceInMonths(measureDate, parseISO(baby.birthDate));
+                        return months < 1 ? `${Math.max(0, Math.floor((measureDate.getTime() - parseISO(baby.birthDate).getTime()) / (1000*60*60*24)))}d` : `${months}m`;
+                      })() : '-';
+                      // Calculate delta from previous measurement
+                      const prev = idx < growth.length - 1 ? growth[idx + 1] : null;
+                      const weightNow = g.weightGrams ? Number(g.weightGrams) / 1000 : g.weightKg ? Number(g.weightKg) : null;
+                      const weightPrev = prev ? (prev.weightGrams ? Number(prev.weightGrams) / 1000 : prev.weightKg ? Number(prev.weightKg) : null) : null;
+                      const weightDelta = weightNow && weightPrev ? weightNow - weightPrev : null;
+                      return (
+                        <tr key={g.id} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/30">
+                          <td className="py-2.5 px-3 text-gray-900 dark:text-white font-medium">{format(measureDate, 'dd/MM/yyyy')}</td>
+                          <td className="py-2.5 px-3 text-gray-600 dark:text-gray-400 text-sm">{ageAtMeasure}</td>
+                          <td className="py-2.5 px-3 text-right text-gray-700 dark:text-gray-300">
+                            <div>
+                              {g.weightGrams ? `${(Number(g.weightGrams) / 1000).toFixed(2)} kg` : g.weightKg ? `${Number(g.weightKg).toFixed(2)} kg` : '-'}
+                              {weightDelta !== null && (
+                                <span className={cn('block text-xs', weightDelta >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500')}>
+                                  {weightDelta >= 0 ? '+' : ''}{weightDelta.toFixed(2)} kg
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 text-right text-gray-700 dark:text-gray-300">
+                            {(g.lengthCm || g.heightCm) ? `${g.lengthCm || g.heightCm} cm` : '-'}
+                          </td>
+                          <td className="py-2.5 px-3 text-right text-gray-700 dark:text-gray-300">
+                            {g.headCircumferenceCm ? `${g.headCircumferenceCm} cm` : '-'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </CardBody>
           </Card>
         </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          TAB: MARCOS DE DESENVOLVIMENTO
+          TAB: MARCOS DE DESENVOLVIMENTO (Enhanced)
          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === 'milestones' && (
-        <div className="space-y-6">
-          {/* Progress header */}
-          <Card className="bg-gradient-to-r from-olive-50 to-emerald-50 dark:from-olive-900/20 dark:to-emerald-900/10 border-olive-200 dark:border-olive-800">
-            <CardBody className="flex items-center gap-6 py-5">
-              <ProgressRing percentage={milestonePercentage} size={100} strokeWidth={10} />
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Progresso do Desenvolvimento</h3>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  {milestoneProgress
-                    ? `${milestoneProgress.completed} de ${milestoneProgress.total} marcos alcançados`
-                    : `${achievedMilestones.length} de ${milestones.length} marcos alcançados`
-                  }
-                </p>
-                {achievedMilestones.length > 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Último: {format(new Date(achievedMilestones[0].occurredOn || achievedMilestones[0].achievedAt), 'dd/MM/yyyy')}
-                  </p>
-                )}
-              </div>
-            </CardBody>
-          </Card>
+      {activeTab === 'milestones' && (() => {
+        const ageMonths = baby?.birthDate ? differenceInMonths(new Date(), parseISO(baby.birthDate)) : 0;
+        const totalPredefined = milestoneProgress?.totalPredefined || milestoneProgress?.total || milestones.length;
+        const completedCount = milestoneProgress?.completedPredefined || milestoneProgress?.completed || achievedMilestones.length;
 
-          {milestones.length === 0 ? (
-            <Card>
-              <CardBody className="flex flex-col items-center py-12">
-                <Star className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-                <p className="text-gray-500 dark:text-gray-400">Nenhum marco de desenvolvimento registrado</p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Os marcos registrados pela família aparecerão aqui</p>
+        // Categorize milestone status with age context
+        const categorizedMilestones = Object.entries(milestonesByCategory).map(([category, items]) => {
+          const achieved = (items as any[]).filter((m: any) => m.occurredOn || m.achievedAt).length;
+          const total = (items as any[]).length;
+          const pct = total > 0 ? Math.round((achieved / total) * 100) : 0;
+
+          // Simple heuristic for category delay - if <50% achieved after 6 months
+          const isLagging = pct < 50 && ageMonths > 6;
+          return { category, items: items as any[], achieved, total, pct, isLagging };
+        });
+
+        // Sort: lagging first, then by progress ascending
+        categorizedMilestones.sort((a, b) => {
+          if (a.isLagging !== b.isLagging) return a.isLagging ? -1 : 1;
+          return a.pct - b.pct;
+        });
+
+        // Overall assessment
+        const expectedPct = Math.min(100, Math.round((ageMonths / 24) * 100));
+        const actualPct = totalPredefined > 0 ? Math.round((completedCount / totalPredefined) * 100) : 0;
+        const gap = expectedPct - actualPct;
+        const developmentStatus = gap > 20 ? 'delayed' : gap > 10 ? 'at-risk' : 'adequate';
+
+        const statusDisplayConfig = {
+          delayed: { bg: 'from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/10', border: 'border-red-200 dark:border-red-800', text: 'text-red-700 dark:text-red-400', label: 'Possível atraso no desenvolvimento', desc: 'Recomenda-se avaliação detalhada. Marcos atingidos estão significativamente abaixo do esperado para a idade.' },
+          'at-risk': { bg: 'from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/10', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700 dark:text-amber-400', label: 'Atenção: acompanhar evolução', desc: 'Alguns marcos estão ligeiramente abaixo do esperado. Recomenda-se monitoramento contínuo.' },
+          adequate: { bg: 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/10', border: 'border-green-200 dark:border-green-800', text: 'text-green-700 dark:text-green-400', label: 'Desenvolvimento adequado', desc: 'Os marcos de desenvolvimento estão dentro do esperado para a idade.' },
+        };
+        const statusDisplay = statusDisplayConfig[developmentStatus];
+
+        return (
+          <div className="space-y-6">
+            {/* Development Assessment Header */}
+            <Card className={cn('bg-gradient-to-r', statusDisplay.bg, statusDisplay.border)}>
+              <CardBody className="py-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+                  <ProgressRing percentage={milestonePercentage} size={100} strokeWidth={10} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {developmentStatus === 'delayed' && <AlertTriangle className="w-5 h-5 text-red-500" />}
+                      {developmentStatus === 'at-risk' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
+                      {developmentStatus === 'adequate' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+                      <h3 className={cn('text-lg font-bold', statusDisplay.text)}>{statusDisplay.label}</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{statusDisplay.desc}</p>
+                    <div className="flex flex-wrap gap-4 mt-3 text-sm">
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">Marcos alcançados: </span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{completedCount}/{totalPredefined}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 dark:text-gray-400">Idade: </span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{ageMonths} meses</span>
+                      </div>
+                      {achievedMilestones.length > 0 && (
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Último marco: </span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{format(new Date(achievedMilestones[0].occurredOn || achievedMilestones[0].achievedAt), 'dd/MM/yyyy')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </CardBody>
             </Card>
-          ) : (
-            <>
-              {/* Milestones by category */}
-              {Object.entries(milestonesByCategory).map(([category, items]) => {
-                const achieved = items.filter((m: any) => m.occurredOn || m.achievedAt).length;
-                const total = items.length;
-                const pct = Math.round((achieved / total) * 100);
-                const isExpanded = expandedMilestoneCategory === category;
-                return (
-                  <Card key={category}>
+
+            {/* Visual Progress by Category */}
+            {milestones.length === 0 ? (
+              <Card>
+                <CardBody className="flex flex-col items-center py-12">
+                  <Star className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">Nenhum marco de desenvolvimento registrado</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Os marcos registrados pela família aparecerão aqui</p>
+                </CardBody>
+              </Card>
+            ) : (
+              <>
+                {/* Category Summary Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {categorizedMilestones.map(({ category, achieved, total, pct, isLagging }) => (
                     <button
-                      className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                      onClick={() => setExpandedMilestoneCategory(isExpanded ? null : category)}
+                      key={category}
+                      onClick={() => setExpandedMilestoneCategory(expandedMilestoneCategory === category ? null : category)}
+                      className={cn(
+                        'p-4 rounded-xl border text-left transition-all hover:shadow-md',
+                        expandedMilestoneCategory === category
+                          ? 'ring-2 ring-olive-400 border-olive-300 dark:ring-olive-600 dark:border-olive-700'
+                          : isLagging
+                            ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10'
+                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                      )}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-olive-100 dark:bg-olive-900/30 rounded-lg flex items-center justify-center">
-                          <Star className="w-5 h-5 text-olive-600 dark:text-olive-400" />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium text-gray-900 dark:text-white">{category}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{achieved}/{total} alcançados</p>
-                        </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={cn(
+                          'text-2xl font-bold',
+                          pct >= 80 ? 'text-green-600 dark:text-green-400'
+                            : pct >= 50 ? 'text-olive-600 dark:text-olive-400'
+                            : isLagging ? 'text-red-600 dark:text-red-400'
+                            : 'text-amber-600 dark:text-amber-400'
+                        )}>
+                          {pct}%
+                        </span>
+                        {isLagging && <AlertTriangle className="w-4 h-4 text-red-500" />}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div className="bg-olive-500 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400 w-10 text-right">{pct}%</span>
-                        {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{category}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{achieved}/{total} marcos</p>
+                      {/* Mini progress bar */}
+                      <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                        <div
+                          className={cn(
+                            'h-1.5 rounded-full transition-all',
+                            pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-olive-500' : isLagging ? 'bg-red-500' : 'bg-amber-500'
+                          )}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </button>
-                    {isExpanded && (
+                  ))}
+                </div>
+
+                {/* Detailed Milestones List */}
+                {categorizedMilestones.map(({ category, items, achieved, total, pct, isLagging }) => {
+                  const isExpanded = expandedMilestoneCategory === category;
+                  if (!isExpanded) return null;
+                  return (
+                    <Card key={category} className={cn(isLagging && 'border-red-200 dark:border-red-800')}>
+                      <button
+                        className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        onClick={() => setExpandedMilestoneCategory(null)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'w-10 h-10 rounded-lg flex items-center justify-center',
+                            isLagging ? 'bg-red-100 dark:bg-red-900/30' : 'bg-olive-100 dark:bg-olive-900/30'
+                          )}>
+                            {isLagging ? <AlertTriangle className="w-5 h-5 text-red-500" /> : <Star className="w-5 h-5 text-olive-600 dark:text-olive-400" />}
+                          </div>
+                          <div className="text-left">
+                            <p className="font-semibold text-gray-900 dark:text-white">{category}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{achieved}/{total} alcançados · {pct}%</p>
+                          </div>
+                        </div>
+                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                      </button>
                       <div className="border-t border-gray-100 dark:border-gray-700">
+                        {/* Sort: pending first for attention */}
                         <ul className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                          {items.map((m: any) => {
+                          {[...items].sort((a: any, b: any) => {
+                            const aAchieved = !!(a.occurredOn || a.achievedAt);
+                            const bAchieved = !!(b.occurredOn || b.achievedAt);
+                            if (aAchieved !== bAchieved) return aAchieved ? 1 : -1;
+                            return 0;
+                          }).map((m: any) => {
                             const isAchieved = !!(m.occurredOn || m.achievedAt);
+                            const achievedDate = isAchieved ? new Date(m.occurredOn || m.achievedAt) : null;
+                            const ageAtAchievement = achievedDate && baby?.birthDate
+                              ? differenceInMonths(achievedDate, parseISO(baby.birthDate))
+                              : null;
+
                             return (
-                              <li key={m.id} className="flex items-center gap-3 px-6 py-3">
+                              <li key={m.id} className={cn(
+                                'flex items-center gap-3 px-6 py-3.5 transition-colors',
+                                !isAchieved && isLagging && 'bg-red-50/30 dark:bg-red-900/5'
+                              )}>
                                 {isAchieved ? (
-                                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                  <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                  </div>
                                 ) : (
-                                  <Circle className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0" />
+                                  <div className={cn(
+                                    'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                                    isLagging ? 'bg-red-100 dark:bg-red-900/30' : 'bg-gray-100 dark:bg-gray-700'
+                                  )}>
+                                    <Circle className={cn('w-4 h-4', isLagging ? 'text-red-400' : 'text-gray-400 dark:text-gray-500')} />
+                                  </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className={cn('text-sm', isAchieved ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400')}>
+                                  <p className={cn('text-sm', isAchieved ? 'text-gray-900 dark:text-white font-medium' : isLagging ? 'text-red-700 dark:text-red-400 font-medium' : 'text-gray-500 dark:text-gray-400')}>
                                     {m.milestoneLabel || m.title || m.milestoneKey}
                                   </p>
-                                  {m.notes && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{m.notes}</p>}
+                                  {m.notes && <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{m.notes}</p>}
+                                  {!isAchieved && isLagging && (
+                                    <p className="text-xs text-red-500 dark:text-red-400 mt-0.5 flex items-center gap-1">
+                                      <AlertTriangle className="w-3 h-3" />
+                                      Pendente - verificar possível atraso
+                                    </p>
+                                  )}
                                 </div>
                                 {isAchieved && (
-                                  <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                                    {format(new Date(m.occurredOn || m.achievedAt), 'dd/MM/yyyy')}
-                                  </span>
+                                  <div className="text-right flex-shrink-0">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                      {format(achievedDate!, 'dd/MM/yyyy')}
+                                    </span>
+                                    {ageAtAchievement !== null && (
+                                      <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                                        com {ageAtAchievement} {ageAtAchievement === 1 ? 'mês' : 'meses'}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </li>
                             );
                           })}
                         </ul>
                       </div>
-                    )}
-                  </Card>
-                );
-              })}
-            </>
-          )}
-        </div>
-      )}
+                    </Card>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ═══════════════════════════════════════════════════════════
           TAB: VACINAS

@@ -1,31 +1,63 @@
-// Olive Baby Web - Professional Agenda
-import { useEffect, useState, useCallback } from 'react';
-import { Plus, ChevronLeft, ChevronRight as ChevronRightIcon, CalendarDays, Clock } from 'lucide-react';
-import { Card, CardBody, CardHeader, Button, Spinner } from '../../components/ui';
+// Olive Baby Web - Professional Agenda (Enhanced)
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import {
+  Plus, ChevronLeft, ChevronRight as ChevronRightIcon, CalendarDays, Clock,
+  CheckCircle2, XCircle, UserCheck, AlertTriangle, MoreVertical, X,
+  Stethoscope, Syringe, Phone, FileText, Baby, Timer, Eye,
+} from 'lucide-react';
+import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal } from '../../components/ui';
 import { AppointmentFormModal } from '../../components/prof';
 import { appointmentService } from '../../services/api';
-import { format, addDays, startOfWeek, endOfWeek, isToday, isSameDay } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, isToday, isSameDay, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/ui/Toast';
 
-const TYPE_COLORS: Record<string, string> = {
-  ROUTINE: 'bg-olive-100 border-olive-300 text-olive-800 dark:bg-olive-900/30 dark:border-olive-700 dark:text-olive-300',
-  FOLLOW_UP: 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300',
-  EMERGENCY: 'bg-red-100 border-red-300 text-red-800 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300',
-  VACCINATION: 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-300',
-  DEFAULT: 'bg-gray-100 border-gray-300 text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300',
+// ─── Config ─────────────────────────────────────────────────
+
+const TYPE_CONFIG: Record<string, { label: string; icon: typeof Stethoscope; bg: string; border: string; text: string; dot: string }> = {
+  CONSULTA_ROTINA: { label: 'Rotina', icon: Stethoscope, bg: 'bg-olive-50 dark:bg-olive-900/20', border: 'border-olive-300 dark:border-olive-700', text: 'text-olive-700 dark:text-olive-300', dot: 'bg-olive-500' },
+  RETORNO:         { label: 'Retorno', icon: FileText, bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-300 dark:border-blue-700', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
+  URGENCIA:        { label: 'Urgência', icon: AlertTriangle, bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-300 dark:border-red-700', text: 'text-red-700 dark:text-red-300', dot: 'bg-red-500' },
+  VACINA:          { label: 'Vacina', icon: Syringe, bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-300 dark:border-purple-700', text: 'text-purple-700 dark:text-purple-300', dot: 'bg-purple-500' },
+  TELEMEDICINA:    { label: 'Teleconsulta', icon: Phone, bg: 'bg-teal-50 dark:bg-teal-900/20', border: 'border-teal-300 dark:border-teal-700', text: 'text-teal-700 dark:text-teal-300', dot: 'bg-teal-500' },
+  OUTRO:           { label: 'Outro', icon: CalendarDays, bg: 'bg-gray-50 dark:bg-gray-800', border: 'border-gray-300 dark:border-gray-600', text: 'text-gray-700 dark:text-gray-300', dot: 'bg-gray-500' },
 };
 
-function getTypeColor(type: string): string {
-  return TYPE_COLORS[type] || TYPE_COLORS.DEFAULT;
+const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: typeof Clock }> = {
+  SCHEDULED:   { label: 'Agendado', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', icon: Clock },
+  CONFIRMED:   { label: 'Confirmado', bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300', icon: CheckCircle2 },
+  CHECKED_IN:  { label: 'Chegou', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300', icon: UserCheck },
+  IN_PROGRESS: { label: 'Em atendimento', bg: 'bg-olive-100 dark:bg-olive-900/30', text: 'text-olive-700 dark:text-olive-300', icon: Stethoscope },
+  COMPLETED:   { label: 'Concluído', bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-600 dark:text-gray-300', icon: CheckCircle2 },
+  NO_SHOW:     { label: 'Não compareceu', bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', icon: XCircle },
+  CANCELLED:   { label: 'Cancelado', bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', icon: XCircle },
+};
+
+function getTypeConfig(type: string) {
+  return TYPE_CONFIG[type] || TYPE_CONFIG.OUTRO;
 }
 
+function getStatusConfig(status: string) {
+  return STATUS_CONFIG[status] || STATUS_CONFIG.SCHEDULED;
+}
+
+// ─── Component ──────────────────────────────────────────────
+
 export function ProfAgendaPage() {
+  const navigate = useNavigate();
+  const { success, error: showError } = useToast();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDay, setSelectedDay] = useState<Date>(new Date());
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<any>(null);
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -43,23 +75,89 @@ export function ProfAgendaPage() {
     }
   }, [weekStart]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const appointmentsByDay = weekDays.reduce((acc, day) => {
-    const key = format(day, 'yyyy-MM-dd');
-    acc[key] = appointments
-      .filter(
-        (a) => isSameDay(new Date(a.startAt), day) && !['CANCELLED', 'NO_SHOW'].includes(a.status)
-      )
-      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-    return acc;
-  }, {} as Record<string, any[]>);
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
+
+  const appointmentsByDay = useMemo(() => {
+    return weekDays.reduce((acc, day) => {
+      const key = format(day, 'yyyy-MM-dd');
+      acc[key] = appointments
+        .filter((a) => isSameDay(new Date(a.startAt), day))
+        .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+      return acc;
+    }, {} as Record<string, any[]>);
+  }, [weekDays, appointments]);
+
+  const selectedDayKey = format(selectedDay, 'yyyy-MM-dd');
+  const selectedDayAppointments = appointmentsByDay[selectedDayKey] || [];
+  const activeAppointments = selectedDayAppointments.filter(a => !['CANCELLED', 'NO_SHOW'].includes(a.status));
+  const cancelledAppointments = selectedDayAppointments.filter(a => ['CANCELLED', 'NO_SHOW'].includes(a.status));
+
+  // Counts for summary
+  const todayCounts = useMemo(() => {
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
+    const todayApts = appointments.filter(a => isSameDay(new Date(a.startAt), new Date()));
+    return {
+      total: todayApts.filter(a => !['CANCELLED'].includes(a.status)).length,
+      confirmed: todayApts.filter(a => a.status === 'CONFIRMED').length,
+      completed: todayApts.filter(a => a.status === 'COMPLETED').length,
+      pending: todayApts.filter(a => a.status === 'SCHEDULED').length,
+    };
+  }, [appointments]);
 
   const weekLabel = `${format(weekStart, "d 'de' MMM", { locale: ptBR })} - ${format(addDays(weekStart, 6), "d 'de' MMM", { locale: ptBR })}`;
-  const totalWeekAppointments = Object.values(appointmentsByDay).reduce((sum, arr) => sum + arr.length, 0);
+  const totalWeekActive = appointments.filter(a => !['CANCELLED'].includes(a.status)).length;
+
+  // ─── Actions ──────────────────────────────────────────────
+
+  const handleStatusChange = async (apt: any, newStatus: string) => {
+    setActionLoading(apt.id);
+    try {
+      await appointmentService.updateStatus(apt.id, newStatus);
+      success('Status atualizado', `Consulta marcada como "${getStatusConfig(newStatus).label}"`);
+      load();
+    } catch {
+      showError('Erro', 'Não foi possível atualizar o status');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!cancelTarget) return;
+    setActionLoading(cancelTarget.id);
+    try {
+      await appointmentService.cancel(cancelTarget.id);
+      success('Cancelado', 'Consulta cancelada com sucesso');
+      setCancelModalOpen(false);
+      setCancelTarget(null);
+      load();
+    } catch {
+      showError('Erro', 'Não foi possível cancelar');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const getNextActions = (apt: any) => {
+    const actions: { label: string; status: string; variant: string; icon: typeof Clock }[] = [];
+    switch (apt.status) {
+      case 'SCHEDULED':
+        actions.push({ label: 'Confirmar', status: 'CONFIRMED', variant: 'green', icon: CheckCircle2 });
+        break;
+      case 'CONFIRMED':
+        actions.push({ label: 'Check-in', status: 'CHECKED_IN', variant: 'amber', icon: UserCheck });
+        break;
+      case 'CHECKED_IN':
+        actions.push({ label: 'Iniciar', status: 'IN_PROGRESS', variant: 'olive', icon: Stethoscope });
+        break;
+      case 'IN_PROGRESS':
+        actions.push({ label: 'Concluir', status: 'COMPLETED', variant: 'gray', icon: CheckCircle2 });
+        break;
+    }
+    return actions;
+  };
 
   return (
     <div className="space-y-6">
@@ -68,7 +166,7 @@ export function ProfAgendaPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Agenda</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            {totalWeekAppointments} consulta{totalWeekAppointments !== 1 ? 's' : ''} nesta semana
+            Gerencie suas consultas e atendimentos
           </p>
         </div>
         <Button
@@ -82,199 +180,368 @@ export function ProfAgendaPage() {
         </Button>
       </div>
 
+      {/* Today's Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardBody className="p-4 text-center">
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{todayCounts.total}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Consultas hoje</p>
+          </CardBody>
+        </Card>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardBody className="p-4 text-center">
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">{todayCounts.confirmed}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Confirmadas</p>
+          </CardBody>
+        </Card>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardBody className="p-4 text-center">
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{todayCounts.pending}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Pendentes</p>
+          </CardBody>
+        </Card>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardBody className="p-4 text-center">
+            <p className="text-3xl font-bold text-olive-600 dark:text-olive-400">{todayCounts.completed}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Concluídas</p>
+          </CardBody>
+        </Card>
+      </div>
+
       {/* Week Navigation */}
       <Card>
         <CardBody className="flex items-center justify-between py-3 px-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setWeekStart(addDays(weekStart, -7))}
-            leftIcon={<ChevronLeft className="w-4 h-4" />}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setWeekStart(addDays(weekStart, -7))} leftIcon={<ChevronLeft className="w-4 h-4" />}>
             <span className="hidden sm:inline">Anterior</span>
           </Button>
           <div className="flex items-center gap-3">
             <CalendarDays className="w-5 h-5 text-olive-600 dark:text-olive-400" />
             <span className="font-semibold text-gray-900 dark:text-white capitalize">{weekLabel}</span>
+            <span className="text-sm text-gray-400">({totalWeekActive} consultas)</span>
             {!weekDays.some(d => isToday(d)) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-              >
+              <Button variant="outline" size="sm" onClick={() => { setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 })); setSelectedDay(new Date()); }}>
                 Hoje
               </Button>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setWeekStart(addDays(weekStart, 7))}
-            rightIcon={<ChevronRightIcon className="w-4 h-4" />}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setWeekStart(addDays(weekStart, 7))} rightIcon={<ChevronRightIcon className="w-4 h-4" />}>
             <span className="hidden sm:inline">Próxima</span>
           </Button>
         </CardBody>
       </Card>
 
-      {/* Weekly Grid */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <Spinner size="lg" />
           <p className="text-gray-500 dark:text-gray-400 mt-4 text-sm">Carregando agenda...</p>
         </div>
       ) : (
-        <>
-          {/* Desktop: Grid 7 colunas */}
-          <div className="hidden md:grid md:grid-cols-7 gap-3">
-            {weekDays.map((day) => {
-              const key = format(day, 'yyyy-MM-dd');
-              const dayAppointments = appointmentsByDay[key] || [];
-              const today = isToday(day);
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Mini Week Calendar */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardBody className="p-3">
+                <div className="grid grid-cols-7 gap-1">
+                  {/* Day headers */}
+                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
+                    <div key={d} className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1">{d}</div>
+                  ))}
+                  {/* Day cells */}
+                  {weekDays.map((day) => {
+                    const key = format(day, 'yyyy-MM-dd');
+                    const dayApts = (appointmentsByDay[key] || []).filter(a => !['CANCELLED'].includes(a.status));
+                    const today = isToday(day);
+                    const isSelected = isSameDay(day, selectedDay);
 
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    'rounded-xl border transition-all min-h-[280px] flex flex-col',
-                    today
-                      ? 'border-olive-300 dark:border-olive-700 bg-olive-50/50 dark:bg-olive-900/10 ring-1 ring-olive-200 dark:ring-olive-800'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                  )}
-                >
-                  {/* Day Header */}
-                  <div className={cn(
-                    'px-3 py-2.5 border-b text-center',
-                    today ? 'border-olive-200 dark:border-olive-800' : 'border-gray-100 dark:border-gray-700'
-                  )}>
-                    <p className={cn(
-                      'text-xs font-medium uppercase tracking-wider',
-                      today ? 'text-olive-600 dark:text-olive-400' : 'text-gray-500 dark:text-gray-400'
-                    )}>
-                      {format(day, 'EEE', { locale: ptBR })}
-                    </p>
-                    <p className={cn(
-                      'text-lg font-bold mt-0.5',
-                      today ? 'text-olive-700 dark:text-olive-300' : 'text-gray-900 dark:text-white'
-                    )}>
-                      {format(day, 'd')}
-                    </p>
-                  </div>
-
-                  {/* Appointments */}
-                  <div className="flex-1 p-2 space-y-1.5 overflow-y-auto">
-                    {dayAppointments.length === 0 ? (
+                    return (
                       <button
-                        onClick={() => { setSelectedDate(day); setAppointmentModalOpen(true); }}
-                        className="w-full h-full min-h-[60px] flex items-center justify-center text-gray-300 dark:text-gray-600 hover:text-olive-500 dark:hover:text-olive-400 hover:bg-olive-50 dark:hover:bg-olive-900/10 rounded-lg transition-colors"
+                        key={key}
+                        onClick={() => setSelectedDay(day)}
+                        className={cn(
+                          'relative rounded-xl p-2 text-center transition-all min-h-[72px] flex flex-col items-center justify-start gap-1',
+                          isSelected
+                            ? 'bg-olive-100 dark:bg-olive-900/40 ring-2 ring-olive-500'
+                            : today
+                              ? 'bg-olive-50/50 dark:bg-olive-900/10'
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800',
+                        )}
                       >
-                        <Plus className="w-5 h-5" />
-                      </button>
-                    ) : (
-                      dayAppointments.map((apt) => (
-                        <div
-                          key={apt.id}
-                          className={cn(
-                            'p-2 rounded-lg border-l-3 text-xs cursor-pointer hover:shadow-sm transition-shadow',
-                            getTypeColor(apt.type)
-                          )}
-                        >
-                          <div className="flex items-center gap-1 mb-0.5">
-                            <Clock className="w-3 h-3 flex-shrink-0" />
-                            <span className="font-semibold">{format(new Date(apt.startAt), 'HH:mm')}</span>
+                        <span className={cn(
+                          'text-xs font-medium',
+                          today ? 'text-olive-600 dark:text-olive-400' : 'text-gray-400 dark:text-gray-500'
+                        )}>
+                          {format(day, 'd')}
+                        </span>
+                        <span className={cn(
+                          'text-lg font-bold leading-none',
+                          isSelected ? 'text-olive-700 dark:text-olive-200' : today ? 'text-olive-600 dark:text-olive-300' : 'text-gray-800 dark:text-white'
+                        )}>
+                          {dayApts.length}
+                        </span>
+                        {/* Dots for appointment types */}
+                        {dayApts.length > 0 && (
+                          <div className="flex gap-0.5 flex-wrap justify-center">
+                            {dayApts.slice(0, 4).map((apt, i) => (
+                              <div key={i} className={cn('w-1.5 h-1.5 rounded-full', getTypeConfig(apt.type).dot)} />
+                            ))}
+                            {dayApts.length > 4 && <span className="text-[8px] text-gray-400">+{dayApts.length - 4}</span>}
                           </div>
-                          <p className="font-medium truncate">{apt.baby?.name || 'Paciente'}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                        )}
+                        {today && <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-olive-500" />}
+                      </button>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </CardBody>
+            </Card>
+
+            {/* Type Legend */}
+            <Card className="mt-3">
+              <CardBody className="p-4">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">Tipos de consulta</p>
+                <div className="space-y-2">
+                  {Object.entries(TYPE_CONFIG).map(([key, cfg]) => {
+                    const Icon = cfg.icon;
+                    return (
+                      <div key={key} className="flex items-center gap-2.5 text-sm">
+                        <div className={cn('w-2.5 h-2.5 rounded-full', cfg.dot)} />
+                        <Icon className={cn('w-3.5 h-3.5', cfg.text)} />
+                        <span className="text-gray-600 dark:text-gray-400">{cfg.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardBody>
+            </Card>
           </div>
 
-          {/* Mobile: Lista por dia */}
-          <div className="md:hidden space-y-4">
-            {weekDays.map((day) => {
-              const key = format(day, 'yyyy-MM-dd');
-              const dayAppointments = appointmentsByDay[key] || [];
-              const today = isToday(day);
+          {/* Right: Day Detail */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
+                  {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {activeAppointments.length} consulta{activeAppointments.length !== 1 ? 's' : ''} ativas
+                  {cancelledAppointments.length > 0 && ` · ${cancelledAppointments.length} cancelada${cancelledAppointments.length > 1 ? 's' : ''}`}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => { setSelectedDate(selectedDay); setAppointmentModalOpen(true); }}
+              >
+                Agendar
+              </Button>
+            </div>
 
-              return (
-                <Card
-                  key={key}
-                  className={cn(
-                    today && 'border-olive-300 dark:border-olive-700 ring-1 ring-olive-200 dark:ring-olive-800'
-                  )}
-                >
-                  <CardHeader
-                    title={
-                      <span className={cn(today && 'text-olive-700 dark:text-olive-400')}>
-                        {format(day, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                        {today && <span className="ml-2 text-xs bg-olive-100 dark:bg-olive-900/30 text-olive-700 dark:text-olive-400 px-2 py-0.5 rounded-full font-medium">Hoje</span>}
-                      </span>
-                    }
-                    subtitle={`${dayAppointments.length} consulta${dayAppointments.length !== 1 ? 's' : ''}`}
-                    action={
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { setSelectedDate(day); setAppointmentModalOpen(true); }}
-                        leftIcon={<Plus className="w-4 h-4" />}
+            {activeAppointments.length === 0 ? (
+              <Card>
+                <CardBody className="flex flex-col items-center py-12">
+                  <CalendarDays className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">Nenhuma consulta neste dia</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Clique em "Agendar" para adicionar</p>
+                </CardBody>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {activeAppointments.map((apt) => {
+                  const typeConfig = getTypeConfig(apt.type);
+                  const statusCfg = getStatusConfig(apt.status);
+                  const StatusIcon = statusCfg.icon;
+                  const TypeIcon = typeConfig.icon;
+                  const isExpanded = selectedAppointment?.id === apt.id;
+                  const actions = getNextActions(apt);
+                  const isLoadingThis = actionLoading === apt.id;
+
+                  return (
+                    <Card
+                      key={apt.id}
+                      className={cn(
+                        'transition-all overflow-hidden',
+                        isExpanded && 'ring-2 ring-olive-300 dark:ring-olive-700',
+                        apt.status === 'COMPLETED' && 'opacity-70'
+                      )}
+                    >
+                      <button
+                        className="w-full text-left"
+                        onClick={() => setSelectedAppointment(isExpanded ? null : apt)}
                       >
-                        Agendar
-                      </Button>
-                    }
-                  />
-                  {dayAppointments.length > 0 && (
-                    <CardBody className="p-0">
-                      <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {dayAppointments.map((apt) => (
-                          <li key={apt.id} className="flex items-center gap-3 px-6 py-3">
-                            <div className="w-12 text-center flex-shrink-0">
-                              <span className="text-sm font-bold text-gray-900 dark:text-white">
+                        <CardBody className="p-4">
+                          <div className="flex items-center gap-4">
+                            {/* Time */}
+                            <div className="text-center flex-shrink-0 w-14">
+                              <p className="text-lg font-bold text-gray-900 dark:text-white">
                                 {format(new Date(apt.startAt), 'HH:mm')}
-                              </span>
+                              </p>
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                                {apt.durationMinutes || 30} min
+                              </p>
                             </div>
-                            <div className={cn('w-1 h-8 rounded-full flex-shrink-0', getTypeColor(apt.type).split(' ')[0])} />
+
+                            {/* Color bar */}
+                            <div className={cn('w-1 self-stretch rounded-full flex-shrink-0', typeConfig.dot)} />
+
+                            {/* Content */}
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
-                                {apt.baby?.name || 'Paciente'}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {String(apt.type || 'Consulta').replace(/_/g, ' ')}
+                              <div className="flex items-center gap-2">
+                                <Baby className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                <p className="font-semibold text-gray-900 dark:text-white truncate">
+                                  {apt.baby?.name || 'Paciente'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium', typeConfig.bg, typeConfig.text)}>
+                                  <TypeIcon className="w-3 h-3" />
+                                  {typeConfig.label}
+                                </span>
+                                <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium', statusCfg.bg, statusCfg.text)}>
+                                  <StatusIcon className="w-3 h-3" />
+                                  {statusCfg.label}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Chevron */}
+                            <ChevronRightIcon className={cn('w-5 h-5 text-gray-400 transition-transform flex-shrink-0', isExpanded && 'rotate-90')} />
+                          </div>
+                        </CardBody>
+                      </button>
+
+                      {/* Expanded detail */}
+                      {isExpanded && (
+                        <div className="border-t border-gray-100 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50 space-y-4">
+                          {/* Notes */}
+                          {apt.notes && (
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Observações</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{apt.notes}</p>
+                            </div>
+                          )}
+
+                          {/* Info */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                            <div>
+                              <p className="text-xs text-gray-400">Horário</p>
+                              <p className="font-medium text-gray-800 dark:text-gray-200">
+                                {format(new Date(apt.startAt), 'HH:mm')} - {format(new Date(apt.endAt || new Date(new Date(apt.startAt).getTime() + (apt.durationMinutes || 30) * 60000)), 'HH:mm')}
                               </p>
                             </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardBody>
-                  )}
-                </Card>
-              );
-            })}
+                            <div>
+                              <p className="text-xs text-gray-400">Duração</p>
+                              <p className="font-medium text-gray-800 dark:text-gray-200">{apt.durationMinutes || 30} minutos</p>
+                            </div>
+                            {apt.confirmedAt && (
+                              <div>
+                                <p className="text-xs text-gray-400">Confirmado em</p>
+                                <p className="font-medium text-gray-800 dark:text-gray-200">{format(new Date(apt.confirmedAt), 'dd/MM HH:mm')}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                            {actions.map((action) => {
+                              const ActionIcon = action.icon;
+                              return (
+                                <Button
+                                  key={action.status}
+                                  size="sm"
+                                  onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, action.status); }}
+                                  isLoading={isLoadingThis}
+                                  leftIcon={<ActionIcon className="w-4 h-4" />}
+                                >
+                                  {action.label}
+                                </Button>
+                              );
+                            })}
+
+                            {apt.status !== 'COMPLETED' && apt.status !== 'CANCELLED' && (
+                              <>
+                                {apt.status !== 'NO_SHOW' && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, 'NO_SHOW'); }}
+                                    isLoading={isLoadingThis}
+                                    leftIcon={<XCircle className="w-4 h-4" />}
+                                    className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                  >
+                                    Não compareceu
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => { e.stopPropagation(); setCancelTarget(apt); setCancelModalOpen(true); }}
+                                  leftIcon={<X className="w-4 h-4" />}
+                                  className="text-red-600 border-red-300 hover:bg-red-50"
+                                >
+                                  Cancelar
+                                </Button>
+                              </>
+                            )}
+
+                            {/* View patient */}
+                            {apt.baby?.id && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => { e.stopPropagation(); navigate(`/prof/patients/${apt.baby.id}`); }}
+                                leftIcon={<Eye className="w-4 h-4" />}
+                              >
+                                Ver prontuário
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Cancelled/No-show section */}
+            {cancelledAppointments.length > 0 && (
+              <div className="pt-4">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-wider">Canceladas / Não compareceram</p>
+                <div className="space-y-2">
+                  {cancelledAppointments.map((apt) => {
+                    const statusCfg = getStatusConfig(apt.status);
+                    return (
+                      <div key={apt.id} className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 opacity-60">
+                        <span className="text-sm font-medium text-gray-400 w-12 text-center">{format(new Date(apt.startAt), 'HH:mm')}</span>
+                        <span className="text-sm text-gray-500 line-through flex-1">{apt.baby?.name || 'Paciente'}</span>
+                        <span className={cn('text-xs px-2 py-0.5 rounded-full', statusCfg.bg, statusCfg.text)}>{statusCfg.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
 
-      {/* Legenda de tipos */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-        <span className="font-medium">Tipos:</span>
-        {Object.entries({ ROUTINE: 'Rotina', FOLLOW_UP: 'Retorno', EMERGENCY: 'Emergência', VACCINATION: 'Vacinação' }).map(
-          ([key, label]) => (
-            <div key={key} className="flex items-center gap-1.5">
-              <div className={cn('w-3 h-3 rounded-sm', getTypeColor(key).split(' ')[0])} />
-              <span>{label}</span>
-            </div>
-          )
-        )}
-      </div>
-
+      {/* Modals */}
       <AppointmentFormModal
         isOpen={appointmentModalOpen}
         onClose={() => setAppointmentModalOpen(false)}
         defaultDate={selectedDate}
         onSuccess={load}
+      />
+
+      <ConfirmModal
+        isOpen={cancelModalOpen}
+        onClose={() => { setCancelModalOpen(false); setCancelTarget(null); }}
+        onConfirm={handleCancel}
+        title="Cancelar consulta"
+        message={`Tem certeza que deseja cancelar a consulta de ${cancelTarget?.baby?.name || 'este paciente'} às ${cancelTarget ? format(new Date(cancelTarget.startAt), 'HH:mm') : ''}?`}
+        confirmText="Cancelar consulta"
+        variant="danger"
       />
     </div>
   );
