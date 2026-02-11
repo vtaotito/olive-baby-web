@@ -9,7 +9,7 @@ import {
   Activity, Clock, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { Card, CardBody, CardHeader, Button, Spinner, ConfirmModal, Input } from '../../components/ui';
-import { ClinicalInfoFormModal } from '../../components/prof';
+// ClinicalInfoFormModal removed - now using inline form in 'clinical' tab
 import { useToast } from '../../components/ui/Toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -68,6 +68,7 @@ const ROUTINE_TYPE_CONFIG: Record<string, { label: string; icon: typeof Utensils
 
 const TABS = [
   { key: 'overview', label: 'Resumo', icon: ClipboardList },
+  { key: 'clinical', label: 'Info Clínica', icon: Heart },
   { key: 'routine', label: 'Rotina', icon: Activity },
   { key: 'growth', label: 'Crescimento', icon: TrendingUp },
   { key: 'milestones', label: 'Marcos', icon: Star },
@@ -391,6 +392,129 @@ function CertificateInlineForm({ babyId, babyName, onSuccess, onCancel }: { baby
   );
 }
 
+// ─── Clinical Info Inline Form ──────────────────────────────
+
+interface AllergyItem { substance: string; reaction: string }
+interface ConditionItem { name: string; notes: string }
+
+function ClinicalInfoInlineForm({ babyId, initialData, onSuccess }: { babyId: number; initialData?: any; onSuccess: () => void }) {
+  const { success, error: showError } = useToast();
+  const [allergies, setAllergies] = useState<AllergyItem[]>([{ substance: '', reaction: '' }]);
+  const [conditions, setConditions] = useState<ConditionItem[]>([{ name: '', notes: '' }]);
+  const [familyHistory, setFamilyHistory] = useState('');
+  const [feedingNotes, setFeedingNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      const ad = initialData.allergies as AllergyItem[] | undefined;
+      const cd = initialData.chronicConditions;
+      setAllergies(ad?.length ? ad.map((a: any) => ({ substance: a.substance || '', reaction: a.reaction || '' })) : [{ substance: '', reaction: '' }]);
+      setConditions(
+        cd?.length
+          ? Array.isArray(cd) && cd[0] && typeof cd[0] === 'object' && 'name' in cd[0]
+            ? cd.map((c: any) => ({ name: c.name || '', notes: c.notes || '' }))
+            : (cd as string[]).map(c => ({ name: c, notes: '' }))
+          : [{ name: '', notes: '' }]
+      );
+      setFamilyHistory(initialData.familyHistory || '');
+      setFeedingNotes(initialData.feedingNotes || '');
+    }
+  }, [initialData]);
+
+  const addAllergy = () => setAllergies(p => [...p, { substance: '', reaction: '' }]);
+  const removeAllergy = (i: number) => setAllergies(p => p.filter((_, idx) => idx !== i));
+  const updateAllergy = (i: number, field: keyof AllergyItem, v: string) => setAllergies(p => { const n = [...p]; n[i] = { ...n[i], [field]: v }; return n; });
+
+  const addCondition = () => setConditions(p => [...p, { name: '', notes: '' }]);
+  const removeCondition = (i: number) => setConditions(p => p.filter((_, idx) => idx !== i));
+  const updateCondition = (i: number, field: keyof ConditionItem, v: string) => setConditions(p => { const n = [...p]; n[i] = { ...n[i], [field]: v }; return n; });
+
+  const inputCls = 'block w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        allergies: allergies.filter(a => a.substance.trim()).map(a => ({ substance: a.substance.trim(), reaction: a.reaction?.trim() || undefined })),
+        chronicConditions: conditions.filter(c => c.name.trim()).map(c => ({ name: c.name.trim(), notes: c.notes?.trim() || undefined })),
+        familyHistory: familyHistory.trim() || undefined,
+        feedingNotes: feedingNotes.trim() || undefined,
+      };
+      const res = await clinicalInfoService.upsert(babyId, payload);
+      if (res.success) { success('Informações salvas', 'Dados clínicos atualizados'); onSuccess(); }
+    } catch (err: any) {
+      showError('Erro', err?.response?.data?.message || 'Falha ao salvar');
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Alergias */}
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <label className="text-sm font-semibold text-gray-900 dark:text-white">Alergias</label>
+          <Button type="button" variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={addAllergy}>Adicionar</Button>
+        </div>
+        <div className="space-y-2">
+          {allergies.map((a, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <div className="flex-1">
+                <Input placeholder="Substância" value={a.substance} onChange={e => updateAllergy(i, 'substance', e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <Input placeholder="Reação" value={a.reaction || ''} onChange={e => updateAllergy(i, 'reaction', e.target.value)} />
+              </div>
+              {allergies.length > 1 && (
+                <button type="button" onClick={() => removeAllergy(i)} className="text-red-500 hover:text-red-600 p-2 mt-1"><Trash2 className="w-4 h-4" /></button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Condições crônicas */}
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <label className="text-sm font-semibold text-gray-900 dark:text-white">Condições crônicas</label>
+          <Button type="button" variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={addCondition}>Adicionar</Button>
+        </div>
+        <div className="space-y-2">
+          {conditions.map((c, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <div className="flex-1">
+                <Input placeholder="Condição" value={c.name} onChange={e => updateCondition(i, 'name', e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <Input placeholder="Observações" value={c.notes || ''} onChange={e => updateCondition(i, 'notes', e.target.value)} />
+              </div>
+              {conditions.length > 1 && (
+                <button type="button" onClick={() => removeCondition(i)} className="text-red-500 hover:text-red-600 p-2 mt-1"><Trash2 className="w-4 h-4" /></button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Histórico familiar */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Histórico familiar</label>
+        <textarea value={familyHistory} onChange={e => setFamilyHistory(e.target.value)} rows={3} className={inputCls} placeholder="Doenças na família..." />
+      </div>
+
+      {/* Alimentação */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Alimentação</label>
+        <textarea value={feedingNotes} onChange={e => setFeedingNotes(e.target.value)} rows={2} className={inputCls} placeholder="Observações sobre alimentação..." />
+      </div>
+
+      <div className="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+        <Button onClick={handleSave} isLoading={saving}>Salvar informações clínicas</Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ────────────────────────────────────────
 
 export function ProfPatientChartPage() {
@@ -415,7 +539,7 @@ export function ProfPatientChartPage() {
   const [editingVisit, setEditingVisit] = useState<any>(null);
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
   const [showCertificateForm, setShowCertificateForm] = useState(false);
-  const [clinicalInfoModalOpen, setClinicalInfoModalOpen] = useState(false);
+  // clinicalInfoModalOpen removed - now inline tab
   const [deleteVisitId, setDeleteVisitId] = useState<number | null>(null);
   const [expandedMilestoneCategory, setExpandedMilestoneCategory] = useState<string | null>(null);
   const [prescriptionItems, setPrescriptionItems] = useState<{ medication: string; dosage: string; frequency: string; duration: string }[]>([{ medication: '', dosage: '', frequency: '', duration: '' }]);
@@ -627,9 +751,6 @@ export function ProfPatientChartPage() {
             )}
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" leftIcon={<Pencil className="w-4 h-4" />} onClick={() => setClinicalInfoModalOpen(true)}>
-              Info Clínica
-            </Button>
           </div>
         </CardBody>
       </Card>
@@ -772,7 +893,7 @@ export function ProfPatientChartPage() {
 
             {/* Alergias */}
             <Card className="hover:shadow-md transition-shadow">
-              <CardHeader title="Alergias / Condições" action={<Button size="sm" variant="ghost" onClick={() => setClinicalInfoModalOpen(true)}><Pencil className="w-4 h-4" /></Button>} />
+              <CardHeader title="Alergias / Condições" action={<Button size="sm" variant="ghost" onClick={() => setActiveTab('clinical')}><Pencil className="w-4 h-4" /></Button>} />
               <CardBody>
                 {clinicalInfo?.allergies?.length ? (
                   <div className="space-y-2">
@@ -839,6 +960,18 @@ export function ProfPatientChartPage() {
             </Card>
           )}
         </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          TAB: INFO CLÍNICA (Inline Form)
+         ═══════════════════════════════════════════════════════════ */}
+      {activeTab === 'clinical' && (
+        <Card>
+          <CardHeader title="Informações Clínicas" subtitle="Alergias, condições crônicas, histórico familiar e alimentação" />
+          <CardBody>
+            <ClinicalInfoInlineForm babyId={parseInt(babyId!)} initialData={clinicalInfo} onSuccess={loadData} />
+          </CardBody>
+        </Card>
       )}
 
       {/* ═══════════════════════════════════════════════════════════
@@ -1072,16 +1205,18 @@ export function ProfPatientChartPage() {
         const ageMonths = baby?.birthDate ? differenceInMonths(new Date(), parseISO(baby.birthDate)) : 0;
         const { completed: completedCount, total: totalAll } = milestoneTotals;
 
-        // Categorize milestone status with age context
-        const categorizedMilestones = Object.entries(milestonesByCategory).map(([category, items]) => {
-          const achieved = (items as any[]).filter((m: any) => m.occurredOn || m.achievedAt).length;
-          const total = (items as any[]).length;
-          const pct = total > 0 ? Math.round((achieved / total) * 100) : 0;
+        // Categorize milestone status with age context (excluir Personalizado/CUSTOM)
+        const categorizedMilestones = Object.entries(milestonesByCategory)
+          .filter(([category]) => category !== 'Personalizado' && category !== 'CUSTOM')
+          .map(([category, items]) => {
+            const achieved = (items as any[]).filter((m: any) => m.occurredOn || m.achievedAt).length;
+            const total = (items as any[]).length;
+            const pct = total > 0 ? Math.round((achieved / total) * 100) : 0;
 
-          // Simple heuristic for category delay - if <50% achieved after 6 months
-          const isLagging = pct < 50 && ageMonths > 6;
-          return { category, items: items as any[], achieved, total, pct, isLagging };
-        });
+            // Simple heuristic for category delay - if <50% achieved after 6 months
+            const isLagging = pct < 50 && ageMonths > 6;
+            return { category, items: items as any[], achieved, total, pct, isLagging };
+          });
 
         // Sort: lagging first, then by progress ascending
         categorizedMilestones.sort((a, b) => {
@@ -1564,7 +1699,6 @@ export function ProfPatientChartPage() {
          ═══════════════════════════════════════════════════════════ */}
       {babyId && (
         <>
-          <ClinicalInfoFormModal isOpen={clinicalInfoModalOpen} onClose={() => setClinicalInfoModalOpen(false)} babyId={parseInt(babyId)} initialData={clinicalInfo} onSuccess={loadData} />
           <ConfirmModal
             isOpen={!!deleteVisitId}
             onClose={() => setDeleteVisitId(null)}
