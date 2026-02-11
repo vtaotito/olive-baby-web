@@ -3,9 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
-import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard } from './components/layout';
+import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard, ProfessionalRoute, ProfessionalLayout } from './components/layout';
 import { PWAProvider } from './components/pwa';
-import { isAdminDomain } from './lib/domain';
+import { isAdminDomain, isProfessionalDomain } from './lib/domain';
 
 // Landing Page
 import { LandingPage } from './pages/landing';
@@ -55,6 +55,15 @@ import { TeamPage } from './pages/team';
 // Assistant Page
 import { AssistantPage } from './pages/assistant';
 
+// Professional Portal (prontuário, agenda, white-label)
+import {
+  ProfDashboardPage,
+  ProfAgendaPage,
+  ProfPatientsPage,
+  ProfPatientChartPage,
+  ProfSettingsPage,
+} from './pages/prof';
+
 // Routine Trackers
 import {
   FeedingTracker,
@@ -98,8 +107,19 @@ function App() {
             <SessionGuard>
             <BabyInitializer>
             <Routes>
-            {/* Landing Page - No admin subdomain, redireciona para login */}
-            <Route path="/" element={isAdminDomain() ? <Navigate to="/login" replace /> : <LandingPage />} />
+            {/* Landing Page - Admin: login | Prof: dashboard | Main: landing */}
+            <Route
+              path="/"
+              element={
+                isAdminDomain() ? (
+                  <Navigate to="/login" replace />
+                ) : isProfessionalDomain() ? (
+                  <Navigate to="/prof/dashboard" replace />
+                ) : (
+                  <LandingPage />
+                )
+              }
+            />
             
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -416,8 +436,74 @@ function App() {
               }
             />
 
-            {/* Default Redirect - No admin subdomain, redireciona para /admin */}
-            <Route path="*" element={<Navigate to={isAdminDomain() ? '/admin' : '/dashboard'} replace />} />
+            {/* Professional Portal Routes (prontuário, agenda, white-label) */}
+            <Route
+              path="/prof/dashboard"
+              element={
+                <ProfessionalRoute>
+                  <ProfessionalLayout>
+                    <ProfDashboardPage />
+                  </ProfessionalLayout>
+                </ProfessionalRoute>
+              }
+            />
+            <Route
+              path="/prof/agenda"
+              element={
+                <ProfessionalRoute>
+                  <ProfessionalLayout>
+                    <ProfAgendaPage />
+                  </ProfessionalLayout>
+                </ProfessionalRoute>
+              }
+            />
+            <Route
+              path="/prof/patients"
+              element={
+                <ProfessionalRoute>
+                  <ProfessionalLayout>
+                    <ProfPatientsPage />
+                  </ProfessionalLayout>
+                </ProfessionalRoute>
+              }
+            />
+            <Route
+              path="/prof/patients/:babyId"
+              element={
+                <ProfessionalRoute>
+                  <ProfessionalLayout>
+                    <ProfPatientChartPage />
+                  </ProfessionalLayout>
+                </ProfessionalRoute>
+              }
+            />
+            <Route
+              path="/prof/settings"
+              element={
+                <ProfessionalRoute>
+                  <ProfessionalLayout>
+                    <ProfSettingsPage />
+                  </ProfessionalLayout>
+                </ProfessionalRoute>
+              }
+            />
+
+            {/* Default Redirect - Admin: /admin | Prof: /prof/dashboard | Main: /dashboard */}
+            <Route
+              path="*"
+              element={
+                <Navigate
+                  to={
+                    isAdminDomain()
+                      ? '/admin'
+                      : isProfessionalDomain()
+                      ? '/prof/dashboard'
+                      : '/dashboard'
+                  }
+                  replace
+                />
+              }
+            />
           </Routes>
             </BabyInitializer>
             </SessionGuard>

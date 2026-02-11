@@ -6,9 +6,33 @@ const ADMIN_HOSTNAMES = [
   'admin.oliecare.cloud',
 ];
 
+const PROF_HOSTNAMES = [
+  'prof.oliecare.cloud',
+  'professional.oliecare.cloud',
+];
+
+/**
+ * Extrai slug da clínica do hostname (ex: clinica-x.oliecare.cloud -> clinica-x)
+ */
+export function getClinicSlugFromHostname(): string | null {
+  if (typeof window === 'undefined') return null;
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    const search = new URLSearchParams(window.location.search);
+    return search.get('clinic') || null;
+  }
+  const parts = hostname.split('.');
+  if (parts.length >= 2 && parts[parts.length - 2] === 'oliecare' && parts[parts.length - 1] === 'cloud') {
+    const slug = parts[0];
+    if (slug && slug !== 'app' && slug !== 'adm' && slug !== 'admin' && slug !== 'prof' && slug !== 'professional' && slug !== 'www') {
+      return slug;
+    }
+  }
+  return null;
+}
+
 /**
  * Verifica se o app esta rodando no subdominio admin
- * Em dev (localhost), retorna false - admin deve acessar via /admin normalmente
  */
 export function isAdminDomain(): boolean {
   if (typeof window === 'undefined') return false;
@@ -17,14 +41,26 @@ export function isAdminDomain(): boolean {
 }
 
 /**
- * Verifica se o app esta rodando no dominio principal (nao-admin)
+ * Verifica se o app esta rodando no subdominio profissional ou white-label
+ */
+export function isProfessionalDomain(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    const search = new URLSearchParams(window.location.search);
+    return search.get('domain') === 'prof';
+  }
+  return PROF_HOSTNAMES.includes(hostname) || !!getClinicSlugFromHostname();
+}
+
+/**
+ * Verifica se o app esta rodando no dominio principal (nao-admin, nao-prof)
  */
 export function isMainDomain(): boolean {
   if (typeof window === 'undefined') return true;
   const hostname = window.location.hostname;
-  // localhost/dev e tratado como main domain
   if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
-  return !ADMIN_HOSTNAMES.includes(hostname);
+  return !ADMIN_HOSTNAMES.includes(hostname) && !PROF_HOSTNAMES.includes(hostname) && !getClinicSlugFromHostname();
 }
 
 /**
@@ -33,10 +69,20 @@ export function isMainDomain(): boolean {
 export function getAdminUrl(path: string = '/'): string {
   if (typeof window === 'undefined') return `/admin${path}`;
   const hostname = window.location.hostname;
-  // Em dev, usa rota local
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return `/admin${path}`;
   }
-  // Em producao, usa subdominio
   return `https://adm.oliecare.cloud${path}`;
+}
+
+/**
+ * Retorna a URL do portal profissional
+ */
+export function getProfessionalUrl(path: string = '/'): string {
+  if (typeof window === 'undefined') return `/prof${path}`;
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `/prof${path}`;
+  }
+  return `https://prof.oliecare.cloud${path}`;
 }
