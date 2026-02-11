@@ -215,10 +215,26 @@ export function ProfPatientChartPage() {
     return routines.filter((r: any) => r.routineType === routineFilter);
   }, [routines, routineFilter]);
 
+  // Tradução de categorias brutas da API
+  const CATEGORY_LABELS: Record<string, string> = {
+    CUSTOM: 'Personalizado',
+    MOTOR: 'Motor',
+    COGNITIVE: 'Cognitivo',
+    SOCIAL: 'Social',
+    LANGUAGE: 'Linguagem',
+    SELF_CARE: 'Autocuidado',
+    EMOTIONAL: 'Emocional',
+  };
+
   const milestonesByCategory = useMemo(() => {
     const groups: Record<string, any[]> = {};
     milestones.forEach((m: any) => {
-      const cat = m.milestoneLabel?.split(' - ')[0] || m.category || 'Outros';
+      // Extrair categoria: do label (antes do " - "), do campo category, ou "Outros"
+      let cat = m.milestoneLabel?.split(' - ')[0] || m.category || 'Outros';
+      // Traduzir categorias brutas da API
+      cat = CATEGORY_LABELS[cat] || cat;
+      // Evitar "undefined" ou vazio como categoria
+      if (!cat || cat === 'undefined' || cat === 'null') cat = 'Outros';
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(m);
     });
@@ -230,11 +246,19 @@ export function ProfPatientChartPage() {
   }, [milestones]);
 
   const vaccinePercentage = vaccineSummary ? Math.round((vaccineSummary.applied / Math.max(vaccineSummary.total, 1)) * 100) : 0;
-  const milestonePercentage = milestoneProgress
-    ? Math.round((milestoneProgress.completed / Math.max(milestoneProgress.total, 1)) * 100)
-    : milestones.length > 0
-      ? Math.round((achievedMilestones.length / milestones.length) * 100)
-      : 0;
+
+  // Calcular percentual de marcos com proteção contra NaN
+  const milestonePercentage = (() => {
+    if (milestoneProgress) {
+      const completed = milestoneProgress.completedPredefined ?? milestoneProgress.completed ?? 0;
+      const total = milestoneProgress.totalPredefined ?? milestoneProgress.total ?? 0;
+      return total > 0 ? Math.round((completed / total) * 100) : 0;
+    }
+    if (milestones.length > 0) {
+      return Math.round((achievedMilestones.length / milestones.length) * 100);
+    }
+    return 0;
+  })();
 
   // Routine chart data (last 7 days)
   const routineChartData = useMemo(() => {
@@ -421,39 +445,48 @@ export function ProfPatientChartPage() {
             <Card className="hover:shadow-md transition-shadow">
               <CardHeader title="Marcos de Desenvolvimento" />
               <CardBody>
-                <div className="flex items-center gap-4 mb-3">
-                  <ProgressRing percentage={milestonePercentage} />
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {milestoneProgress ? `${milestoneProgress.completedPredefined || milestoneProgress.completed}/${milestoneProgress.totalPredefined || milestoneProgress.total}` : `${achievedMilestones.length}/${milestones.length}`}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">marcos alcançados</p>
-                  </div>
-                </div>
-                {/* Age-based quick assessment */}
-                {baby?.birthDate && (() => {
-                  const ageMonths = differenceInMonths(new Date(), parseISO(baby.birthDate));
-                  const totalPredefined = milestoneProgress?.totalPredefined || milestones.length;
-                  const completed = milestoneProgress?.completedPredefined || achievedMilestones.length;
-                  // Expected: ~linear progression
-                  const expectedPct = Math.min(100, Math.round((ageMonths / 24) * 100));
-                  const actualPct = totalPredefined > 0 ? Math.round((completed / totalPredefined) * 100) : 0;
-                  const gap = expectedPct - actualPct;
-                  const isDelayed = gap > 20;
-                  const isAtRisk = gap > 10 && gap <= 20;
-                  return (
-                    <div className={cn(
-                      'mt-2 px-3 py-2 rounded-lg text-xs font-medium',
-                      isDelayed ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                        : isAtRisk ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
-                        : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                    )}>
-                      {isDelayed && <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Possível atraso no desenvolvimento</span>}
-                      {isAtRisk && <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Atenção: acompanhar evolução</span>}
-                      {!isDelayed && !isAtRisk && <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Desenvolvimento adequado para a idade</span>}
+                {milestones.length > 0 || milestoneProgress ? (
+                  <>
+                    <div className="flex items-center gap-4 mb-3">
+                      <ProgressRing percentage={milestonePercentage} />
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {(() => {
+                            const completed = milestoneProgress?.completedPredefined ?? milestoneProgress?.completed ?? achievedMilestones.length;
+                            const total = milestoneProgress?.totalPredefined ?? milestoneProgress?.total ?? milestones.length;
+                            return `${completed}/${total}`;
+                          })()}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">marcos alcançados</p>
+                      </div>
                     </div>
-                  );
-                })()}
+                    {/* Age-based quick assessment */}
+                    {baby?.birthDate && (() => {
+                      const ageMonths = differenceInMonths(new Date(), parseISO(baby.birthDate));
+                      const totalPredefined = milestoneProgress?.totalPredefined ?? milestoneProgress?.total ?? milestones.length;
+                      const completed = milestoneProgress?.completedPredefined ?? milestoneProgress?.completed ?? achievedMilestones.length;
+                      const expectedPct = Math.min(100, Math.round((ageMonths / 24) * 100));
+                      const actualPct = totalPredefined > 0 ? Math.round((completed / totalPredefined) * 100) : 0;
+                      const gap = expectedPct - actualPct;
+                      const isDelayed = gap > 20;
+                      const isAtRisk = gap > 10 && gap <= 20;
+                      return (
+                        <div className={cn(
+                          'mt-2 px-3 py-2 rounded-lg text-xs font-medium',
+                          isDelayed ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                            : isAtRisk ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
+                            : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                        )}>
+                          {isDelayed && <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Possivel atraso no desenvolvimento</span>}
+                          {isAtRisk && <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Atencao: acompanhar evolucao</span>}
+                          {!isDelayed && !isAtRisk && <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Desenvolvimento adequado para a idade</span>}
+                        </div>
+                      );
+                    })()}
+                  </>
+                ) : (
+                  <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-4">Sem dados de marcos</p>
+                )}
               </CardBody>
             </Card>
 
@@ -757,8 +790,8 @@ export function ProfPatientChartPage() {
          ═══════════════════════════════════════════════════════════ */}
       {activeTab === 'milestones' && (() => {
         const ageMonths = baby?.birthDate ? differenceInMonths(new Date(), parseISO(baby.birthDate)) : 0;
-        const totalPredefined = milestoneProgress?.totalPredefined || milestoneProgress?.total || milestones.length;
-        const completedCount = milestoneProgress?.completedPredefined || milestoneProgress?.completed || achievedMilestones.length;
+        const totalPredefined = milestoneProgress?.totalPredefined ?? milestoneProgress?.total ?? milestones.length;
+        const completedCount = milestoneProgress?.completedPredefined ?? milestoneProgress?.completed ?? achievedMilestones.length;
 
         // Categorize milestone status with age context
         const categorizedMilestones = Object.entries(milestonesByCategory).map(([category, items]) => {
@@ -938,7 +971,7 @@ export function ProfPatientChartPage() {
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className={cn('text-sm', isAchieved ? 'text-gray-900 dark:text-white font-medium' : isLagging ? 'text-red-700 dark:text-red-400 font-medium' : 'text-gray-500 dark:text-gray-400')}>
-                                    {m.milestoneLabel || m.title || m.milestoneKey}
+                                    {m.milestoneLabel || m.title || (m.milestoneKey ? m.milestoneKey.replace(/_/g, ' ') : 'Marco sem nome')}
                                   </p>
                                   {m.notes && <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{m.notes}</p>}
                                   {!isAchieved && isLagging && (
