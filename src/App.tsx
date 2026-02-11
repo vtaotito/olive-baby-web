@@ -5,6 +5,7 @@ import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
 import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard } from './components/layout';
 import { PWAProvider } from './components/pwa';
+import { isAdminDomain } from './lib/domain';
 
 // Landing Page
 import { LandingPage } from './pages/landing';
@@ -97,8 +98,8 @@ function App() {
             <SessionGuard>
             <BabyInitializer>
             <Routes>
-            {/* Landing Page */}
-            <Route path="/" element={<LandingPage />} />
+            {/* Landing Page - No admin subdomain, redireciona para login */}
+            <Route path="/" element={isAdminDomain() ? <Navigate to="/login" replace /> : <LandingPage />} />
             
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -415,8 +416,8 @@ function App() {
               }
             />
 
-            {/* Default Redirect */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* Default Redirect - No admin subdomain, redireciona para /admin */}
+            <Route path="*" element={<Navigate to={isAdminDomain() ? '/admin' : '/dashboard'} replace />} />
           </Routes>
             </BabyInitializer>
             </SessionGuard>

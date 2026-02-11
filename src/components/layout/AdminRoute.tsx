@@ -2,7 +2,7 @@
 // Admin routes so sao acessiveis no subdominio adm.oliecare.cloud (ou localhost em dev)
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { isMainDomain } from '../../lib/domain';
+import { isMainDomain, isAdminDomain } from '../../lib/domain';
 import { PageLoader } from '../ui/Spinner';
 
 interface AdminRouteProps {
@@ -12,6 +12,7 @@ interface AdminRouteProps {
 /**
  * Protected route that only allows ADMIN role on the admin subdomain
  * On the main domain (oliecare.cloud), redirects to /dashboard
+ * On admin subdomain, non-admin users go to /login
  * On localhost, allows access (for development)
  */
 export function AdminRoute({ children }: AdminRouteProps) {
@@ -33,6 +34,10 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Check if user has ADMIN role
   if (user?.role !== 'ADMIN') {
+    // No subdominio admin, redireciona para login com mensagem
+    if (isAdminDomain()) {
+      return <Navigate to="/login" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
