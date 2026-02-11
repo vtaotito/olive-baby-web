@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Calendar,
   Users,
+  UserPlus,
   Settings,
   LogOut,
   Menu,
@@ -28,6 +29,7 @@ const profNavItems = [
   { path: '/prof/dashboard', icon: LayoutDashboard, label: 'Dashboard', description: 'Visão geral' },
   { path: '/prof/agenda', icon: Calendar, label: 'Agenda', description: 'Consultas e horários' },
   { path: '/prof/patients', icon: Users, label: 'Pacientes', description: 'Prontuários' },
+  { path: '/prof/invites', icon: UserPlus, label: 'Convites', description: 'Convidar pacientes' },
   { path: '/prof/settings', icon: Settings, label: 'Configurações', description: 'Perfil e aparência' },
 ];
 

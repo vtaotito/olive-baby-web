@@ -1459,6 +1459,39 @@ export const deviceTokenService = {
   },
 };
 
+// ====== Patient Invite Service ======
+export const patientInviteService = {
+  // List all patient invites sent by the professional
+  list: async () => {
+    const response = await api.get('/patient-invites');
+    return response.data;
+  },
+
+  // Create a new patient invite
+  create: async (data: {
+    patientName: string;
+    email: string;
+    phone?: string;
+    babyName?: string;
+    message?: string;
+  }) => {
+    const response = await api.post('/patient-invites', data);
+    return response.data;
+  },
+
+  // Resend an invite email
+  resend: async (inviteId: number) => {
+    const response = await api.post(`/patient-invites/${inviteId}/resend`);
+    return response.data;
+  },
+
+  // Cancel a pending invite
+  cancel: async (inviteId: number) => {
+    const response = await api.delete(`/patient-invites/${inviteId}`);
+    return response.data;
+  },
+};
+
 // ====== Notification Service ======
 export const notificationService = {
   // List notifications

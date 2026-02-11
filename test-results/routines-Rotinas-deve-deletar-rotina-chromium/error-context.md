@@ -1,0 +1,392 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "OlieCare" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e9]
+        - generic [ref=e11]: OlieCare
+      - navigation [ref=e12]:
+        - link "Funcionalidades" [ref=e13] [cursor=pointer]:
+          - /url: "#funcionalidades"
+        - link "Como funciona" [ref=e14] [cursor=pointer]:
+          - /url: "#como-funciona"
+        - link "Preços" [ref=e15] [cursor=pointer]:
+          - /url: "#precos"
+      - generic [ref=e16]:
+        - link "Entrar" [ref=e17] [cursor=pointer]:
+          - /url: /login
+        - link "Começar grátis" [ref=e18] [cursor=pointer]:
+          - /url: /register
+  - main [ref=e19]:
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img [ref=e29]
+          - generic [ref=e32]: Organize a rotina do seu bebê com carinho
+        - heading "Mais tranquilidade para cuidar do seu bebê , um dia de cada vez." [level=1] [ref=e33]:
+          - text: Mais tranquilidade para cuidar do seu
+          - generic [ref=e34]:
+            - text: bebê
+            - img [ref=e35]
+          - text: ", um dia de cada vez."
+        - paragraph [ref=e37]:
+          - text: Acompanhe alimentação, sono, fraldas e muito mais. Receba insights personalizados e tenha
+          - strong [ref=e38]: clareza
+          - text: mesmo nos dias mais cansativos.
+        - generic [ref=e39]:
+          - link "Começar grátis" [ref=e40] [cursor=pointer]:
+            - /url: /register
+            - text: Começar grátis
+            - img [ref=e41]
+          - link "Ver como funciona" [ref=e43] [cursor=pointer]:
+            - /url: "#como-funciona"
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - generic [ref=e48]: Gratuito para começar
+          - generic [ref=e49]:
+            - img [ref=e50]
+            - generic [ref=e52]: Sem cartão de crédito
+          - generic [ref=e53]:
+            - img [ref=e54]
+            - generic [ref=e56]: Cancele quando quiser
+      - generic [ref=e58]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]:
+              - paragraph [ref=e63]: Olá, mamãe
+              - paragraph [ref=e64]: Helena 💛
+            - img [ref=e66]
+          - generic [ref=e69]:
+            - generic [ref=e71]:
+              - img [ref=e73]
+              - generic [ref=e76]:
+                - paragraph [ref=e77]: Última mamada
+                - paragraph [ref=e78]: há 2h · 15 min
+              - img [ref=e79]
+            - generic [ref=e82]:
+              - img [ref=e84]
+              - generic [ref=e86]:
+                - paragraph [ref=e87]: Soneca atual
+                - paragraph [ref=e88]: dormindo há 45 min
+              - generic [ref=e89]: ativo
+            - generic [ref=e91]:
+              - img [ref=e93]
+              - generic [ref=e96]:
+                - paragraph [ref=e97]: Fraldas hoje
+                - paragraph [ref=e98]: 5 trocas
+              - img [ref=e99]
+          - generic [ref=e102]:
+            - img [ref=e104]
+            - generic [ref=e107]:
+              - paragraph [ref=e108]: Dica do dia
+              - paragraph [ref=e109]: Helena está dormindo bem! Média de 14h nas últimas 24h.
+        - generic [ref=e111]:
+          - img [ref=e112]
+          - generic [ref=e114]: +2.4k mamães
+        - generic [ref=e116]:
+          - img [ref=e117]
+          - generic [ref=e119]: 4.9/5 avaliação
+    - generic [ref=e121]:
+      - generic [ref=e122]:
+        - generic [ref=e123]: Você não está sozinho(a)
+        - heading "Cuidar de um recém-nascido é lindo, mas também é exaustivo" [level=2] [ref=e124]
+        - paragraph [ref=e125]:
+          - text: A maternidade e paternidade não vêm com manual. E tudo bem não ter todas as respostas. O importante é ter
+          - strong [ref=e126]: apoio
+          - text: .
+      - generic [ref=e127]:
+        - generic [ref=e128]:
+          - img [ref=e130]
+          - heading "Noites sem fim" [level=3] [ref=e132]
+          - paragraph [ref=e133]: Você perdeu a conta de quantas vezes acordou. O cansaço é real.
+        - generic [ref=e134]:
+          - img [ref=e136]
+          - heading "\"Será que mamou bem?\"" [level=3] [ref=e139]
+          - paragraph [ref=e140]: A dúvida constante se o bebê está se alimentando o suficiente.
+        - generic [ref=e141]:
+          - img [ref=e143]
+          - heading "Horários confusos" [level=3] [ref=e146]
+          - paragraph [ref=e147]: Quando foi a última fralda? A que horas ele dormiu? Difícil lembrar.
+        - generic [ref=e148]:
+          - img [ref=e150]
+          - heading "Sobrecarga mental" [level=3] [ref=e158]
+          - paragraph [ref=e159]: Mil coisas para lembrar, decidir e cuidar. Todo. Santo. Dia.
+      - paragraph [ref=e161]: "\"Eu só queria um lugar para anotar tudo sem esquecer nada...\" — Maria, mãe de primeira viagem"
+    - generic [ref=e166]:
+      - generic [ref=e167]:
+        - generic [ref=e168]: Conheça a OlieCare
+        - heading "A sua nova forma de acompanhar a rotina do bebê" [level=2] [ref=e169]
+        - paragraph [ref=e170]: A OlieCare é o seu diário digital do bebê. Simples, bonito e feito para caber na sua rotina — mesmo quando você está com uma mão só.
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - img [ref=e174]
+            - generic [ref=e176]: Registre alimentação, sono, fraldas, banho e extrações
+          - generic [ref=e177]:
+            - img [ref=e179]
+            - generic [ref=e181]: Veja padrões e entenda a rotina do seu bebê
+          - generic [ref=e182]:
+            - img [ref=e184]
+            - generic [ref=e186]: Receba insights inteligentes e personalizados
+          - generic [ref=e187]:
+            - img [ref=e189]
+            - generic [ref=e191]: Compartilhe com quem cuida junto com você
+          - generic [ref=e192]:
+            - img [ref=e194]
+            - generic [ref=e196]: Tenha tudo organizado em um só lugar
+        - link "Quero experimentar" [ref=e198] [cursor=pointer]:
+          - /url: /register
+          - text: Quero experimentar
+          - img [ref=e199]
+      - generic [ref=e202]:
+        - img [ref=e206]
+        - img [ref=e209]
+        - img [ref=e213]
+        - img [ref=e216]
+        - img [ref=e220]
+        - img [ref=e224]
+        - img [ref=e233]
+    - generic [ref=e237]:
+      - generic [ref=e238]:
+        - generic [ref=e239]: Funcionalidades
+        - heading "Tudo o que você precisa, em um só lugar" [level=2] [ref=e240]
+        - paragraph [ref=e241]: Ferramentas pensadas para simplificar o seu dia a dia, sem complicação.
+      - generic [ref=e242]:
+        - generic [ref=e243]:
+          - img [ref=e245]
+          - heading "Alimentação" [level=3] [ref=e248]
+          - paragraph [ref=e249]: Registre amamentação, mamadeira ou complemento. Cronômetro integrado para cada mamada.
+        - generic [ref=e250]:
+          - img [ref=e252]
+          - heading "Sono" [level=3] [ref=e254]
+          - paragraph [ref=e255]: Acompanhe início, fim e qualidade do sono. Veja os padrões de descanso do bebê.
+        - generic [ref=e256]:
+          - img [ref=e258]
+          - heading "Fraldas" [level=3] [ref=e261]
+          - paragraph [ref=e262]: Registre trocas com tipo (xixi, cocô ou mista). Ideal para acompanhar a saúde digestiva.
+        - generic [ref=e263]:
+          - img [ref=e265]
+          - heading "Crescimento" [level=3] [ref=e268]
+          - paragraph [ref=e269]: Acompanhe peso, altura e perímetro cefálico. Visualize a evolução com gráficos claros.
+        - generic [ref=e270]:
+          - img [ref=e272]
+          - heading "Insights com IA" [level=3] [ref=e280]
+          - paragraph [ref=e281]: Receba análises inteligentes sobre padrões, tendências e sugestões personalizadas.
+        - generic [ref=e282]:
+          - img [ref=e284]
+          - heading "Lembretes" [level=3] [ref=e287]
+          - paragraph [ref=e288]: Configure alertas para próxima mamada, troca de fralda ou hora do banho.
+        - generic [ref=e289]:
+          - img [ref=e291]
+          - heading "Banho e Cuidados" [level=3] [ref=e294]
+          - paragraph [ref=e295]: Registre banhos e outros cuidados diários. Mantenha a rotina organizada.
+        - generic [ref=e296]:
+          - img [ref=e298]
+          - heading "Exportação de Dados" [level=3] [ref=e301]
+          - paragraph [ref=e302]: Exporte dados em CSV para levar nas consultas pediátricas.
+    - generic [ref=e304]:
+      - generic [ref=e305]:
+        - generic [ref=e306]: Como funciona
+        - heading "Simples assim. Três passos." [level=2] [ref=e307]
+        - paragraph [ref=e308]: Você não precisa de tutorial. É intuitivo.
+      - generic [ref=e309]:
+        - generic [ref=e312]:
+          - generic [ref=e313]: ✨
+          - generic [ref=e314]: "01"
+          - heading "Crie sua conta" [level=3] [ref=e315]
+          - paragraph [ref=e316]: Cadastro rápido e gratuito. Leva menos de 1 minuto.
+        - generic [ref=e319]:
+          - generic [ref=e320]: 👶
+          - generic [ref=e321]: "02"
+          - heading "Cadastre seu bebê" [level=3] [ref=e322]
+          - paragraph [ref=e323]: Adicione as informações básicas como nome e data de nascimento.
+        - generic [ref=e325]:
+          - generic [ref=e326]: 📊
+          - generic [ref=e327]: "03"
+          - heading "Registre e acompanhe" [level=3] [ref=e328]
+          - paragraph [ref=e329]: Comece a registrar a rotina e receba insights personalizados.
+      - link "Começar agora" [ref=e331] [cursor=pointer]:
+        - /url: /register
+        - text: Começar agora
+        - img [ref=e332]
+    - generic [ref=e336]:
+      - generic [ref=e337]:
+        - generic [ref=e338]: Benefícios
+        - heading "Cuidar do bebê fica mais leve quando você tem apoio" [level=2] [ref=e339]
+        - paragraph [ref=e340]: Não se trata apenas de anotar informações. É sobre ter confiança no dia a dia, mesmo quando você está exausto(a).
+        - generic [ref=e341]:
+          - generic [ref=e342]:
+            - img [ref=e344]
+            - generic [ref=e346]:
+              - heading "Mais segurança" [level=3] [ref=e347]
+              - paragraph [ref=e348]: Saber que está fazendo a coisa certa traz paz de espírito para você e para o bebê.
+          - generic [ref=e349]:
+            - img [ref=e351]
+            - generic [ref=e353]:
+              - heading "Menos ansiedade" [level=3] [ref=e354]
+              - paragraph [ref=e355]: Com os dados organizados, você para de se preocupar com o que pode estar esquecendo.
+          - generic [ref=e356]:
+            - img [ref=e358]
+            - generic [ref=e361]:
+              - heading "Mais clareza" [level=3] [ref=e362]
+              - paragraph [ref=e363]: Visualize padrões e entenda melhor as necessidades do seu pequeno.
+          - generic [ref=e364]:
+            - img [ref=e366]
+            - generic [ref=e374]:
+              - heading "Menos decisões no cansaço" [level=3] [ref=e375]
+              - paragraph [ref=e376]: A OlieCare sugere, você decide. Sem pressão, no seu tempo.
+      - generic [ref=e377]:
+        - generic [ref=e378]:
+          - generic [ref=e379]:
+            - img [ref=e380]
+            - img [ref=e382]
+            - img [ref=e384]
+            - img [ref=e386]
+            - img [ref=e388]
+          - blockquote [ref=e390]: "\"A OlieCare me salvou. Eu estava tão cansada que não conseguia lembrar quando tinha amamentado por último. Agora tenho tudo registrado e consigo até ver que meu filho mama mais de manhã. Isso me ajudou a organizar minha rotina.\""
+          - generic [ref=e391]:
+            - generic [ref=e393]: JC
+            - generic [ref=e394]:
+              - paragraph [ref=e395]: Juliana C.
+              - paragraph [ref=e396]: Mãe do Pedro, 3 meses
+        - generic [ref=e397]:
+          - paragraph [ref=e398]: 98%
+          - paragraph [ref=e399]: das mães sentem mais calma
+    - generic [ref=e401]:
+      - generic [ref=e402]:
+        - generic [ref=e403]: Planos
+        - heading "Escolha o plano ideal para sua família" [level=2] [ref=e404]
+        - paragraph [ref=e405]: Comece grátis e evolua quando fizer sentido para você. Sem pressão.
+      - generic [ref=e406]:
+        - generic [ref=e407]:
+          - generic [ref=e408]:
+            - heading "Grátis" [level=3] [ref=e409]
+            - generic [ref=e410]:
+              - generic [ref=e411]: R$ 0
+              - generic [ref=e412]: /para sempre
+            - paragraph [ref=e413]: Perfeito para começar a acompanhar a rotina do bebê.
+          - list [ref=e414]:
+            - listitem [ref=e415]:
+              - img [ref=e416]
+              - generic [ref=e418]: Registro de alimentação, sono e fraldas
+            - listitem [ref=e419]:
+              - img [ref=e420]
+              - generic [ref=e422]: Até 1 bebê cadastrado
+            - listitem [ref=e423]:
+              - img [ref=e424]
+              - generic [ref=e426]: Histórico dos últimos 7 dias
+            - listitem [ref=e427]:
+              - img [ref=e428]
+              - generic [ref=e430]: Dashboard básico
+            - listitem [ref=e431]:
+              - img [ref=e432]
+              - generic [ref=e434]: Chat com Assistente IA (2 interações)
+          - link "Começar grátis" [ref=e435] [cursor=pointer]:
+            - /url: /register
+        - generic [ref=e436]:
+          - generic [ref=e437]: Mais popular
+          - generic [ref=e438]:
+            - heading "Premium" [level=3] [ref=e439]
+            - generic [ref=e440]:
+              - generic [ref=e441]: R$ 29,99
+              - generic [ref=e442]: /por mês
+            - generic [ref=e443]:
+              - generic [ref=e444]: ou R$ 287,90/ano
+              - generic [ref=e445]: 20% off
+            - paragraph [ref=e446]: Economize R$ 71,98
+            - paragraph [ref=e447]: Para famílias que querem o máximo de organização e insights.
+          - list [ref=e448]:
+            - listitem [ref=e449]:
+              - img [ref=e450]
+              - generic [ref=e452]: Tudo do plano grátis
+            - listitem [ref=e453]:
+              - img [ref=e454]
+              - generic [ref=e456]: Bebês ilimitados
+            - listitem [ref=e457]:
+              - img [ref=e458]
+              - generic [ref=e460]: Histórico completo
+            - listitem [ref=e461]:
+              - img [ref=e462]
+              - generic [ref=e464]: Gráficos avançados
+            - listitem [ref=e465]:
+              - img [ref=e466]
+              - generic [ref=e468]: Insights com IA personalizados
+            - listitem [ref=e469]:
+              - img [ref=e470]
+              - generic [ref=e472]: Chat com Assistente IA (ilimitado)
+            - listitem [ref=e473]:
+              - img [ref=e474]
+              - generic [ref=e476]: Calendário de Vacinas completo
+            - listitem [ref=e477]:
+              - img [ref=e478]
+              - generic [ref=e480]: Lembretes inteligentes
+            - listitem [ref=e481]:
+              - img [ref=e482]
+              - generic [ref=e484]: Exportação de dados (CSV)
+            - listitem [ref=e485]:
+              - img [ref=e486]
+              - generic [ref=e488]: Compartilhamento com cuidadores
+            - listitem [ref=e489]:
+              - img [ref=e490]
+              - generic [ref=e492]: Suporte prioritário
+          - link "Assinar Premium" [ref=e493] [cursor=pointer]:
+            - /url: /register
+      - paragraph [ref=e494]: Todos os planos incluem 7 dias de teste grátis do Premium. Cancele quando quiser.
+    - generic [ref=e499]:
+      - generic [ref=e500]: 💛
+      - heading "Pronto para ter mais tranquilidade?" [level=2] [ref=e501]
+      - paragraph [ref=e502]: Junte-se a milhares de famílias que já descobriram como é ter a rotina do bebê organizada. Comece agora, é grátis.
+      - link "Criar minha conta agora" [ref=e504] [cursor=pointer]:
+        - /url: /register
+        - text: Criar minha conta agora
+        - img [ref=e505]
+      - generic [ref=e507]:
+        - generic [ref=e508]:
+          - img [ref=e509]
+          - generic [ref=e511]: Teste gratuito de 7 dias
+        - generic [ref=e512]:
+          - img [ref=e513]
+          - generic [ref=e515]: Cancelamento simples
+        - generic [ref=e516]:
+          - img [ref=e517]
+          - generic [ref=e519]: Sem compromisso
+  - contentinfo [ref=e520]:
+    - generic [ref=e521]:
+      - generic [ref=e522]:
+        - generic [ref=e523]:
+          - link "OlieCare" [ref=e524] [cursor=pointer]:
+            - /url: /
+            - img [ref=e526]
+            - generic [ref=e528]: OlieCare
+          - paragraph [ref=e529]: Ajudando famílias a acompanharem a rotina dos seus bebês com mais clareza, organização e tranquilidade.
+        - generic [ref=e530]:
+          - heading "Produto" [level=4] [ref=e531]
+          - list [ref=e532]:
+            - listitem [ref=e533]:
+              - link "Funcionalidades" [ref=e534] [cursor=pointer]:
+                - /url: "#funcionalidades"
+            - listitem [ref=e535]:
+              - link "Preços" [ref=e536] [cursor=pointer]:
+                - /url: "#precos"
+            - listitem [ref=e537]:
+              - link "Como funciona" [ref=e538] [cursor=pointer]:
+                - /url: "#como-funciona"
+        - generic [ref=e539]:
+          - heading "Legal" [level=4] [ref=e540]
+          - list [ref=e541]:
+            - listitem [ref=e542]:
+              - link "Privacidade" [ref=e543] [cursor=pointer]:
+                - /url: /privacidade
+            - listitem [ref=e544]:
+              - link "Termos de uso" [ref=e545] [cursor=pointer]:
+                - /url: /termos
+            - listitem [ref=e546]:
+              - link "Contato" [ref=e547] [cursor=pointer]:
+                - /url: mailto:contact@api.oliecare.cloud
+      - generic [ref=e548]:
+        - paragraph [ref=e549]: © 2026 OlieCare. Todos os direitos reservados.
+        - paragraph [ref=e550]: Feito com 💛 para famílias
+```

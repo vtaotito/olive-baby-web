@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "OlieCare" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e7]
+      - generic [ref=e10]: OlieCare
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - heading "Bem-vindo de volta!" [level=1] [ref=e14]
+        - paragraph [ref=e15]: Entre na sua conta para continuar
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Email
+          - generic [ref=e20]:
+            - generic:
+              - img
+            - textbox "Email" [ref=e21]:
+              - /placeholder: seu@email.com
+              - text: settings.1770816728956@teste.com
+        - generic [ref=e22]:
+          - generic [ref=e23]: Senha
+          - generic [ref=e24]:
+            - generic:
+              - img
+            - textbox "Senha" [ref=e25]:
+              - /placeholder: ••••••••
+              - text: Teste123!@#
+            - button [ref=e27] [cursor=pointer]:
+              - img [ref=e28]
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - checkbox "Lembrar de mim" [ref=e33]
+            - generic [ref=e34]: Lembrar de mim
+          - link "Esqueceu a senha?" [ref=e35] [cursor=pointer]:
+            - /url: /forgot-password
+        - button "Entrar" [ref=e36] [cursor=pointer]
+        - generic [ref=e38]:
+          - text: Não tem uma conta?
+          - link "Cadastre-se" [ref=e39] [cursor=pointer]:
+            - /url: /register
+  - contentinfo [ref=e40]: © 2026 Olive Baby. Todos os direitos reservados.
+```

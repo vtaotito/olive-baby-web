@@ -1,0 +1,84 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "OlieCare" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - img [ref=e7]
+      - generic [ref=e10]: OlieCare
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - heading "Criar conta" [level=1] [ref=e14]
+        - paragraph [ref=e15]: Comece a acompanhar o desenvolvimento do seu bebê
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]: Nome completo
+          - generic [ref=e20]:
+            - generic:
+              - img
+            - textbox "Nome completo" [ref=e21]:
+              - /placeholder: Seu nome completo
+              - text: Teste Pai
+        - generic [ref=e22]:
+          - generic [ref=e23]: Email
+          - generic [ref=e24]:
+            - generic:
+              - img
+            - textbox "Email" [ref=e25]:
+              - /placeholder: seu@email.com
+              - text: teste.pai.1770816681753@teste.com
+        - generic [ref=e26]:
+          - generic [ref=e27]: CPF
+          - generic [ref=e28]:
+            - generic:
+              - img
+            - textbox "CPF" [ref=e29]:
+              - /placeholder: 000.000.000-00
+              - text: 123.456.789-00
+        - generic [ref=e30]:
+          - generic [ref=e31]: Telefone (opcional)
+          - generic [ref=e32]:
+            - generic:
+              - img
+            - textbox "Telefone (opcional)" [ref=e33]:
+              - /placeholder: (00) 00000-0000
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Senha
+            - generic [ref=e37]:
+              - generic:
+                - img
+              - textbox "Senha" [ref=e38]:
+                - /placeholder: ••••••••
+                - text: Teste123!@#
+              - button [ref=e40] [cursor=pointer]:
+                - img [ref=e41]
+          - paragraph [ref=e51]: "Força da senha: Forte"
+        - generic [ref=e52]:
+          - generic [ref=e53]: Confirmar senha
+          - generic [ref=e54]:
+            - generic:
+              - img
+            - textbox "Confirmar senha" [ref=e55]:
+              - /placeholder: ••••••••
+              - text: senhadiferente
+            - button [ref=e57] [cursor=pointer]:
+              - img [ref=e58]
+        - generic [ref=e61]:
+          - checkbox "Li e concordo com os Termos de Uso e Política de Privacidade" [active] [ref=e62]
+          - generic [ref=e63]:
+            - text: Li e concordo com os
+            - link "Termos de Uso" [ref=e64] [cursor=pointer]:
+              - /url: /terms
+            - text: e
+            - link "Política de Privacidade" [ref=e65] [cursor=pointer]:
+              - /url: /privacy
+        - button "Criar conta" [ref=e66] [cursor=pointer]
+        - generic [ref=e68]:
+          - text: Já tem uma conta?
+          - link "Entrar" [ref=e69] [cursor=pointer]:
+            - /url: /login
+  - contentinfo [ref=e70]: © 2026 Olive Baby. Todos os direitos reservados.
+```

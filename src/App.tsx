@@ -61,6 +61,7 @@ import {
   ProfAgendaPage,
   ProfPatientsPage,
   ProfPatientChartPage,
+  ProfInvitesPage,
   ProfSettingsPage,
 } from './pages/prof';
 
@@ -474,6 +475,16 @@ function App() {
                 <ProfessionalRoute>
                   <ProfessionalLayout>
                     <ProfPatientChartPage />
+                  </ProfessionalLayout>
+                </ProfessionalRoute>
+              }
+            />
+            <Route
+              path="/prof/invites"
+              element={
+                <ProfessionalRoute>
+                  <ProfessionalLayout>
+                    <ProfInvitesPage />
                   </ProfessionalLayout>
                 </ProfessionalRoute>
               }
