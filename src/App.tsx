@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
-import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard, ProfessionalRoute, ProfessionalLayout } from './components/layout';
+import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard, ProfessionalRoute, ProfessionalLayout, ScrollToTop } from './components/layout';
 import { PWAProvider } from './components/pwa';
 import { useAuthStore } from './stores/authStore';
 
@@ -138,6 +138,7 @@ function App() {
         <ToastProvider>
           <PWAProvider>
           <BrowserRouter>
+            <ScrollToTop />
             <SessionGuard>
             <BabyInitializer>
             <Routes>

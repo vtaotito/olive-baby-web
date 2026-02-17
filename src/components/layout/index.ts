@@ -9,3 +9,4 @@ export * from './AdminRoute';
 export * from './ProfessionalLayout';
 export * from './ProfessionalRoute';
 export * from './SessionGuard';
+export * from './ScrollToTop';
