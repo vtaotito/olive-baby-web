@@ -1,4 +1,4 @@
-// Olive Baby Web - Admin Babies Page with Permission Tree
+// Olive Baby Web - Admin Babies Page with Permission Tree & Detailed Data
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -23,8 +23,6 @@ import {
   AlertTriangle,
   Send,
   Eye,
-  Edit3,
-  UserPlus,
   ChevronDown,
   ChevronUp,
   Clipboard,
@@ -34,6 +32,11 @@ import {
   FileText,
   Syringe,
   TrendingUp,
+  Droplets,
+  Moon,
+  UtensilsCrossed,
+  Bath,
+  Milk,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { adminService } from '../../services/adminApi';
@@ -58,28 +61,36 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 };
 
 const memberTypeLabels: Record<string, string> = {
-  PARENT: 'Responsável',
+  PARENT: 'Responsavel',
   FAMILY: 'Familiar',
   PROFESSIONAL: 'Profissional',
 };
 
 const roleLabels: Record<string, string> = {
-  OWNER_PARENT_1: 'Responsável Principal 1',
-  OWNER_PARENT_2: 'Responsável Principal 2',
-  FAMILY_VIEWER: 'Familiar (Visualização)',
-  FAMILY_EDITOR: 'Familiar (Edição)',
+  OWNER_PARENT_1: 'Responsavel Principal 1',
+  OWNER_PARENT_2: 'Responsavel Principal 2',
+  FAMILY_VIEWER: 'Familiar (Visualizacao)',
+  FAMILY_EDITOR: 'Familiar (Edicao)',
   PEDIATRICIAN: 'Pediatra',
   OBGYN: 'Obstetra',
-  LACTATION_CONSULTANT: 'Consultora Amamentação',
+  LACTATION_CONSULTANT: 'Consultora Amamentacao',
   OTHER: 'Outro',
 };
 
 const relationshipLabels: Record<string, string> = {
-  MOTHER: 'Mãe',
+  MOTHER: 'Mae',
   FATHER: 'Pai',
-  GRANDMOTHER: 'Avó',
-  GRANDFATHER: 'Avô',
+  GRANDMOTHER: 'Avo',
+  GRANDFATHER: 'Avo',
   OTHER: 'Outro',
+};
+
+const routineTypeConfig: Record<string, { label: string; icon: typeof Activity; color: string }> = {
+  FEEDING: { label: 'Alimentacao', icon: UtensilsCrossed, color: 'text-orange-600 bg-orange-50' },
+  SLEEP: { label: 'Sono', icon: Moon, color: 'text-indigo-600 bg-indigo-50' },
+  DIAPER: { label: 'Fralda', icon: Droplets, color: 'text-sky-600 bg-sky-50' },
+  BATH: { label: 'Banho', icon: Bath, color: 'text-cyan-600 bg-cyan-50' },
+  MILK_EXTRACTION: { label: 'Extracao de Leite', icon: Milk, color: 'text-pink-600 bg-pink-50' },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -91,6 +102,15 @@ function StatusBadge({ status }: { status: string }) {
       {config.label}
     </span>
   );
+}
+
+function getActivityStatus(lastActivityAt: string | null | undefined): { label: string; color: string } {
+  if (!lastActivityAt) return { label: 'Sem atividade', color: 'bg-gray-100 text-gray-500' };
+  const diff = Date.now() - new Date(lastActivityAt).getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days <= 7) return { label: `${days}d atras`, color: 'bg-green-100 text-green-700' };
+  if (days <= 30) return { label: `${days}d atras`, color: 'bg-amber-100 text-amber-700' };
+  return { label: `${days}d atras`, color: 'bg-red-100 text-red-700' };
 }
 
 export function AdminBabiesPage() {
@@ -116,7 +136,7 @@ export function AdminBabiesPage() {
   const pagination = data?.pagination;
 
   return (
-    <AdminLayout title="Bebês">
+    <AdminLayout title="Bebes">
       {/* Search & Filters */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -125,7 +145,7 @@ export function AdminBabiesPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por nome do bebê ou cuidador..."
+                placeholder="Buscar por nome do bebe, cuidador ou email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -162,6 +182,34 @@ export function AdminBabiesPage() {
         )}
       </div>
 
+      {/* Summary bar */}
+      {pagination && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+            <p className="text-xs text-gray-500">Total de Bebes</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-green-600">
+              {babies.filter(b => b.routinesCount30d > 0).length}
+            </p>
+            <p className="text-xs text-gray-500">Ativos (30d)</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-amber-600">
+              {babies.filter(b => b.routinesTotal > 0 && b.routinesCount30d === 0).length}
+            </p>
+            <p className="text-xs text-gray-500">Inativos (30d)</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-gray-400">
+              {babies.filter(b => b.routinesTotal === 0).length}
+            </p>
+            <p className="text-xs text-gray-500">Sem dados</p>
+          </div>
+        </div>
+      )}
+
       {/* Babies Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
@@ -178,7 +226,7 @@ export function AdminBabiesPage() {
           {babies.length === 0 && (
             <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
               <Baby className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Nenhum bebê encontrado</p>
+              <p className="text-gray-500">Nenhum bebe encontrado</p>
             </div>
           )}
 
@@ -188,7 +236,7 @@ export function AdminBabiesPage() {
               <p className="text-sm text-gray-500">
                 Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
                 {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
-                {pagination.total} bebês
+                {pagination.total} bebes
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -206,7 +254,7 @@ export function AdminBabiesPage() {
                   disabled={pagination.page === pagination.totalPages}
                   rightIcon={<ChevronRight className="w-4 h-4" />}
                 >
-                  Próximo
+                  Proximo
                 </Button>
               </div>
             </div>
@@ -224,65 +272,102 @@ export function AdminBabiesPage() {
 
 // ====== Baby Card ======
 function BabyCard({ baby, onClick }: { baby: AdminBaby; onClick: () => void }) {
+  const activityStatus = getActivityStatus(baby.lastActivityAt);
+
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-olive-300 transition-all cursor-pointer"
+      className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-olive-300 transition-all cursor-pointer"
     >
-      <div className="flex items-start justify-between mb-4">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-violet-50 border border-violet-200 rounded-xl flex items-center justify-center">
-            <Baby className="w-6 h-6 text-violet-600" />
+          <div className="w-11 h-11 bg-violet-50 border border-violet-200 rounded-xl flex items-center justify-center">
+            <Baby className="w-5 h-5 text-violet-600" />
           </div>
           <div>
-            <h3 className="text-gray-900 font-semibold">{baby.name}</h3>
-            <p className="text-sm text-gray-500">{formatAge(baby.birthDate)}</p>
+            <h3 className="text-gray-900 font-semibold text-sm">{baby.name}</h3>
+            <p className="text-xs text-gray-500">{formatAge(baby.birthDate)}</p>
           </div>
         </div>
-        <Eye className="w-4 h-4 text-gray-400" />
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-sky-50 border border-sky-100 rounded-lg p-3 text-center">
-          <Users className="w-4 h-4 text-sky-600 mx-auto mb-1" />
-          <p className="text-lg font-bold text-gray-900">{baby.caregiversCount}</p>
-          <p className="text-xs text-gray-500">Cuidadores</p>
-        </div>
-        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-center">
-          <Stethoscope className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-          <p className="text-lg font-bold text-gray-900">{baby.professionalsCount}</p>
-          <p className="text-xs text-gray-500">Profissionais</p>
-        </div>
-        <div className="bg-olive-50 border border-olive-100 rounded-lg p-3 text-center">
-          <Activity className="w-4 h-4 text-olive-600 mx-auto mb-1" />
-          <p className="text-lg font-bold text-gray-900">{baby.routinesCount30d}</p>
-          <p className="text-xs text-gray-500">Rotinas/30d</p>
+        <div className="flex flex-col items-end gap-1">
+          <Eye className="w-4 h-4 text-gray-400" />
+          <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full', activityStatus.color)}>
+            {activityStatus.label}
+          </span>
         </div>
       </div>
 
+      {/* Data Counts Grid */}
+      <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="bg-olive-50 border border-olive-100 rounded-lg p-2 text-center">
+          <Activity className="w-3.5 h-3.5 text-olive-600 mx-auto mb-0.5" />
+          <p className="text-sm font-bold text-gray-900">{baby.routinesTotal}</p>
+          <p className="text-[9px] text-gray-500 leading-tight">Rotinas</p>
+        </div>
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-2 text-center">
+          <TrendingUp className="w-3.5 h-3.5 text-blue-600 mx-auto mb-0.5" />
+          <p className="text-sm font-bold text-gray-900">{baby.growthCount}</p>
+          <p className="text-[9px] text-gray-500 leading-tight">Crescimento</p>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2 text-center">
+          <Syringe className="w-3.5 h-3.5 text-emerald-600 mx-auto mb-0.5" />
+          <p className="text-sm font-bold text-gray-900">{baby.vaccinesCount}</p>
+          <p className="text-[9px] text-gray-500 leading-tight">Vacinas</p>
+        </div>
+        <div className="bg-violet-50 border border-violet-100 rounded-lg p-2 text-center">
+          <Clipboard className="w-3.5 h-3.5 text-violet-600 mx-auto mb-0.5" />
+          <p className="text-sm font-bold text-gray-900">{baby.milestonesCount}</p>
+          <p className="text-[9px] text-gray-500 leading-tight">Marcos</p>
+        </div>
+      </div>
+
+      {/* 30d indicator */}
+      {baby.routinesTotal > 0 && (
+        <div className="flex items-center gap-2 mb-3 px-2 py-1.5 bg-gray-50 rounded-lg">
+          <Clock className="w-3 h-3 text-gray-400" />
+          <span className="text-xs text-gray-500">
+            Ultimos 30 dias: <span className={cn('font-semibold', baby.routinesCount30d > 0 ? 'text-green-600' : 'text-red-500')}>{baby.routinesCount30d} rotinas</span>
+          </span>
+        </div>
+      )}
+
+      {/* Links */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <Users className="w-3 h-3 text-sky-500" />
+          <span>{baby.caregiversCount} cuidador{baby.caregiversCount !== 1 ? 'es' : ''}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <Stethoscope className="w-3 h-3 text-emerald-500" />
+          <span>{baby.professionalsCount} profissional{baby.professionalsCount !== 1 ? 'is' : ''}</span>
+        </div>
+      </div>
+
+      {/* Primary caregiver */}
       {baby.primaryCaregiver && (
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-xs text-gray-500 mb-2">Responsável Principal</p>
+        <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-900 font-medium">{baby.primaryCaregiver.fullName}</p>
-              <p className="text-xs text-gray-500">{baby.primaryCaregiver.email}</p>
+            <div className="min-w-0">
+              <p className="text-xs text-gray-900 font-medium truncate">{baby.primaryCaregiver.fullName}</p>
+              <p className="text-[10px] text-gray-400 truncate">{baby.primaryCaregiver.email}</p>
             </div>
-            <span className="text-xs text-gray-400 capitalize bg-gray-100 px-2 py-1 rounded-full">
+            <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
               {relationshipLabels[baby.primaryCaregiver.relationship] || baby.primaryCaregiver.relationship?.toLowerCase()}
             </span>
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-[10px] text-gray-400">
         <div className="flex items-center gap-1">
           <MapPin className="w-3 h-3" />
           <span>{baby.city ? `${baby.city}, ${baby.state}` : baby.state || '-'}</span>
         </div>
         <div className="flex items-center gap-1">
           <Calendar className="w-3 h-3" />
-          <span>{new Date(baby.createdAt).toLocaleDateString('pt-BR')}</span>
+          <span>{formatDateBR(new Date(baby.birthDate))}</span>
         </div>
       </div>
     </div>
@@ -292,10 +377,12 @@ function BabyCard({ baby, onClick }: { baby: AdminBaby; onClick: () => void }) {
 // ====== Baby Details Drawer ======
 function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () => void }) {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    routines: true,
+    growth: true,
     caregivers: true,
     members: true,
     professionals: true,
-    invites: true,
+    invites: false,
   });
 
   const { data, isLoading } = useQuery({
@@ -324,7 +411,11 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">{baby?.name || '...'}</h2>
-              {baby && <p className="text-sm text-gray-500">{formatAge(baby.birthDate)} - ID: {baby.id}</p>}
+              {baby && (
+                <p className="text-sm text-gray-500">
+                  {formatAge(baby.birthDate)} - Nasc. {formatDateBR(new Date(baby.birthDate))} - ID: {baby.id}
+                </p>
+              )}
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
@@ -340,10 +431,10 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
             </div>
           ) : baby ? (
             <>
-              {/* Baby Info */}
+              {/* Baby Info Chips */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {baby.gender && (
-                  <InfoChip icon={Heart} label="Gênero" value={baby.gender === 'MALE' ? 'Masculino' : baby.gender === 'FEMALE' ? 'Feminino' : 'N/I'} />
+                  <InfoChip icon={Heart} label="Genero" value={baby.gender === 'MALE' ? 'Masculino' : baby.gender === 'FEMALE' ? 'Feminino' : 'N/I'} />
                 )}
                 {baby.birthWeightGrams && (
                   <InfoChip icon={Weight} label="Peso nasc." value={`${(baby.birthWeightGrams / 1000).toFixed(2)} kg`} />
@@ -357,13 +448,102 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
               </div>
 
               {/* Data Counts */}
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 <CountChip label="Rotinas" value={baby.counts?.routineLogs || 0} icon={Activity} color="olive" />
+                <CountChip label="30 dias" value={baby.counts?.routines30d || 0} icon={Clock} color={baby.counts?.routines30d > 0 ? 'emerald' : 'red'} />
                 <CountChip label="Crescimento" value={baby.counts?.growthRecords || 0} icon={TrendingUp} color="blue" />
                 <CountChip label="Marcos" value={baby.counts?.milestones || 0} icon={Clipboard} color="violet" />
                 <CountChip label="Vacinas" value={baby.counts?.vaccineRecords || 0} icon={Syringe} color="emerald" />
                 <CountChip label="Consultas" value={baby.counts?.clinicalVisits || 0} icon={FileText} color="amber" />
               </div>
+
+              {/* Last Activity */}
+              {baby.lastActivityAt && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">
+                    Ultima atividade: <span className="font-medium text-gray-900">{formatDateBR(new Date(baby.lastActivityAt))}</span>
+                    {baby.lastActivityType && (
+                      <span className="text-gray-400 ml-1">
+                        ({routineTypeConfig[baby.lastActivityType]?.label || baby.lastActivityType})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {/* ====== Routine Breakdown ====== */}
+              {baby.routineBreakdown && baby.routineBreakdown.length > 0 && (
+                <TreeSection
+                  title="Rotinas por Tipo"
+                  icon={Activity}
+                  iconColor="text-olive-600"
+                  bgColor="bg-olive-50"
+                  count={baby.counts?.routineLogs || 0}
+                  expanded={expandedSections.routines}
+                  onToggle={() => toggleSection('routines')}
+                >
+                  <div className="space-y-2">
+                    {baby.routineBreakdown.map((rb: any) => {
+                      const config = routineTypeConfig[rb.type] || { label: rb.type, icon: Activity, color: 'text-gray-600 bg-gray-50' };
+                      const RIcon = config.icon;
+                      return (
+                        <div key={rb.type} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border-l-4 border-olive-200">
+                          <div className="flex items-center gap-3">
+                            <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', config.color.split(' ')[1])}>
+                              <RIcon className={cn('w-4 h-4', config.color.split(' ')[0])} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{config.label}</p>
+                              <p className="text-xs text-gray-400">
+                                {rb.firstAt && `Desde ${formatDateBR(new Date(rb.firstAt))}`}
+                                {rb.lastAt && ` ate ${formatDateBR(new Date(rb.lastAt))}`}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-lg font-bold text-gray-900">{rb.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </TreeSection>
+              )}
+
+              {/* ====== Recent Growth ====== */}
+              {baby.recentGrowth && baby.recentGrowth.length > 0 && (
+                <TreeSection
+                  title="Crescimento Recente"
+                  icon={TrendingUp}
+                  iconColor="text-blue-600"
+                  bgColor="bg-blue-50"
+                  count={baby.counts?.growthRecords || 0}
+                  expanded={expandedSections.growth}
+                  onToggle={() => toggleSection('growth')}
+                >
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-xs text-gray-500 border-b border-gray-200">
+                          <th className="text-left py-2 px-2">Data</th>
+                          <th className="text-right py-2 px-2">Peso (kg)</th>
+                          <th className="text-right py-2 px-2">Altura (cm)</th>
+                          <th className="text-right py-2 px-2">P.C. (cm)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {baby.recentGrowth.map((g: any) => (
+                          <tr key={g.id} className="border-b border-gray-100 last:border-0">
+                            <td className="py-2 px-2 text-gray-700">{formatDateBR(new Date(g.measuredAt))}</td>
+                            <td className="py-2 px-2 text-right font-medium text-gray-900">{g.weightKg ?? '-'}</td>
+                            <td className="py-2 px-2 text-right font-medium text-gray-900">{g.heightCm ?? '-'}</td>
+                            <td className="py-2 px-2 text-right font-medium text-gray-900">{g.headCircumferenceCm ?? '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </TreeSection>
+              )}
 
               {/* ====== TREE: Cuidadores (CaregiverBaby) ====== */}
               <TreeSection
@@ -385,7 +565,7 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-gray-900 text-sm">{cg.caregiver.fullName}</span>
                           {cg.isPrimary && (
-                            <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">Primário</span>
+                            <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">Primario</span>
                           )}
                           <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
                             {relationshipLabels[cg.relationship] || cg.relationship}
@@ -413,7 +593,7 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
 
               {/* ====== TREE: Membros (BabyMember) ====== */}
               <TreeSection
-                title="Membros (Permissões)"
+                title="Membros (Permissoes)"
                 icon={Shield}
                 iconColor="text-blue-600"
                 bgColor="bg-blue-50"
@@ -440,9 +620,9 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
                           <span className="text-xs text-gray-500">
                             {memberTypeLabels[m.memberType] || m.memberType}
                           </span>
-                          <span className="text-gray-300">·</span>
+                          <span className="text-gray-300">-</span>
                           <span className="text-xs text-gray-500">{roleLabels[m.role] || m.role}</span>
-                          <span className="text-gray-300">·</span>
+                          <span className="text-gray-300">-</span>
                           <span className="text-xs text-gray-400">User #{m.user.id}</span>
                         </div>
                         {m.revokedAt && (
@@ -479,7 +659,7 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
                           )}
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {roleLabels[bp.role] || bp.role} · {bp.professional.specialty}
+                          {roleLabels[bp.role] || bp.role} - {bp.professional.specialty}
                         </p>
                         <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
                           <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{bp.professional.email}</span>
@@ -535,7 +715,7 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400 flex-wrap">
                             <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{inv.emailInvited}</span>
-                            <span className="text-gray-300">·</span>
+                            <span className="text-gray-300">-</span>
                             <span>{roleLabels[inv.role] || inv.role}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400 flex-wrap">
@@ -560,7 +740,7 @@ function BabyDetailsDrawer({ babyId, onClose }: { babyId: number; onClose: () =>
           ) : (
             <div className="text-center py-12">
               <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Erro ao carregar dados do bebê</p>
+              <p className="text-gray-500">Erro ao carregar dados do bebe</p>
             </div>
           )}
         </div>
@@ -588,9 +768,10 @@ function CountChip({ label, value, icon: Icon, color }: { label: string; value: 
     violet: 'bg-violet-50 border-violet-100 text-violet-600',
     emerald: 'bg-emerald-50 border-emerald-100 text-emerald-600',
     amber: 'bg-amber-50 border-amber-100 text-amber-600',
+    red: 'bg-red-50 border-red-100 text-red-600',
   };
   return (
-    <div className={cn('rounded-lg p-2 text-center border', colors[color])}>
+    <div className={cn('rounded-lg p-2 text-center border', colors[color] || colors.olive)}>
       <Icon className="w-3.5 h-3.5 mx-auto mb-0.5" />
       <p className="text-lg font-bold text-gray-900">{value}</p>
       <p className="text-[10px] text-gray-500 leading-tight">{label}</p>

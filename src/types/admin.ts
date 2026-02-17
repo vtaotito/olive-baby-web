@@ -183,8 +183,11 @@ export interface AdminBaby {
   id: number;
   name: string;
   birthDate: string;
+  gender?: string;
   city?: string;
   state?: string;
+  birthWeightGrams?: number;
+  birthLengthCm?: number;
   createdAt: string;
   primaryCaregiver?: {
     id: number;
@@ -194,27 +197,13 @@ export interface AdminBaby {
   };
   caregiversCount: number;
   professionalsCount: number;
+  routinesTotal: number;
   routinesCount30d: number;
-}
-
-export interface AdminBabyDetails extends AdminBaby {
-  caregivers: Array<{
-    id: number;
-    fullName: string;
-    email: string;
-    role: string;
-  }>;
-  professionals: Array<{
-    id: number;
-    fullName: string;
-    specialty: string;
-  }>;
-  recentRoutines: Array<{
-    type: string;
-    count: number;
-    lastAt: string;
-  }>;
-  insights?: string[];
+  growthCount: number;
+  milestonesCount: number;
+  vaccinesCount: number;
+  visitsCount: number;
+  lastActivityAt?: string | null;
 }
 
 // ==========================================
