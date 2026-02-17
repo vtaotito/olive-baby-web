@@ -39,7 +39,7 @@ const navItems = [
   { path: '/growth', icon: TrendingUp, label: 'Crescimento' },
   { path: '/milestones', icon: Award, label: 'Marcos' },
   { path: '/vaccines', icon: Syringe, label: 'Vacinas' },
-  { path: '/team', icon: Users, label: 'Equipe' },
+  { path: '/team', icon: Users, label: 'Convites' },
   { path: '/export', icon: FileDown, label: 'Exportar' },
   { path: '/settings', icon: Settings, label: 'Configurações' },
 ];

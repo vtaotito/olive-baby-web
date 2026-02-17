@@ -49,8 +49,7 @@ import { SettingsPage, ProfilePage, BabiesPage, BillingPage, NotificationsPage, 
 import { AdminBillingPage } from './pages/admin/AdminBillingPage';
 import { AdminAiAssistantPage } from './pages/admin/AdminAiAssistantPage';
 
-// Team Page
-import { TeamPage } from './pages/team';
+// Team/Share - redireciona para ShareBabyPage unificado
 
 // Assistant Page
 import { AssistantPage } from './pages/assistant';
@@ -258,12 +257,12 @@ function App() {
               }
             />
 
-            {/* Team */}
+            {/* Compartilhar / Convites (unificado no ShareBabyPage) */}
             <Route
               path="/team"
               element={
                 <ProtectedRoute>
-                  <TeamPage />
+                  <ShareBabyPage />
                 </ProtectedRoute>
               }
             />
