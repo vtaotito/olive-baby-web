@@ -154,6 +154,14 @@ export const adminService = {
     return response.data;
   },
 
+  /**
+   * Get baby details with full permission tree
+   */
+  getBabyDetails: async (babyId: number) => {
+    const response = await api.get<{ success: boolean; data: any }>(`/admin/babies/${babyId}`);
+    return response.data;
+  },
+
   // ============================================
   // Advanced Analytics
   // ============================================
