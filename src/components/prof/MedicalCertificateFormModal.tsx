@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Modal, Button, Input } from '../ui';
+import { Button, Input } from '../ui';
 import { useToast } from '../ui/Toast';
 import { medicalCertificateService } from '../../services/api';
 import { format } from 'date-fns';
@@ -84,8 +84,16 @@ export function MedicalCertificateFormModal({ isOpen, onClose, babyId, babyName,
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Novo atestado / declaração" size="lg">
+    <div className="border border-olive-200 bg-olive-50/30 rounded-xl p-4 mb-4 animate-in slide-in-from-top duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-gray-900">Novo atestado / declaração</h3>
+        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-200 transition">
+          <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
@@ -99,7 +107,7 @@ export function MedicalCertificateFormModal({ isOpen, onClose, babyId, babyName,
           </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
             label="Válido de"
             type="date"
@@ -130,6 +138,6 @@ export function MedicalCertificateFormModal({ isOpen, onClose, babyId, babyName,
           <Button type="submit" isLoading={isSubmitting}>Gerar documento</Button>
         </div>
       </form>
-    </Modal>
+    </div>
   );
 }

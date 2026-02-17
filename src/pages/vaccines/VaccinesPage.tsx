@@ -14,7 +14,7 @@ import {
   Info,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
-import { Card, CardBody, CardHeader, Button, Spinner, Modal } from '../../components/ui';
+import { Card, CardBody, CardHeader, Button, Spinner } from '../../components/ui';
 import { PaywallModal, usePaywall } from '../../components/ui/PaywallModal';
 import { useToast } from '../../components/ui/Toast';
 import { useBabyStore } from '../../stores/babyStore';
@@ -492,6 +492,15 @@ export function VaccinesPage() {
             </div>
           )}
 
+          {/* Vaccine Record Inline Form */}
+          <VaccineRecordModal
+            isOpen={isRecordModalOpen}
+            onClose={handleModalClose}
+            record={selectedRecord}
+            babyId={selectedBaby.id}
+            onSuccess={handleRecordUpdate}
+          />
+
           {/* Filter tabs */}
           <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
             {[
@@ -593,15 +602,6 @@ export function VaccinesPage() {
           </Card>
         </>
       )}
-
-      {/* Record Modal */}
-      <VaccineRecordModal
-        isOpen={isRecordModalOpen}
-        onClose={handleModalClose}
-        record={selectedRecord}
-        babyId={selectedBaby.id}
-        onSuccess={handleRecordUpdate}
-      />
 
       {/* Paywall Modal */}
       <PaywallModal

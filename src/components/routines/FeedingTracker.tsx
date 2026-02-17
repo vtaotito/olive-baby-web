@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Utensils, Baby as BabyIcon, Milk, Cookie, ChevronLeft, AlertCircle, Play, Square, RefreshCw } from 'lucide-react';
 import { DashboardLayout } from '../layout';
-import { Card, CardBody, CardHeader, Button, Input, Modal, Spinner } from '../ui';
+import { Card, CardBody, CardHeader, Button, Input, Spinner } from '../ui';
 import { useToast } from '../ui/Toast';
 import { Timer } from './Timer';
 import { RoutineLastRecordsTable } from './RoutineLastRecordsTable';
@@ -272,66 +272,49 @@ export function FeedingTracker() {
 
   return (
     <DashboardLayout>
-      {/* Modal para rotina já aberta */}
-      <Modal 
-        isOpen={showOpenRoutineModal} 
-        onClose={() => setShowOpenRoutineModal(false)}
-        title="Alimentação em andamento"
-      >
-        <div className="text-center py-4">
-          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-yellow-600" />
-          </div>
-          
-          <p className="text-gray-700 mb-2">
-            Já existe uma alimentação em andamento desde:
-          </p>
-          
-          <p className="text-3xl font-bold text-yellow-600 mb-4">
-            {getElapsedTime()}
-          </p>
-          
-          {openRoutineData?.meta?.feedingType && (
-            <p className="text-sm text-gray-500 mb-6">
-              Tipo: {
-                openRoutineData.meta.feedingType === 'breast' ? 'Amamentação' :
-                openRoutineData.meta.feedingType === 'bottle' ? 'Mamadeira' : 'Sólidos'
-              }
-              {openRoutineData.meta.breastSide && (
-                <> • Lado: {
-                  openRoutineData.meta.breastSide === 'left' ? 'Esquerdo' :
-                  openRoutineData.meta.breastSide === 'right' ? 'Direito' : 'Ambos'
-                }</>
+      {/* Banner para rotina ja aberta */}
+      {showOpenRoutineModal && (
+        <div className="mb-6 border border-yellow-200 bg-yellow-50 rounded-xl p-4 animate-in slide-in-from-top duration-200">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-gray-900 mb-1">Alimentacao em andamento</h3>
+              <p className="text-gray-700 text-sm mb-1">
+                Ja existe uma alimentacao em andamento desde: <span className="text-xl font-bold text-yellow-600">{getElapsedTime()}</span>
+              </p>
+              {openRoutineData?.meta?.feedingType && (
+                <p className="text-sm text-gray-500 mb-3">
+                  Tipo: {
+                    openRoutineData.meta.feedingType === 'breast' ? 'Amamentacao' :
+                    openRoutineData.meta.feedingType === 'bottle' ? 'Mamadeira' : 'Solidos'
+                  }
+                  {openRoutineData.meta.breastSide && (
+                    <> - Lado: {
+                      openRoutineData.meta.breastSide === 'left' ? 'Esquerdo' :
+                      openRoutineData.meta.breastSide === 'right' ? 'Direito' : 'Ambos'
+                    }</>
+                  )}
+                </p>
               )}
-            </p>
-          )}
-          
-          <div className="flex flex-col gap-3">
-            <Button onClick={handleResumeRoutine} className="w-full">
-              <Play className="w-4 h-4 mr-2" />
-              Retomar alimentação
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleQuickFinish} 
-              className="w-full"
-              isLoading={isLoading}
-            >
-              <Square className="w-4 h-4 mr-2" />
-              Finalizar agora
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              onClick={() => setShowOpenRoutineModal(false)} 
-              className="w-full"
-            >
-              Voltar
-            </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={handleResumeRoutine}>
+                  <Play className="w-4 h-4 mr-1" />
+                  Retomar
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleQuickFinish} isLoading={isLoading}>
+                  <Square className="w-4 h-4 mr-1" />
+                  Finalizar agora
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setShowOpenRoutineModal(false)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">

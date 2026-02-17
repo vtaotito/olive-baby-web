@@ -1,11 +1,11 @@
 // Olive Baby Web - Dashboard Page
 // Dashboard completo de rotinas com insights e gráficos
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Baby, Plus, ArrowRight, Lightbulb } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
 import { Spinner, Button, Card, CardBody, CardHeader } from '../../components/ui';
 import { useBabyStore } from '../../stores/babyStore';
-import { useModalStore } from '../../stores/modalStore';
 import { useStats } from '../../hooks/useStats';
 import { useActiveRoutine } from '../../hooks/useActiveRoutine';
 import { useInsights } from '../../hooks/useInsights';
@@ -22,7 +22,7 @@ import { InsightsCarousel } from '../../components/notifications';
 
 export function DashboardPage() {
   const { selectedBaby, babies } = useBabyStore();
-  const { openBabyModal } = useModalStore();
+  const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Hooks de dados
@@ -79,7 +79,7 @@ export function DashboardPage() {
                   <Button
                     variant="primary"
                     leftIcon={<Plus className="w-5 h-5" />}
-                    onClick={() => openBabyModal()}
+                    onClick={() => navigate('/settings/babies')}
                   >
                     Adicionar bebê
                   </Button>

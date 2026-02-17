@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Modal, Input, Button } from '../ui';
+import { Input, Button } from '../ui';
 import type { RoutineLog, RoutineType } from '../../types';
 import {
   prepareUpdatePayload,
@@ -651,18 +651,24 @@ export function RoutineRecordEditModal({
     );
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Editar ${getRoutineTypeLabel(routineType)}`}
-      size="md"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {/* Erros gerais */}
+    <div className="border border-olive-200 bg-olive-50/30 rounded-xl p-4 mb-4 animate-in slide-in-from-top duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-gray-900">
+          Editar {getRoutineTypeLabel(routineType)}
+        </h3>
+        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-200 transition">
+          <span className="sr-only">Fechar</span>
+          <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {metaErrors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-red-800 text-sm font-medium mb-1">Erros de validação:</p>
+            <p className="text-red-800 text-sm font-medium mb-1">Erros de validacao:</p>
             <ul className="text-red-700 text-sm list-disc list-inside">
               {metaErrors.map((err, i) => (
                 <li key={i}>{err}</li>
@@ -671,7 +677,7 @@ export function RoutineRecordEditModal({
           </div>
         )}
 
-        {/* Campos de data/hora */}
+        {/* Date/time fields - responsive grid */}
         {routineType === 'DIAPER' ? (
           <Input
             label="Data e Hora"
@@ -680,64 +686,62 @@ export function RoutineRecordEditModal({
             {...register('startTime')}
           />
         ) : (
-          <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              label="Data e Hora de Início"
+              label="Inicio"
               type="datetime-local"
               error={errors.startTime?.message}
               {...register('startTime')}
             />
             <Input
-              label="Data e Hora de Término"
+              label="Termino"
               type="datetime-local"
               error={errors.endTime?.message}
               {...register('endTime')}
             />
-          </>
+          </div>
         )}
 
-        {/* Separator */}
-        <div className="border-t border-gray-200 pt-4">
+        {/* Meta fields */}
+        <div className="border-t border-gray-200 pt-3">
           <h4 className="text-sm font-medium text-gray-700 mb-3">
             Detalhes do Registro
           </h4>
           {renderMetaFields()}
         </div>
 
-        {/* Observações */}
+        {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Observações
+            Observacoes
           </label>
           <textarea
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-olive-500 focus:border-olive-500 resize-none"
-            placeholder="Adicione observações sobre este registro..."
-            rows={3}
+            placeholder="Adicione observacoes sobre este registro..."
+            rows={2}
             {...register('notes')}
           />
         </div>
 
-        {/* Botões */}
-        <div className="flex gap-3 pt-4">
+        {/* Buttons */}
+        <div className="flex gap-3 pt-2 border-t border-gray-200">
           <Button
             type="button"
             variant="secondary"
             onClick={onClose}
-            fullWidth
             disabled={isLoading}
           >
             Cancelar
           </Button>
           <Button
             type="submit"
-            fullWidth
             isLoading={isLoading}
             disabled={isLoading}
           >
-            Salvar Alterações
+            Salvar Alteracoes
           </Button>
         </div>
       </form>
-    </Modal>
+    </div>
   );
 }

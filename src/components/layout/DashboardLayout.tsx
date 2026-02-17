@@ -26,8 +26,6 @@ import { Avatar, Button } from '../ui';
 import { formatAge } from '../../lib/utils';
 import { QuickActionsFooter } from '../routines/dashboard/QuickActionsFooter';
 import { AIChatButton } from '../ai/AIChatButton';
-import { BabyModal } from '../babies';
-import { useModalStore } from '../../stores/modalStore';
 import { NotificationBell } from '../notifications';
 
 interface DashboardLayoutProps {
@@ -49,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { babies, selectedBaby, selectBaby, isLoading } = useBabyStore();
-  const { babyModalOpen, openBabyModal, closeBabyModal } = useModalStore();
+  // Navigate to settings/babies instead of using modal
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [babyDropdownOpen, setBabyDropdownOpen] = useState(false);
   
@@ -184,7 +182,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         className="block w-full p-3 text-sm text-olive-600 dark:text-olive-400 font-medium hover:bg-olive-50 dark:hover:bg-olive-900/30 border-t border-gray-100 dark:border-gray-700 rounded-b-xl transition-colors text-left"
                         onClick={() => {
                           setBabyDropdownOpen(false);
-                          openBabyModal();
+                          navigate('/settings/babies');
                         }}
                       >
                         <div className="flex items-center gap-2">
@@ -203,7 +201,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 Bebê Ativo
               </label>
               <button
-                onClick={() => openBabyModal()}
+                onClick={() => navigate('/settings/babies')}
                 className="w-full flex items-center justify-center gap-2 p-3 bg-olive-50 dark:bg-olive-900/30 rounded-xl hover:bg-olive-100 dark:hover:bg-olive-900/50 transition-colors border-2 border-dashed border-olive-300 dark:border-olive-700"
               >
                 <Plus className="w-5 h-5 text-olive-600 dark:text-olive-400" />
@@ -300,11 +298,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AIChatButton />
       </div>
 
-      {/* Baby Modal Global */}
-      <BabyModal
-        isOpen={babyModalOpen}
-        onClose={closeBabyModal}
-      />
     </div>
   );
 }

@@ -259,12 +259,109 @@ export function BabyMembersPage() {
           <p className="text-gray-500">Gerencie quem tem acesso ao bebê</p>
         </div>
         <Button
-          onClick={() => setShowInviteModal(true)}
-          leftIcon={<UserPlus className="w-5 h-5" />}
+          onClick={() => setShowInviteModal(!showInviteModal)}
+          leftIcon={showInviteModal ? undefined : <UserPlus className="w-5 h-5" />}
+          variant={showInviteModal ? 'secondary' : 'primary'}
         >
-          Convidar Pessoa
+          {showInviteModal ? 'Fechar' : 'Convidar Pessoa'}
         </Button>
       </div>
+
+      {/* Inline Invite Form */}
+      {showInviteModal && (
+        <Card className="border-olive-200 bg-olive-50/30 mb-6">
+          <CardBody>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-olive-600" />
+                Convidar Pessoa
+              </h3>
+              <button onClick={() => { setShowInviteModal(false); reset(); }} className="p-1.5 rounded-full hover:bg-gray-200 transition">
+                <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleSubmit(onSubmitInvite)} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder="email@example.com"
+                  error={errors.emailInvited?.message}
+                  {...register('emailInvited')}
+                />
+                <Input
+                  label="Nome (opcional)"
+                  placeholder="Nome da pessoa"
+                  {...register('invitedName')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Membro</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['PARENT', 'FAMILY', 'PROFESSIONAL'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        setValue('memberType', type);
+                        if (type === 'PARENT') setValue('role', 'OWNER_PARENT_2');
+                        else if (type === 'FAMILY') setValue('role', 'FAMILY_VIEWER');
+                        else setValue('role', 'PEDIATRICIAN');
+                      }}
+                      className={cn(
+                        'p-3 rounded-lg border-2 transition-all text-center',
+                        selectedMemberType === type
+                          ? 'border-olive-500 bg-olive-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      )}
+                    >
+                      <span className="text-sm font-medium">{memberTypeLabels[type]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Funcao</label>
+                  <select className="input" {...register('role')}>
+                    {selectedMemberType === 'PARENT' && (
+                      <>
+                        <option value="OWNER_PARENT_1">Responsavel Principal 1</option>
+                        <option value="OWNER_PARENT_2">Responsavel Principal 2</option>
+                      </>
+                    )}
+                    {selectedMemberType === 'FAMILY' && (
+                      <>
+                        <option value="FAMILY_VIEWER">Familiar (Visualizacao)</option>
+                        <option value="FAMILY_EDITOR">Familiar (Edicao)</option>
+                      </>
+                    )}
+                    {selectedMemberType === 'PROFESSIONAL' && (
+                      <>
+                        <option value="PEDIATRICIAN">Pediatra</option>
+                        <option value="OBGYN">Obstetra/Ginecologista</option>
+                        <option value="LACTATION_CONSULTANT">Consultora de Amamentacao</option>
+                        <option value="OTHER">Outro</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mensagem (opcional)</label>
+                  <textarea className="input min-h-[40px]" placeholder="Ex: Convite para acompanhar nosso bebe!" {...register('message')} />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2 border-t border-gray-200">
+                <Button type="button" variant="secondary" onClick={() => { setShowInviteModal(false); reset(); }}>Cancelar</Button>
+                <Button type="submit" isLoading={isSubmitting}>Enviar Convite</Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div className="mb-6 border-b border-gray-200">
@@ -487,125 +584,7 @@ export function BabyMembersPage() {
         )}
       </div>
 
-      {/* Invite Modal */}
-      <Modal
-        isOpen={showInviteModal}
-        onClose={() => {
-          setShowInviteModal(false);
-          reset();
-        }}
-        title="Convidar Pessoa"
-        size="lg"
-      >
-        <form onSubmit={handleSubmit(onSubmitInvite)} className="space-y-4">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="email@example.com"
-            error={errors.emailInvited?.message}
-            {...register('emailInvited')}
-          />
-
-          <Input
-            label="Nome (opcional)"
-            placeholder="Nome da pessoa"
-            {...register('invitedName')}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Membro
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['PARENT', 'FAMILY', 'PROFESSIONAL'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-                    setValue('memberType', type);
-                    if (type === 'PARENT') {
-                      setValue('role', 'OWNER_PARENT_2');
-                    } else if (type === 'FAMILY') {
-                      setValue('role', 'FAMILY_VIEWER');
-                    } else {
-                      setValue('role', 'PEDIATRICIAN');
-                    }
-                  }}
-                  className={cn(
-                    'p-3 rounded-lg border-2 transition-all text-center',
-                    selectedMemberType === type
-                      ? 'border-olive-500 bg-olive-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  )}
-                >
-                  <span className="text-sm font-medium">{memberTypeLabels[type]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Função
-            </label>
-            <select
-              className="input"
-              {...register('role')}
-            >
-              {selectedMemberType === 'PARENT' && (
-                <>
-                  <option value="OWNER_PARENT_1">Responsável Principal 1</option>
-                  <option value="OWNER_PARENT_2">Responsável Principal 2</option>
-                </>
-              )}
-              {selectedMemberType === 'FAMILY' && (
-                <>
-                  <option value="FAMILY_VIEWER">Familiar (Visualização)</option>
-                  <option value="FAMILY_EDITOR">Familiar (Edição)</option>
-                </>
-              )}
-              {selectedMemberType === 'PROFESSIONAL' && (
-                <>
-                  <option value="PEDIATRICIAN">Pediatra</option>
-                  <option value="OBGYN">Obstetra/Ginecologista</option>
-                  <option value="LACTATION_CONSULTANT">Consultora de Amamentação</option>
-                  <option value="OTHER">Outro</option>
-                </>
-              )}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mensagem (opcional)
-            </label>
-            <textarea
-              className="input min-h-[80px]"
-              placeholder="Ex: Convite para acompanhar nosso bebê!"
-              {...register('message')}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setShowInviteModal(false);
-                reset();
-              }}
-              fullWidth
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" fullWidth isLoading={isSubmitting}>
-              Enviar Convite
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Member Modal */}
+      {/* Delete Member Modal (confirmation - kept as modal) */}
       <Modal
         isOpen={showDeleteMemberModal}
         onClose={() => {

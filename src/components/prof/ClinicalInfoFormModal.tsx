@@ -1,7 +1,7 @@
 // Olive Baby Web - Formulário de Informações Clínicas (alergias, condições)
 import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { Modal, Button, Input } from '../ui';
+import { Button, Input } from '../ui';
 import { useToast } from '../ui/Toast';
 import { clinicalInfoService } from '../../services/api';
 
@@ -102,8 +102,16 @@ export function ClinicalInfoFormModal({ isOpen, onClose, babyId, initialData, on
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Informações clínicas" size="lg">
+    <div className="border border-olive-200 bg-olive-50/30 rounded-xl p-4 mb-4 animate-in slide-in-from-top duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-gray-900">Informações clínicas</h3>
+        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-200 transition">
+          <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
       <div className="space-y-6 max-h-[70vh] overflow-y-auto">
         <div>
           <div className="flex justify-between items-center mb-2">
@@ -114,24 +122,25 @@ export function ClinicalInfoFormModal({ isOpen, onClose, babyId, initialData, on
           </div>
           <div className="space-y-2">
             {allergies.map((a, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
                 <Input
                   placeholder="Substância"
                   value={a.substance}
                   onChange={(e) => updateAllergy(i, 'substance', e.target.value)}
-                  className="flex-1"
                 />
-                <Input
-                  placeholder="Reação"
-                  value={a.reaction || ''}
-                  onChange={(e) => updateAllergy(i, 'reaction', e.target.value)}
-                  className="flex-1"
-                />
-                {allergies.length > 1 && (
-                  <button type="button" onClick={() => removeAllergy(i)} className="text-red-500 p-1">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                <div className="flex gap-2 items-center">
+                  <Input
+                    placeholder="Reação"
+                    value={a.reaction || ''}
+                    onChange={(e) => updateAllergy(i, 'reaction', e.target.value)}
+                    className="flex-1"
+                  />
+                  {allergies.length > 1 && (
+                    <button type="button" onClick={() => removeAllergy(i)} className="text-red-500 p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -146,24 +155,25 @@ export function ClinicalInfoFormModal({ isOpen, onClose, babyId, initialData, on
           </div>
           <div className="space-y-2">
             {conditions.map((c, i) => (
-              <div key={i} className="flex gap-2 items-center">
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
                 <Input
                   placeholder="Condição"
                   value={c.name}
                   onChange={(e) => updateCondition(i, 'name', e.target.value)}
-                  className="flex-1"
                 />
-                <Input
-                  placeholder="Observações"
-                  value={c.notes || ''}
-                  onChange={(e) => updateCondition(i, 'notes', e.target.value)}
-                  className="flex-1"
-                />
-                {conditions.length > 1 && (
-                  <button type="button" onClick={() => removeCondition(i)} className="text-red-500 p-1">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                <div className="flex gap-2 items-center">
+                  <Input
+                    placeholder="Observações"
+                    value={c.notes || ''}
+                    onChange={(e) => updateCondition(i, 'notes', e.target.value)}
+                    className="flex-1"
+                  />
+                  {conditions.length > 1 && (
+                    <button type="button" onClick={() => removeCondition(i)} className="text-red-500 p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -196,6 +206,6 @@ export function ClinicalInfoFormModal({ isOpen, onClose, babyId, initialData, on
           <Button onClick={onSubmit} isLoading={saving}>Salvar</Button>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }

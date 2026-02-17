@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Lock, Eye, EyeOff, Shield, Stethoscope, Baby } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Stethoscope, Baby } from 'lucide-react';
 import { AuthLayout } from '../../components/layout';
 import { Button, Input } from '../../components/ui';
 import { useAuthStore } from '../../stores/authStore';
@@ -12,8 +12,8 @@ import { useToast } from '../../components/ui/Toast';
 import type { LoginFormData } from '../../types';
 
 const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(1, 'Senha é obrigatória'),
+  email: z.string().email('Email invalido'),
+  password: z.string().min(1, 'Senha e obrigatoria'),
 });
 
 export function LoginPage() {
@@ -25,7 +25,6 @@ export function LoginPage() {
 
   const PROFESSIONAL_ROLES = ['PEDIATRICIAN', 'SPECIALIST'];
 
-  // Determina redirect baseado na role do usuário (não no domínio)
   function getRedirectForRole(role: string): string {
     if (role === 'ADMIN') return '/admin';
     if (PROFESSIONAL_ROLES.includes(role)) return '/prof/dashboard';
@@ -49,7 +48,6 @@ export function LoginPage() {
         return;
       }
 
-      // Redirect inteligente baseado na role
       const fromState = (location.state as { from?: { pathname: string } })?.from?.pathname;
       const destination = fromState || getRedirectForRole(user.role);
       navigate(destination, { replace: true });
@@ -64,7 +62,7 @@ export function LoginPage() {
       title="Bem-vindo ao OlieCare"
       subtitle="Entre na sua conta para continuar"
     >
-      {/* Unified platform info */}
+      {/* Platform info - families and professionals only */}
       <div className="flex items-center justify-center gap-3 mb-6 bg-olive-50 dark:bg-olive-900/20 text-olive-800 dark:text-olive-300 border border-olive-200 dark:border-olive-700 rounded-xl px-4 py-3">
         <div className="flex -space-x-1">
           <div className="w-6 h-6 rounded-full bg-olive-500 flex items-center justify-center ring-2 ring-olive-50 dark:ring-olive-900">
@@ -73,11 +71,8 @@ export function LoginPage() {
           <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center ring-2 ring-olive-50 dark:ring-olive-900">
             <Stethoscope className="w-3 h-3 text-white" />
           </div>
-          <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center ring-2 ring-olive-50 dark:ring-olive-900">
-            <Shield className="w-3 h-3 text-white" />
-          </div>
         </div>
-        <p className="text-xs font-medium">Famílias, Profissionais e Administradores</p>
+        <p className="text-xs font-medium">Familias e Profissionais de Saude</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -130,28 +125,26 @@ export function LoginPage() {
 
         <div className="text-center">
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Não tem uma conta?{' '}
+            Nao tem uma conta?{' '}
             <Link to="/register" className="text-olive-600 hover:text-olive-700 font-medium">
               Cadastre-se
             </Link>
           </span>
         </div>
 
-        {/* Info sobre tipos de conta */}
+        {/* Platform types info - no admin reference */}
         <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-          <p className="text-center text-xs text-gray-400 dark:text-gray-500 mb-3">Você será redirecionado automaticamente para:</p>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="px-2 py-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-              <Baby className="w-4 h-4 mx-auto text-olive-500 mb-1" />
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">OlieCare</p>
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500 mb-3">Voce sera redirecionado automaticamente para:</p>
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div className="px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800">
+              <Baby className="w-5 h-5 mx-auto text-olive-500 mb-1" />
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">OlieCare</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Familias e cuidadores</p>
             </div>
-            <div className="px-2 py-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-              <Stethoscope className="w-4 h-4 mx-auto text-teal-500 mb-1" />
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Profissional</p>
-            </div>
-            <div className="px-2 py-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-              <Shield className="w-4 h-4 mx-auto text-amber-500 mb-1" />
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Admin</p>
+            <div className="px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800">
+              <Stethoscope className="w-5 h-5 mx-auto text-teal-500 mb-1" />
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Profissional</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Pediatras e especialistas</p>
             </div>
           </div>
         </div>

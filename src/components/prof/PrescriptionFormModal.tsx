@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Trash2 } from 'lucide-react';
-import { Modal, Button, Input } from '../ui';
+import { Button, Input } from '../ui';
 import { useToast } from '../ui/Toast';
 import { prescriptionService } from '../../services/api';
 import { format } from 'date-fns';
@@ -96,10 +96,18 @@ export function PrescriptionFormModal({ isOpen, onClose, babyId, visitId, onSucc
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Nova receita" size="lg">
+    <div className="border border-olive-200 bg-olive-50/30 rounded-xl p-4 mb-4 animate-in slide-in-from-top duration-200">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold text-gray-900">Nova receita</h3>
+        <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-200 transition">
+          <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
             label="Data"
             type="date"
@@ -136,7 +144,7 @@ export function PrescriptionFormModal({ isOpen, onClose, babyId, visitId, onSucc
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Input
                     label="Medicamento"
                     value={item.medication}
@@ -172,6 +180,6 @@ export function PrescriptionFormModal({ isOpen, onClose, babyId, visitId, onSucc
           <Button type="submit" isLoading={isSubmitting}>Salvar receita</Button>
         </div>
       </form>
-    </Modal>
+    </div>
   );
 }
