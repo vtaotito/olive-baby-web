@@ -1,5 +1,5 @@
-// Olive Baby Web - Vaccines Page
-import { useState, useEffect, useCallback } from 'react';
+// Olive Baby Web - Vaccines Page (UX Improved)
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Syringe,
   Calendar,
@@ -23,7 +23,6 @@ import { vaccineService, billingService } from '../../services/api';
 import { cn, formatDateBR } from '../../lib/utils';
 import { VaccineRecordModal } from './VaccineRecordModal';
 
-// Types
 interface VaccineSummary {
   total: number;
   applied: number;
@@ -58,7 +57,6 @@ interface VaccineRecord {
   daysUntil: number;
 }
 
-// Status badge component
 function StatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean }) {
   if (status === 'APPLIED') {
     return (
@@ -68,7 +66,6 @@ function StatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean
       </span>
     );
   }
-  
   if (status === 'SKIPPED') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
@@ -77,7 +74,6 @@ function StatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean
       </span>
     );
   }
-  
   if (isOverdue) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
@@ -86,7 +82,6 @@ function StatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean
       </span>
     );
   }
-  
   return (
     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
       <Clock className="w-3 h-3" />
@@ -95,137 +90,51 @@ function StatusBadge({ status, isOverdue }: { status: string; isOverdue: boolean
   );
 }
 
-// Stats cards
 function VaccineStats({ summary }: { summary: VaccineSummary }) {
   const stats = [
-    { 
-      label: 'Aplicadas', 
-      value: summary.applied, 
-      color: 'bg-green-100 text-green-700',
-      icon: Check,
-    },
-    { 
-      label: 'Pendentes', 
-      value: summary.pending, 
-      color: 'bg-amber-100 text-amber-700',
-      icon: Clock,
-    },
-    { 
-      label: 'Atrasadas', 
-      value: summary.overdue, 
-      color: 'bg-red-100 text-red-700',
-      icon: AlertTriangle,
-    },
-    { 
-      label: 'Puladas', 
-      value: summary.skipped, 
-      color: 'bg-gray-100 text-gray-600',
-      icon: SkipForward,
-    },
+    { label: 'Aplicadas', value: summary.applied, color: 'bg-green-100 text-green-700', icon: Check },
+    { label: 'Pendentes', value: summary.pending, color: 'bg-amber-100 text-amber-700', icon: Clock },
+    { label: 'Atrasadas', value: summary.overdue, color: 'bg-red-100 text-red-700', icon: AlertTriangle },
+    { label: 'Puladas', value: summary.skipped, color: 'bg-gray-100 text-gray-600', icon: SkipForward },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-4 gap-3 mb-6">
       {stats.map((stat) => (
-        <Card key={stat.label}>
-          <CardBody className="py-4 text-center">
-            <div className={cn('w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2', stat.color)}>
-              <stat.icon className="w-5 h-5" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-sm text-gray-500">{stat.label}</p>
-          </CardBody>
-        </Card>
+        <div key={stat.label} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className={cn('w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0', stat.color)}>
+            <stat.icon className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-xl font-bold text-gray-900 leading-none">{stat.value}</p>
+            <p className="text-xs text-gray-500">{stat.label}</p>
+          </div>
+        </div>
       ))}
     </div>
   );
 }
 
-// Next vaccines preview
-function NextVaccinesPreview({ vaccines, onViewTimeline }: { 
-  vaccines: VaccineSummary['nextVaccines']; 
-  onViewTimeline: () => void;
-}) {
-  if (vaccines.length === 0) return null;
-
-  return (
-    <Card className="mb-6">
-      <CardHeader 
-        title="Próximas Vacinas" 
-        action={
-          <Button variant="ghost" size="sm" onClick={onViewTimeline}>
-            Ver todas
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        }
-      />
-      <CardBody className="p-0">
-        <div className="divide-y">
-          {vaccines.map((vaccine) => (
-            <div key={vaccine.id} className="flex items-center justify-between p-4 hover:bg-gray-50">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center',
-                  vaccine.isOverdue ? 'bg-red-100' : 'bg-olive-100'
-                )}>
-                  <Syringe className={cn(
-                    'w-5 h-5',
-                    vaccine.isOverdue ? 'text-red-600' : 'text-olive-600'
-                  )} />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{vaccine.vaccineName}</p>
-                  <p className="text-sm text-gray-500">{vaccine.doseLabel}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className={cn(
-                  'text-sm font-medium',
-                  vaccine.isOverdue ? 'text-red-600' : 'text-gray-600'
-                )}>
-                  {vaccine.isOverdue 
-                    ? `${Math.abs(vaccine.daysUntil)} dias atrasada`
-                    : vaccine.daysUntil === 0 
-                      ? 'Hoje'
-                      : `Em ${vaccine.daysUntil} dias`
-                  }
-                </p>
-                <p className="text-xs text-gray-400">
-                  {formatDateBR(new Date(vaccine.recommendedAt))}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
-  );
-}
-
-// Premium preview (para usuários Free)
 function PremiumPreview({ onUpgrade }: { onUpgrade: () => void }) {
   const mockVaccines = [
-    { name: 'BCG', dose: 'dose única', date: 'Ao nascer', status: 'applied' },
-    { name: 'Hepatite B', dose: '1ª dose', date: 'Ao nascer', status: 'applied' },
-    { name: 'Pentavalente', dose: '1ª dose', date: '2 meses', status: 'pending' },
-    { name: 'VIP (Poliomielite)', dose: '1ª dose', date: '2 meses', status: 'pending' },
-    { name: 'Pneumocócica 10v', dose: '1ª dose', date: '2 meses', status: 'pending' },
+    { name: 'BCG', dose: 'dose unica', date: 'Ao nascer', status: 'applied' },
+    { name: 'Hepatite B', dose: '1a dose', date: 'Ao nascer', status: 'applied' },
+    { name: 'Pentavalente', dose: '1a dose', date: '2 meses', status: 'pending' },
+    { name: 'VIP (Poliomielite)', dose: '1a dose', date: '2 meses', status: 'pending' },
+    { name: 'Pneumococica 10v', dose: '1a dose', date: '2 meses', status: 'pending' },
   ];
 
   return (
     <div className="relative">
-      {/* Overlay blur */}
       <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
         <div className="text-center p-8 max-w-md">
           <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
             <Crown className="w-8 h-8 text-white" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Recurso Premium
-          </h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Recurso Premium</h3>
           <p className="text-gray-600 mb-4">
-            O Calendário de Vacinas é exclusivo para assinantes Premium. 
-            Acompanhe todas as vacinas do seu bebê com lembretes e histórico completo.
+            O Calendario de Vacinas e exclusivo para assinantes Premium.
+            Acompanhe todas as vacinas do seu bebe com lembretes e historico completo.
           </p>
           <Button
             onClick={onUpgrade}
@@ -236,10 +145,8 @@ function PremiumPreview({ onUpgrade }: { onUpgrade: () => void }) {
           </Button>
         </div>
       </div>
-
-      {/* Preview content */}
       <Card className="opacity-50">
-        <CardHeader title="Calendário de Vacinas (Preview)" />
+        <CardHeader title="Calendario de Vacinas (Preview)" />
         <CardBody className="p-0">
           <div className="divide-y">
             {mockVaccines.map((vaccine, index) => (
@@ -256,9 +163,7 @@ function PremiumPreview({ onUpgrade }: { onUpgrade: () => void }) {
                 <div className="text-right">
                   <span className={cn(
                     'px-2 py-1 rounded-full text-xs font-medium',
-                    vaccine.status === 'applied' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-amber-100 text-amber-700'
+                    vaccine.status === 'applied' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                   )}>
                     {vaccine.status === 'applied' ? 'Aplicada' : 'Pendente'}
                   </span>
@@ -273,57 +178,54 @@ function PremiumPreview({ onUpgrade }: { onUpgrade: () => void }) {
   );
 }
 
-// Main component
 export function VaccinesPage() {
   const { selectedBaby } = useBabyStore();
   const { can, isPremium } = useEntitlements();
   const { success, error: showError } = useToast();
-  
+
   const [summary, setSummary] = useState<VaccineSummary | null>(null);
   const [timeline, setTimeline] = useState<VaccineRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [disclaimer, setDisclaimer] = useState<string | null>(null);
-  
-  // Modals
+
   const [selectedRecord, setSelectedRecord] = useState<VaccineRecord | null>(null);
-  const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const [isRecordFormOpen, setIsRecordFormOpen] = useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
-  
-  // Filter
+
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPLIED' | 'SKIPPED' | 'OVERDUE'>('ALL');
 
-  // Check if user can access vaccines
+  // Ref for auto-scrolling to the form
+  const formRef = useRef<HTMLDivElement>(null);
+
   const canAccessVaccines = can('vaccines');
 
-  // Load data
+  const scrollToForm = () => {
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
   const loadData = useCallback(async () => {
     if (!selectedBaby || !canAccessVaccines) {
       setIsLoading(false);
       return;
     }
-    
     setIsLoading(true);
     try {
       const [summaryRes, timelineRes] = await Promise.all([
         vaccineService.getSummary(selectedBaby.id),
         vaccineService.getTimeline(selectedBaby.id),
       ]);
-      
       if (summaryRes.success) {
         setSummary(summaryRes.data);
         setDisclaimer(summaryRes.disclaimer);
       }
-      
       if (timelineRes.success) {
         setTimeline(timelineRes.data);
       }
     } catch (err: any) {
-      // Check if it's a premium required error
-      if (err.response?.data?.extra?.errorCode === 'PLAN_UPGRADE_REQUIRED') {
-        // Don't show error, just show paywall
-        return;
-      }
+      if (err.response?.data?.extra?.errorCode === 'PLAN_UPGRADE_REQUIRED') return;
       showError('Erro', err.response?.data?.message || 'Falha ao carregar vacinas');
     } finally {
       setIsLoading(false);
@@ -334,10 +236,8 @@ export function VaccinesPage() {
     loadData();
   }, [loadData]);
 
-  // Sync vaccines
   const handleSync = async () => {
     if (!selectedBaby) return;
-    
     setIsSyncing(true);
     try {
       const response = await vaccineService.syncVaccines(selectedBaby.id);
@@ -352,7 +252,6 @@ export function VaccinesPage() {
     }
   };
 
-  // Handle upgrade
   const handleUpgrade = async () => {
     try {
       const response = await billingService.createCheckoutSession('PREMIUM', 'monthly');
@@ -360,17 +259,16 @@ export function VaccinesPage() {
         window.location.href = response.data.url;
       }
     } catch (err: any) {
-      // If user already has active subscription, redirect to portal
-      if (err.response?.status === 409 || err.response?.data?.message?.includes('já possui uma assinatura ativa')) {
+      if (err.response?.status === 409 || err.response?.data?.message?.includes('ja possui uma assinatura ativa')) {
         try {
           const portalResponse = await billingService.createPortalSession();
           if (portalResponse.success && portalResponse.data?.url) {
             window.location.href = portalResponse.data.url;
           } else {
-            showError('Erro', 'Você já possui uma assinatura ativa. Use o portal para gerenciar.');
+            showError('Erro', 'Voce ja possui uma assinatura ativa. Use o portal para gerenciar.');
           }
         } catch (portalErr: any) {
-          showError('Erro', 'Você já possui uma assinatura ativa. Use o portal para gerenciar.');
+          showError('Erro', 'Voce ja possui uma assinatura ativa. Use o portal para gerenciar.');
         }
       } else {
         showError('Erro', err.response?.data?.message || 'Falha ao iniciar checkout');
@@ -378,44 +276,45 @@ export function VaccinesPage() {
     }
   };
 
-  // Handle record click
   const handleRecordClick = (record: VaccineRecord) => {
     setSelectedRecord(record);
-    setIsRecordModalOpen(true);
+    setIsRecordFormOpen(true);
+    scrollToForm();
   };
 
-  // Handle modal close
-  const handleModalClose = () => {
-    setIsRecordModalOpen(false);
+  const handleOpenCreateForm = () => {
+    setSelectedRecord(null);
+    setIsRecordFormOpen(true);
+    scrollToForm();
+  };
+
+  const handleFormClose = () => {
+    setIsRecordFormOpen(false);
     setSelectedRecord(null);
   };
 
-  // Handle record update
   const handleRecordUpdate = () => {
     loadData();
-    handleModalClose();
+    handleFormClose();
   };
 
-  // Filter timeline
   const filteredTimeline = timeline.filter(record => {
     if (statusFilter === 'ALL') return true;
     if (statusFilter === 'OVERDUE') return record.status === 'PENDING' && record.isOverdue;
     return record.status === statusFilter;
   });
 
-  // No baby selected
   if (!selectedBaby) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <Syringe className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Selecione um bebê primeiro</p>
+          <p className="text-gray-500">Selecione um bebe primeiro</p>
         </div>
       </DashboardLayout>
     );
   }
 
-  // Not premium - show preview
   if (!canAccessVaccines) {
     return (
       <DashboardLayout>
@@ -423,13 +322,10 @@ export function VaccinesPage() {
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Syringe className="w-7 h-7 text-olive-600" />
             Vacinas
-            <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-              Premium
-            </span>
+            <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Premium</span>
           </h1>
           <p className="text-gray-500">{selectedBaby.name}</p>
         </div>
-        
         <PremiumPreview onUpgrade={handleUpgrade} />
       </DashboardLayout>
     );
@@ -447,19 +343,16 @@ export function VaccinesPage() {
           <p className="text-gray-500">{selectedBaby.name}</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleSync}
             isLoading={isSyncing}
             leftIcon={<RefreshCw className="w-4 h-4" />}
           >
             Sincronizar
           </Button>
-          <Button 
-            onClick={() => {
-              setSelectedRecord(null);
-              setIsRecordModalOpen(true);
-            }}
+          <Button
+            onClick={handleOpenCreateForm}
             leftIcon={<Plus className="w-4 h-4" />}
           >
             Registrar
@@ -476,33 +369,27 @@ export function VaccinesPage() {
           {/* Stats */}
           {summary && <VaccineStats summary={summary} />}
 
-          {/* Next vaccines */}
-          {summary && summary.nextVaccines.length > 0 && (
-            <NextVaccinesPreview 
-              vaccines={summary.nextVaccines} 
-              onViewTimeline={() => setStatusFilter('PENDING')}
-            />
-          )}
-
           {/* Disclaimer */}
           {disclaimer && (
-            <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-lg mb-6">
-              <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800">{disclaimer}</p>
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-lg mb-4 text-sm">
+              <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-amber-800">{disclaimer}</p>
             </div>
           )}
 
-          {/* Vaccine Record Inline Form */}
-          <VaccineRecordModal
-            isOpen={isRecordModalOpen}
-            onClose={handleModalClose}
-            record={selectedRecord}
-            babyId={selectedBaby.id}
-            onSuccess={handleRecordUpdate}
-          />
+          {/* Inline Form - scroll target */}
+          <div ref={formRef}>
+            <VaccineRecordModal
+              isOpen={isRecordFormOpen}
+              onClose={handleFormClose}
+              record={selectedRecord}
+              babyId={selectedBaby.id}
+              onSuccess={handleRecordUpdate}
+            />
+          </div>
 
           {/* Filter tabs */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
             {[
               { key: 'ALL', label: 'Todas', count: timeline.length },
               { key: 'PENDING', label: 'Pendentes', count: timeline.filter(r => r.status === 'PENDING' && !r.isOverdue).length },
@@ -525,17 +412,17 @@ export function VaccinesPage() {
             ))}
           </div>
 
-          {/* Timeline */}
+          {/* Vaccine Calendar */}
           <Card>
-            <CardHeader title="Calendário de Vacinas" />
+            <CardHeader title="Calendario de Vacinas" subtitle={`${filteredTimeline.length} registro(s)`} />
             <CardBody className="p-0">
               {filteredTimeline.length === 0 ? (
                 <div className="text-center py-8">
                   <Syringe className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">Nenhuma vacina encontrada</p>
                   <p className="text-sm text-gray-400">
-                    {timeline.length === 0 
-                      ? 'Clique em "Sincronizar" para carregar o calendário'
+                    {timeline.length === 0
+                      ? 'Clique em "Sincronizar" para carregar o calendario'
                       : 'Nenhuma vacina com este filtro'
                     }
                   </p>
@@ -543,9 +430,14 @@ export function VaccinesPage() {
               ) : (
                 <div className="divide-y">
                   {filteredTimeline.map((record) => (
-                    <div 
-                      key={record.id} 
-                      className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                    <div
+                      key={record.id}
+                      className={cn(
+                        'flex items-center justify-between p-4 cursor-pointer transition-colors',
+                        selectedRecord?.id === record.id && isRecordFormOpen
+                          ? 'bg-olive-50 border-l-4 border-olive-500'
+                          : 'hover:bg-gray-50'
+                      )}
                       onClick={() => handleRecordClick(record)}
                     >
                       <div className="flex items-center gap-4">
@@ -574,7 +466,7 @@ export function VaccinesPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <StatusBadge status={record.status} isOverdue={record.isOverdue} />
-                        <div className="text-right">
+                        <div className="text-right hidden sm:block">
                           <p className="text-sm text-gray-500">
                             {formatDateBR(new Date(record.recommendedAt))}
                           </p>
@@ -583,9 +475,9 @@ export function VaccinesPage() {
                               'text-xs',
                               record.isOverdue ? 'text-red-500' : 'text-gray-400'
                             )}>
-                              {record.isOverdue 
+                              {record.isOverdue
                                 ? `${Math.abs(record.daysUntil)} dias atrasada`
-                                : record.daysUntil === 0 
+                                : record.daysUntil === 0
                                   ? 'Hoje'
                                   : `Em ${record.daysUntil} dias`
                               }
@@ -603,7 +495,6 @@ export function VaccinesPage() {
         </>
       )}
 
-      {/* Paywall Modal */}
       <PaywallModal
         isOpen={isPaywallOpen}
         onClose={() => setIsPaywallOpen(false)}
