@@ -50,7 +50,8 @@ const adminNavSections = [
   {
     title: 'Operação',
     items: [
-      { path: '/admin/users', icon: Users, label: 'Usuários & Bebês' },
+      { path: '/admin/users', icon: Users, label: 'Usuários' },
+      { path: '/admin/babies', icon: Baby, label: 'Bebês' },
       { path: '/admin/usage', icon: Activity, label: 'Uso & Qualidade' },
     ],
   },
