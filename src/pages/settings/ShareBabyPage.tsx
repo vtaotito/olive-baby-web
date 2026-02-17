@@ -203,11 +203,19 @@ export function ShareBabyPage() {
 
   // Handlers - Family
   const onSubmitFamilyInvite = async (data: FamilyInviteFormData) => {
-    if (!currentBaby) return;
+    if (!currentBaby) {
+      showError('Erro', 'Nenhum bebê selecionado');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const response = await babyInviteService.createInvite(currentBaby.id, data);
-      success('Convite enviado!', `Email enviado para ${data.emailInvited}`);
+      const emailSent = response.data?.emailSent !== false;
+      if (emailSent) {
+        success('Convite enviado!', `Email de convite enviado para ${data.emailInvited}`);
+      } else {
+        info('Convite criado!', 'O email não pôde ser enviado, mas o link de convite foi copiado.');
+      }
       setShowFamilyForm(false);
       familyForm.reset({ memberType: 'FAMILY', role: 'FAMILY_VIEWER' });
       loadData();
@@ -215,7 +223,8 @@ export function ShareBabyPage() {
         handleCopyInviteLink(response.data.token);
       }
     } catch (err: any) {
-      showError('Erro ao enviar convite', err.response?.data?.message || 'Tente novamente');
+      const msg = err.response?.data?.message || err.message || 'Erro desconhecido. Tente novamente.';
+      showError('Erro ao enviar convite', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -398,7 +407,20 @@ export function ShareBabyPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">A pessoa receberá um email para aceitar o convite.</p>
                   </CardHeader>
                   <CardBody>
-                    <form onSubmit={familyForm.handleSubmit(onSubmitFamilyInvite)} className="space-y-4">
+                    <form onSubmit={familyForm.handleSubmit(onSubmitFamilyInvite, (errors) => {
+                      const errorMessages = Object.values(errors).map(e => e?.message).filter(Boolean);
+                      if (errorMessages.length > 0) {
+                        showError('Preencha os campos obrigatórios', errorMessages.join(', '));
+                      }
+                    })} className="space-y-4">
+                      {Object.keys(familyForm.formState.errors).length > 0 && (
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          <p className="text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+                            <AlertTriangle className="w-4 h-4" />
+                            Corrija os erros abaixo para enviar o convite
+                          </p>
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nome *</label>
