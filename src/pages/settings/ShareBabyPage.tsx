@@ -1,7 +1,4 @@
-// Olive Baby Web - Share Baby Page (Compartilhar Bebê)
-// Painel unificado para gerenciar convites de Família/Cuidadores e Profissionais
-// Formulários inline (sem modais)
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +6,6 @@ import { z } from 'zod';
 import {
   Users,
   UserPlus,
-  Mail,
   Shield,
   RefreshCw,
   Trash2,
@@ -22,14 +18,24 @@ import {
   Stethoscope,
   Copy,
   AlertTriangle,
-  ChevronUp,
   Phone,
   MessageSquare,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  Heart,
+  Inbox,
+  ArrowRight,
+  Check,
+  X,
+  UserCheck,
+  Link2,
 } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
-import { Card, CardBody, CardHeader, Button, Input } from '../../components/ui';
+import { Card, CardBody, CardHeader, Button } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { useBabyStore } from '../../stores/babyStore';
+import { useAuthStore } from '../../stores/authStore';
 import { babyMemberService, babyInviteService, professionalService } from '../../services/api';
 import { cn, formatDateBR } from '../../lib/utils';
 
@@ -59,6 +65,24 @@ interface BabyInvite {
   acceptedAt?: string;
 }
 
+interface ReceivedInvite {
+  id: number;
+  inviteType: 'FAMILY' | 'PROFESSIONAL';
+  babyId: number | null;
+  babyName: string;
+  babyBirthDate: string | null;
+  memberType: string;
+  role: string;
+  invitedName: string;
+  message: string | null;
+  inviterEmail: string | null;
+  inviterName: string;
+  expiresAt: string;
+  createdAt: string;
+  specialty?: string;
+  allBabies?: { id: number; name: string; role: string }[];
+}
+
 interface Professional {
   id: number;
   role: string;
@@ -79,8 +103,8 @@ interface Professional {
 
 // ====== Constants ======
 const roleLabels: Record<string, string> = {
-  OWNER_PARENT_1: 'Responsável Principal 1',
-  OWNER_PARENT_2: 'Responsável Principal 2',
+  OWNER_PARENT_1: 'Responsável Principal',
+  OWNER_PARENT_2: 'Responsável Principal',
   FAMILY_VIEWER: 'Familiar (Visualização)',
   FAMILY_EDITOR: 'Familiar (Edição)',
   PEDIATRICIAN: 'Pediatra',
@@ -89,14 +113,10 @@ const roleLabels: Record<string, string> = {
   OTHER: 'Outro',
 };
 
-const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  ACTIVE: { label: 'Ativo', color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle2 },
-  PENDING: { label: 'Pendente', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
-  INVITED: { label: 'Convidado', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: Send },
-  REVOKED: { label: 'Revogado', color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle },
-  ACCEPTED: { label: 'Aceito', color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle2 },
-  EXPIRED: { label: 'Expirado', color: 'bg-gray-100 text-gray-600 border-gray-200', icon: AlertTriangle },
-  BLOCKED: { label: 'Bloqueado', color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle },
+const memberTypeLabels: Record<string, string> = {
+  PARENT: 'Responsável',
+  FAMILY: 'Familiar',
+  PROFESSIONAL: 'Profissional',
 };
 
 // ====== Validation Schemas ======
@@ -122,15 +142,30 @@ const professionalInviteSchema = z.object({
 type FamilyInviteFormData = z.infer<typeof familyInviteSchema>;
 type ProfessionalInviteFormData = z.infer<typeof professionalInviteSchema>;
 
-function StatusBadge({ status }: { status: string }) {
-  const config = statusConfig[status] || statusConfig.PENDING;
-  const Icon = config.icon;
+// ====== Sub Components ======
+
+function EmptyState({ icon: Icon, title, description }: { icon: typeof Users; title: string; description: string }) {
   return (
-    <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1 border', config.color)}>
-      <Icon className="w-3 h-3" />
-      {config.label}
-    </span>
+    <div className="text-center py-8">
+      <div className="w-14 h-14 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <Icon className="w-7 h-7 text-gray-400 dark:text-gray-500" />
+      </div>
+      <p className="text-gray-600 dark:text-gray-300 font-medium mb-1">{title}</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500">{description}</p>
+    </div>
   );
+}
+
+function TimeRemaining({ expiresAt }: { expiresAt: string }) {
+  const expires = new Date(expiresAt);
+  const now = new Date();
+  const diff = expires.getTime() - now.getTime();
+  if (diff <= 0) return <span className="text-red-500 text-xs font-medium">Expirado</span>;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+  if (days > 1) return <span className="text-gray-400 text-xs">Expira em {days} dias</span>;
+  if (hours > 1) return <span className="text-amber-500 text-xs font-medium">Expira em {hours}h</span>;
+  return <span className="text-red-500 text-xs font-medium">Expira em breve</span>;
 }
 
 // ====== Main Component ======
@@ -138,26 +173,29 @@ export function ShareBabyPage() {
   const { babyId } = useParams<{ babyId: string }>();
   const navigate = useNavigate();
   const { babies, selectedBaby } = useBabyStore();
-  const { success, error: showError, info } = useToast();
+  const { user } = useAuthStore();
+  const { success, error: showError, info, warning } = useToast();
+  const formRef = useRef<HTMLDivElement>(null);
 
   const currentBaby = babyId
     ? babies.find(b => b.id === parseInt(babyId)) || selectedBaby
     : selectedBaby;
 
   // State
-  const [activeTab, setActiveTab] = useState<'family' | 'professional'>('family');
   const [members, setMembers] = useState<BabyMember[]>([]);
   const [invites, setInvites] = useState<BabyInvite[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [receivedInvites, setReceivedInvites] = useState<ReceivedInvite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [processingInviteId, setProcessingInviteId] = useState<number | null>(null);
 
   // Inline forms
-  const [showFamilyForm, setShowFamilyForm] = useState(false);
-  const [showProfForm, setShowProfForm] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteFormType, setInviteFormType] = useState<'family' | 'professional'>('family');
 
-  // Confirm actions
-  const [confirmRevoke, setConfirmRevoke] = useState<{ type: 'member' | 'invite' | 'prof'; id: number; name: string } | null>(null);
+  // Confirm revoke
+  const [confirmAction, setConfirmAction] = useState<{ type: 'member' | 'invite' | 'prof'; id: number; name: string } | null>(null);
 
   // Forms
   const familyForm = useForm<FamilyInviteFormData>({
@@ -174,7 +212,7 @@ export function ShareBabyPage() {
 
   // Effects
   useEffect(() => {
-    if (currentBaby) loadData();
+    loadData();
   }, [currentBaby?.id]);
 
   useEffect(() => {
@@ -183,17 +221,24 @@ export function ShareBabyPage() {
 
   // Data loading
   const loadData = async () => {
-    if (!currentBaby) return;
     setIsLoading(true);
     try {
-      const [membersRes, invitesRes, professionalsRes] = await Promise.all([
-        babyMemberService.listMembers(currentBaby.id),
-        babyInviteService.listInvites(currentBaby.id),
-        professionalService.getByBaby(currentBaby.id),
+      const [receivedRes, ...babyResults] = await Promise.all([
+        babyInviteService.getPendingInvites().catch(() => ({ data: [] })),
+        ...(currentBaby ? [
+          babyMemberService.listMembers(currentBaby.id),
+          babyInviteService.listInvites(currentBaby.id),
+          professionalService.getByBaby(currentBaby.id),
+        ] : []),
       ]);
-      setMembers(membersRes.data || []);
-      setInvites(invitesRes.data || []);
-      setProfessionals(professionalsRes.data || []);
+
+      setReceivedInvites(receivedRes.data || []);
+
+      if (currentBaby && babyResults.length === 3) {
+        setMembers(babyResults[0].data || []);
+        setInvites(babyResults[1].data || []);
+        setProfessionals(babyResults[2].data || []);
+      }
     } catch {
       showError('Erro ao carregar dados', 'Tente novamente em alguns segundos');
     } finally {
@@ -201,54 +246,67 @@ export function ShareBabyPage() {
     }
   };
 
-  // Handlers - Family
-  const onSubmitFamilyInvite = async (data: FamilyInviteFormData) => {
-    if (!currentBaby) {
-      showError('Erro', 'Nenhum bebê selecionado');
-      return;
+  const scrollToForm = () => {
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  };
+
+  // ====== Handlers - Received Invites ======
+  const handleAcceptInvite = async (invite: ReceivedInvite) => {
+    setProcessingInviteId(invite.id);
+    try {
+      await babyInviteService.acceptInviteById(invite.id, invite.inviteType);
+      success('Convite aceito!', `Agora você tem acesso a ${invite.babyName}`);
+      loadData();
+    } catch (err: any) {
+      showError('Erro ao aceitar', err.response?.data?.message || 'Tente novamente');
+    } finally {
+      setProcessingInviteId(null);
     }
+  };
+
+  const handleRejectInvite = async (invite: ReceivedInvite) => {
+    setProcessingInviteId(invite.id);
+    try {
+      await babyInviteService.rejectInvite(invite.id, invite.inviteType);
+      info('Convite recusado', `Convite de ${invite.inviterName} foi recusado`);
+      loadData();
+    } catch (err: any) {
+      showError('Erro ao recusar', err.response?.data?.message || 'Tente novamente');
+    } finally {
+      setProcessingInviteId(null);
+    }
+  };
+
+  // ====== Handlers - Send Invites ======
+  const onSubmitFamilyInvite = async (data: FamilyInviteFormData) => {
+    if (!currentBaby) { showError('Erro', 'Selecione um bebê primeiro'); return; }
     setIsSubmitting(true);
     try {
       const response = await babyInviteService.createInvite(currentBaby.id, data);
       const emailSent = response.data?.emailSent !== false;
       if (emailSent) {
-        success('Convite enviado!', `Email de convite enviado para ${data.emailInvited}`);
+        success('Convite enviado!', `Email enviado para ${data.emailInvited}`);
       } else {
-        info('Convite criado!', 'O email não pôde ser enviado, mas o link de convite foi copiado.');
+        warning('Convite criado', 'Email não enviado. Use o link para compartilhar.');
       }
-      setShowFamilyForm(false);
+      setShowInviteForm(false);
       familyForm.reset({ memberType: 'FAMILY', role: 'FAMILY_VIEWER' });
       loadData();
-      if (response.data?.token) {
-        handleCopyInviteLink(response.data.token);
-      }
+      if (response.data?.token) handleCopyLink(response.data.token);
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Erro desconhecido. Tente novamente.';
-      showError('Erro ao enviar convite', msg);
+      showError('Erro ao enviar convite', err.response?.data?.message || 'Tente novamente');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResendFamilyInvite = async (invite: BabyInvite) => {
-    if (!currentBaby) return;
-    try {
-      await babyInviteService.resendInvite(currentBaby.id, invite.id);
-      success('Convite reenviado!', `Novo email enviado para ${invite.emailInvited}`);
-      loadData();
-    } catch (err: any) {
-      showError('Erro ao reenviar', err.response?.data?.message || 'Tente novamente');
-    }
-  };
-
-  // Handlers - Professional
   const onSubmitProfInvite = async (data: ProfessionalInviteFormData) => {
-    if (!currentBaby) return;
+    if (!currentBaby) { showError('Erro', 'Selecione um bebê primeiro'); return; }
     setIsSubmitting(true);
     try {
       await professionalService.invite(currentBaby.id, data);
       success('Convite enviado!', `Email enviado para ${data.email}`);
-      setShowProfForm(false);
+      setShowInviteForm(false);
       profForm.reset({ role: 'PEDIATRICIAN' });
       loadData();
     } catch (err: any) {
@@ -258,31 +316,43 @@ export function ShareBabyPage() {
     }
   };
 
-  const handleResendProfInvite = async (prof: Professional) => {
+  // ====== Handlers - Resend ======
+  const handleResendInvite = async (invite: BabyInvite) => {
     if (!currentBaby) return;
     try {
-      await professionalService.resendInvite(currentBaby.id, prof.professional.id);
-      success('Convite reenviado!', `Novo email enviado para ${prof.professional.email}`);
+      await babyInviteService.resendInvite(currentBaby.id, invite.id);
+      success('Reenviado!', `Novo email enviado para ${invite.emailInvited}`);
       loadData();
     } catch (err: any) {
       showError('Erro ao reenviar', err.response?.data?.message || 'Tente novamente');
     }
   };
 
-  // Handlers - Revoke/Remove
-  const executeRevoke = async () => {
-    if (!currentBaby || !confirmRevoke) return;
+  const handleResendProfInvite = async (prof: Professional) => {
+    if (!currentBaby) return;
+    try {
+      await professionalService.resendInvite(currentBaby.id, prof.professional.id);
+      success('Reenviado!', `Novo email enviado para ${prof.professional.email}`);
+      loadData();
+    } catch (err: any) {
+      showError('Erro ao reenviar', err.response?.data?.message || 'Tente novamente');
+    }
+  };
+
+  // ====== Handlers - Revoke ======
+  const executeConfirmAction = async () => {
+    if (!currentBaby || !confirmAction) return;
     setIsSubmitting(true);
     try {
-      if (confirmRevoke.type === 'member') {
-        await babyMemberService.revokeMember(currentBaby.id, confirmRevoke.id);
-      } else if (confirmRevoke.type === 'invite') {
-        await babyInviteService.revokeInvite(currentBaby.id, confirmRevoke.id);
+      if (confirmAction.type === 'member') {
+        await babyMemberService.revokeMember(currentBaby.id, confirmAction.id);
+      } else if (confirmAction.type === 'invite') {
+        await babyInviteService.revokeInvite(currentBaby.id, confirmAction.id);
       } else {
-        await professionalService.remove(currentBaby.id, confirmRevoke.id);
+        await professionalService.remove(currentBaby.id, confirmAction.id);
       }
-      success('Removido', 'Ação realizada com sucesso');
-      setConfirmRevoke(null);
+      success('Removido com sucesso');
+      setConfirmAction(null);
       loadData();
     } catch (err: any) {
       showError('Erro', err.response?.data?.message || 'Tente novamente');
@@ -291,8 +361,8 @@ export function ShareBabyPage() {
     }
   };
 
-  // Utility
-  const handleCopyInviteLink = async (token: string) => {
+  // ====== Utility ======
+  const handleCopyLink = async (token: string) => {
     const inviteUrl = `${window.location.origin}/invite/accept?token=${token}`;
     try {
       await navigator.clipboard.writeText(inviteUrl);
@@ -302,25 +372,33 @@ export function ShareBabyPage() {
     }
   };
 
-  const isOwner = (role: string) => role === 'OWNER_PARENT_1' || role === 'OWNER_PARENT_2';
+  const openInviteForm = (type: 'family' | 'professional') => {
+    setInviteFormType(type);
+    setShowInviteForm(true);
+    scrollToForm();
+  };
 
-  // Derived Data
-  const familyMembers = members.filter(m => m.memberType !== 'PROFESSIONAL');
-  const familyInvites = invites.filter(i => i.memberType !== 'PROFESSIONAL');
-  const pendingFamilyInvites = familyInvites.filter(i => i.status === 'PENDING');
+  // ====== Derived Data ======
+  const isOwnerRole = (role: string) => role === 'OWNER_PARENT_1' || role === 'OWNER_PARENT_2';
+  const activeMembers = members.filter(m => m.status === 'ACTIVE');
+  const pendingFamilyInvites = invites.filter(i => i.status === 'PENDING' && i.memberType !== 'PROFESSIONAL');
+  const pendingProfInvites = professionals.filter(p => ['PENDING', 'INVITED'].includes(p.professional.status));
   const activeProfessionals = professionals.filter(p => p.professional.status === 'ACTIVE');
-  const pendingProfessionals = professionals.filter(p => p.professional.status !== 'ACTIVE');
+  const allPendingSent = [...pendingFamilyInvites.map(i => ({ ...i, _type: 'family' as const })), ...pendingProfInvites.map(p => ({ ...p, _type: 'prof' as const }))];
 
-  if (!currentBaby) {
+  // ====== No Baby Selected ======
+  if (!currentBaby && receivedInvites.length === 0) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-16 h-16 bg-olive-100 rounded-full flex items-center justify-center mb-4">
-            <Baby className="w-8 h-8 text-olive-600" />
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="w-20 h-20 bg-olive-100 dark:bg-olive-900/30 rounded-3xl flex items-center justify-center mb-5">
+            <Baby className="w-10 h-10 text-olive-600" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Selecione um bebê</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Escolha um bebê para gerenciar compartilhamentos</p>
-          <Button onClick={() => navigate('/settings/babies')}>Ver Bebês</Button>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Selecione um bebê</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6 text-center max-w-sm">
+            Escolha um bebê para gerenciar compartilhamentos e convites
+          </p>
+          <Button onClick={() => navigate('/settings/babies')}>Ver meus bebês</Button>
         </div>
       </DashboardLayout>
     );
@@ -328,492 +406,569 @@ export function ShareBabyPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 bg-gradient-to-br from-olive-400 to-olive-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Users className="w-6 h-6 text-white" />
+      <div className="max-w-3xl mx-auto space-y-6">
+
+        {/* ====== Header ====== */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-olive-400 to-olive-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {currentBaby ? `Equipe de ${currentBaby.name}` : 'Convites'}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {currentBaby ? 'Gerencie quem pode acompanhar seu bebê' : 'Veja convites que você recebeu'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Compartilhar {currentBaby.name}</h1>
-            <p className="text-gray-500 dark:text-gray-400">Gerencie quem pode ver e cuidar do seu bebê</p>
+          {currentBaby && !showInviteForm && (
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => openInviteForm('family')} leftIcon={<UserPlus className="w-4 h-4" />}>
+                Convidar
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => openInviteForm('professional')} leftIcon={<Stethoscope className="w-4 h-4" />}>
+                Profissional
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="flex flex-col items-center gap-3">
+              <RefreshCw className="w-8 h-8 text-olive-600 animate-spin" />
+              <p className="text-sm text-gray-500">Carregando...</p>
+            </div>
           </div>
-        </div>
-      </div>
+        ) : (
+          <>
+            {/* ====== SECTION: Received Invites ====== */}
+            {receivedInvites.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <Inbox className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Convites Recebidos
+                  </h2>
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                    {receivedInvites.length}
+                  </span>
+                </div>
 
-      {/* Tabs */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl w-fit">
-          <button
-            onClick={() => setActiveTab('family')}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all',
-              activeTab === 'family' ? 'bg-white dark:bg-gray-700 text-olive-700 dark:text-olive-300 shadow-sm' : 'text-gray-600 dark:text-gray-400'
-            )}
-          >
-            <Users className="w-4 h-4" />
-            Família / Cuidador
-            {pendingFamilyInvites.length > 0 && (
-              <span className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-full">{pendingFamilyInvites.length}</span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('professional')}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all',
-              activeTab === 'professional' ? 'bg-white dark:bg-gray-700 text-olive-700 dark:text-olive-300 shadow-sm' : 'text-gray-600 dark:text-gray-400'
-            )}
-          >
-            <Stethoscope className="w-4 h-4" />
-            Profissional
-            {pendingProfessionals.length > 0 && (
-              <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">{pendingProfessionals.length}</span>
-            )}
-          </button>
-        </div>
+                {receivedInvites.map((invite) => {
+                  const isProcessing = processingInviteId === invite.id;
+                  return (
+                    <Card key={`received-${invite.inviteType}-${invite.id}`} className="border-blue-200 dark:border-blue-800/50 bg-gradient-to-r from-blue-50/50 to-white dark:from-blue-900/10 dark:to-gray-800">
+                      <CardBody className="p-4 sm:p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className={cn(
+                              'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0',
+                              invite.inviteType === 'PROFESSIONAL'
+                                ? 'bg-teal-100 dark:bg-teal-900/30'
+                                : 'bg-blue-100 dark:bg-blue-900/30'
+                            )}>
+                              {invite.inviteType === 'PROFESSIONAL'
+                                ? <Stethoscope className="w-5 h-5 text-teal-600" />
+                                : <Heart className="w-5 h-5 text-blue-600" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <span className="font-semibold text-gray-900 dark:text-white truncate">
+                                  {invite.babyName}
+                                </span>
+                                <span className={cn(
+                                  'px-2 py-0.5 rounded-full text-xs font-medium',
+                                  invite.inviteType === 'PROFESSIONAL'
+                                    ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                )}>
+                                  {memberTypeLabels[invite.memberType] || invite.memberType}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Convite de <strong>{invite.inviterName}</strong>
+                              </p>
+                              {invite.message && (
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 italic">"{invite.message}"</p>
+                              )}
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-xs text-gray-400">{roleLabels[invite.role] || invite.role}</span>
+                                <TimeRemaining expiresAt={invite.expiresAt} />
+                              </div>
+                            </div>
+                          </div>
 
-        <Button
-          onClick={() => activeTab === 'family' ? setShowFamilyForm(!showFamilyForm) : setShowProfForm(!showProfForm)}
-          leftIcon={activeTab === 'family'
-            ? (showFamilyForm ? <ChevronUp className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />)
-            : (showProfForm ? <ChevronUp className="w-4 h-4" /> : <Stethoscope className="w-4 h-4" />)
-          }
-          className="shrink-0"
-        >
-          {activeTab === 'family'
-            ? (showFamilyForm ? 'Fechar' : 'Convidar Familiar')
-            : (showProfForm ? 'Fechar' : 'Convidar Profissional')
-          }
-        </Button>
-      </div>
+                          <div className="flex items-center gap-2 sm:flex-shrink-0">
+                            <Button
+                              size="sm"
+                              onClick={() => handleAcceptInvite(invite)}
+                              disabled={isProcessing}
+                              leftIcon={isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                              className="flex-1 sm:flex-none"
+                            >
+                              Aceitar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRejectInvite(invite)}
+                              disabled={isProcessing}
+                              className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex-1 sm:flex-none"
+                            >
+                              <X className="w-4 h-4" />
+                              <span className="sm:hidden ml-1">Recusar</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <RefreshCw className="w-8 h-8 text-olive-600 animate-spin" />
-        </div>
-      ) : (
-        <div className="max-w-4xl space-y-6">
-          {/* ====== TAB: FAMÍLIA ====== */}
-          {activeTab === 'family' && (
-            <>
-              {/* Inline Family Form */}
-              {showFamilyForm && (
-                <Card>
+            {/* ====== SECTION: Invite Form ====== */}
+            {showInviteForm && currentBaby && (
+              <div ref={formRef}>
+                <Card className="border-olive-200 dark:border-olive-800/50">
                   <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Send className="w-5 h-5 text-olive-600" />
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Convidar familiar ou cuidador</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {inviteFormType === 'family'
+                          ? <UserPlus className="w-5 h-5 text-olive-600" />
+                          : <Stethoscope className="w-5 h-5 text-teal-600" />}
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {inviteFormType === 'family' ? 'Convidar Familiar ou Responsável' : 'Convidar Profissional de Saúde'}
+                        </h3>
+                      </div>
+                      <button onClick={() => setShowInviteForm(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <X className="w-5 h-5 text-gray-400" />
+                      </button>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">A pessoa receberá um email para aceitar o convite.</p>
                   </CardHeader>
                   <CardBody>
-                    <form onSubmit={familyForm.handleSubmit(onSubmitFamilyInvite, (errors) => {
-                      const errorMessages = Object.values(errors).map(e => e?.message).filter(Boolean);
-                      if (errorMessages.length > 0) {
-                        showError('Preencha os campos obrigatórios', errorMessages.join(', '));
-                      }
-                    })} className="space-y-4">
-                      {Object.keys(familyForm.formState.errors).length > 0 && (
-                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                          <p className="text-sm text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                            <AlertTriangle className="w-4 h-4" />
-                            Corrija os erros abaixo para enviar o convite
+                    {/* Form type toggle */}
+                    <div className="flex gap-2 mb-5">
+                      <button
+                        type="button"
+                        onClick={() => setInviteFormType('family')}
+                        className={cn(
+                          'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                          inviteFormType === 'family'
+                            ? 'bg-olive-100 dark:bg-olive-900/30 text-olive-700 dark:text-olive-300 ring-1 ring-olive-300 dark:ring-olive-700'
+                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        )}
+                      >
+                        <Users className="w-4 h-4" /> Família
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInviteFormType('professional')}
+                        className={cn(
+                          'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                          inviteFormType === 'professional'
+                            ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 ring-1 ring-teal-300 dark:ring-teal-700'
+                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        )}
+                      >
+                        <Stethoscope className="w-4 h-4" /> Profissional
+                      </button>
+                    </div>
+
+                    {/* Family Form */}
+                    {inviteFormType === 'family' && (
+                      <form onSubmit={familyForm.handleSubmit(onSubmitFamilyInvite, () => {
+                        showError('Preencha os campos', 'Verifique nome e email');
+                      })} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nome *</label>
+                            <input
+                              {...familyForm.register('invitedName')}
+                              type="text"
+                              placeholder="Nome da pessoa"
+                              className={cn(
+                                'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
+                                familyForm.formState.errors.invitedName ? 'border-red-300 dark:border-red-600' : 'border-gray-200 dark:border-gray-600'
+                              )}
+                            />
+                            {familyForm.formState.errors.invitedName && (
+                              <p className="text-xs text-red-500 mt-1">{familyForm.formState.errors.invitedName.message}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email *</label>
+                            <input
+                              {...familyForm.register('emailInvited')}
+                              type="email"
+                              placeholder="email@exemplo.com"
+                              className={cn(
+                                'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
+                                familyForm.formState.errors.emailInvited ? 'border-red-300 dark:border-red-600' : 'border-gray-200 dark:border-gray-600'
+                              )}
+                            />
+                            {familyForm.formState.errors.emailInvited && (
+                              <p className="text-xs text-red-500 mt-1">{familyForm.formState.errors.emailInvited.message}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tipo de acesso</label>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={() => familyForm.setValue('memberType', 'FAMILY')}
+                                className={cn('flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 transition text-sm font-medium',
+                                  watchMemberType === 'FAMILY' ? 'border-olive-500 bg-olive-50 dark:bg-olive-900/20 text-olive-700 dark:text-olive-300' : 'border-gray-200 dark:border-gray-600 text-gray-500 hover:border-gray-300')}>
+                                <Users className="w-4 h-4" /> Familiar
+                              </button>
+                              <button type="button" onClick={() => familyForm.setValue('memberType', 'PARENT')}
+                                className={cn('flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 transition text-sm font-medium',
+                                  watchMemberType === 'PARENT' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300' : 'border-gray-200 dark:border-gray-600 text-gray-500 hover:border-gray-300')}>
+                                <Crown className="w-4 h-4" /> Responsável
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Permissões</label>
+                            <select
+                              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent"
+                              {...familyForm.register('role')}
+                            >
+                              {watchMemberType === 'PARENT' ? (
+                                <>
+                                  <option value="OWNER_PARENT_2">Responsável Principal</option>
+                                  <option value="OWNER_PARENT_1">Responsável Principal (Alt.)</option>
+                                </>
+                              ) : (
+                                <>
+                                  <option value="FAMILY_VIEWER">Somente visualização</option>
+                                  <option value="FAMILY_EDITOR">Pode editar registros</option>
+                                </>
+                              )}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            <MessageSquare className="w-3.5 h-3.5 inline mr-1" />
+                            Mensagem (opcional)
+                          </label>
+                          <textarea
+                            {...familyForm.register('message')}
+                            rows={2}
+                            placeholder="Ex: Convite para acompanhar nosso bebê!"
+                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-olive-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-3 pt-1">
+                          <Button type="submit" disabled={isSubmitting} leftIcon={<Send className="w-4 h-4" />}>
+                            {isSubmitting ? 'Enviando...' : 'Enviar convite'}
+                          </Button>
+                          <Button variant="ghost" type="button" onClick={() => { setShowInviteForm(false); familyForm.reset(); }}>
+                            Cancelar
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Professional Form */}
+                    {inviteFormType === 'professional' && (
+                      <form onSubmit={profForm.handleSubmit(onSubmitProfInvite, () => {
+                        showError('Preencha os campos', 'Verifique nome, email e especialidade');
+                      })} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nome completo *</label>
+                            <input {...profForm.register('fullName')} type="text" placeholder="Dr. João Silva"
+                              className={cn('w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
+                                profForm.formState.errors.fullName ? 'border-red-300' : 'border-gray-200 dark:border-gray-600')} />
+                            {profForm.formState.errors.fullName && <p className="text-xs text-red-500 mt-1">{profForm.formState.errors.fullName.message}</p>}
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email *</label>
+                            <input {...profForm.register('email')} type="email" placeholder="email@clinica.com"
+                              className={cn('w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
+                                profForm.formState.errors.email ? 'border-red-300' : 'border-gray-200 dark:border-gray-600')} />
+                            {profForm.formState.errors.email && <p className="text-xs text-red-500 mt-1">{profForm.formState.errors.email.message}</p>}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Especialidade *</label>
+                            <input {...profForm.register('specialty')} type="text" placeholder="Pediatria, Neonatologia..."
+                              className={cn('w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
+                                profForm.formState.errors.specialty ? 'border-red-300' : 'border-gray-200 dark:border-gray-600')} />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Função</label>
+                            <select {...profForm.register('role')}
+                              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent">
+                              <option value="PEDIATRICIAN">Pediatra</option>
+                              <option value="OBGYN">Obstetra/Ginecologista</option>
+                              <option value="LACTATION_CONSULTANT">Consultora de Amamentação</option>
+                              <option value="OTHER">Outro</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">CRM</label>
+                            <input {...profForm.register('crmNumber')} type="text" placeholder="123456"
+                              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">UF</label>
+                            <input {...profForm.register('crmState')} type="text" placeholder="SP" maxLength={2}
+                              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Telefone</label>
+                            <input {...profForm.register('phone')} type="tel" placeholder="(11) 99999-9999"
+                              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observações</label>
+                          <textarea {...profForm.register('notes')} rows={2} placeholder="Ex: Pediatra que acompanha desde o nascimento"
+                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
+                        </div>
+
+                        <div className="flex items-center gap-3 pt-1">
+                          <Button type="submit" disabled={isSubmitting} leftIcon={<Send className="w-4 h-4" />}>
+                            {isSubmitting ? 'Enviando...' : 'Enviar convite'}
+                          </Button>
+                          <Button variant="ghost" type="button" onClick={() => { setShowInviteForm(false); profForm.reset(); }}>
+                            Cancelar
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                  </CardBody>
+                </Card>
+              </div>
+            )}
+
+            {/* ====== SECTION: Active Members ====== */}
+            {currentBaby && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <UserCheck className="w-5 h-5 text-green-600" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Equipe</h2>
+                  <span className="text-sm text-gray-400">
+                    {activeMembers.length + activeProfessionals.length} {activeMembers.length + activeProfessionals.length === 1 ? 'membro' : 'membros'}
+                  </span>
+                </div>
+
+                <Card>
+                  <CardBody className="p-0 divide-y divide-gray-100 dark:divide-gray-700">
+                    {activeMembers.length === 0 && activeProfessionals.length === 0 ? (
+                      <div className="p-6">
+                        <EmptyState icon={Users} title="Nenhum membro" description="Convide alguém para acompanhar seu bebê" />
+                      </div>
+                    ) : (
+                      <>
+                        {activeMembers.map((member) => (
+                          <div key={`member-${member.id}`} className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                            <div className={cn(
+                              'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
+                              isOwnerRole(member.role)
+                                ? 'bg-amber-100 dark:bg-amber-900/30'
+                                : 'bg-olive-100 dark:bg-olive-900/30'
+                            )}>
+                              {isOwnerRole(member.role) ? <Crown className="w-5 h-5 text-amber-600" /> : <Users className="w-5 h-5 text-olive-600" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-white truncate text-sm">
+                                {member.user.email}
+                                {member.userId === user?.id && (
+                                  <span className="ml-1.5 text-xs text-olive-600 dark:text-olive-400 font-normal">(você)</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {roleLabels[member.role] || member.role}
+                              </p>
+                            </div>
+                            {!isOwnerRole(member.role) && member.userId !== user?.id && (
+                              <button
+                                onClick={() => setConfirmAction({ type: 'member', id: member.id, name: member.user.email })}
+                                className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                                title="Remover acesso"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+
+                        {activeProfessionals.map((prof) => (
+                          <div key={`prof-${prof.id}`} className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                            <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                              <Stethoscope className="w-5 h-5 text-teal-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-white truncate text-sm">{prof.professional.fullName}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {prof.professional.specialty} · {prof.professional.email}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setConfirmAction({ type: 'prof', id: prof.id, name: prof.professional.fullName })}
+                              className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                              title="Remover"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </CardBody>
+                </Card>
+              </div>
+            )}
+
+            {/* ====== SECTION: Pending Sent Invites ====== */}
+            {currentBaby && allPendingSent.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Convites Enviados</h2>
+                  <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                    {allPendingSent.length} pendente{allPendingSent.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <Card>
+                  <CardBody className="p-0 divide-y divide-gray-100 dark:divide-gray-700">
+                    {pendingFamilyInvites.map((invite) => (
+                      <div key={`sent-${invite.id}`} className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
+                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Mail className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-gray-900 dark:text-white truncate text-sm">
+                              {invite.invitedName || invite.emailInvited}
+                            </p>
+                            <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                              {memberTypeLabels[invite.memberType] || invite.memberType}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{invite.emailInvited}</p>
+                            <span className="text-gray-300 dark:text-gray-600">·</span>
+                            <TimeRemaining expiresAt={invite.expiresAt} />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleResendInvite(invite)}
+                            className="p-2 rounded-lg text-gray-400 hover:text-olive-600 hover:bg-olive-50 dark:hover:bg-olive-900/20 transition"
+                            title="Reenviar convite"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmAction({ type: 'invite', id: invite.id, name: invite.emailInvited })}
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                            title="Revogar convite"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {pendingProfInvites.map((prof) => (
+                      <div key={`sent-prof-${prof.id}`} className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
+                        <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Mail className="w-5 h-5 text-teal-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-gray-900 dark:text-white truncate text-sm">{prof.professional.fullName}</p>
+                            <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-300">
+                              Profissional
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {prof.professional.specialty} · {prof.professional.email}
                           </p>
                         </div>
-                      )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nome *</label>
-                          <input
-                            {...familyForm.register('invitedName')}
-                            type="text"
-                            placeholder="Nome da pessoa"
-                            className={cn(
-                              'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
-                              familyForm.formState.errors.invitedName ? 'border-red-300' : 'border-gray-200 dark:border-gray-600'
-                            )}
-                          />
-                          {familyForm.formState.errors.invitedName && <p className="text-xs text-red-500 mt-1">{familyForm.formState.errors.invitedName.message}</p>}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email *</label>
-                          <input
-                            {...familyForm.register('emailInvited')}
-                            type="email"
-                            placeholder="email@exemplo.com"
-                            className={cn(
-                              'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
-                              familyForm.formState.errors.emailInvited ? 'border-red-300' : 'border-gray-200 dark:border-gray-600'
-                            )}
-                          />
-                          {familyForm.formState.errors.emailInvited && <p className="text-xs text-red-500 mt-1">{familyForm.formState.errors.emailInvited.message}</p>}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tipo</label>
-                          <div className="flex gap-2">
-                            <button type="button" onClick={() => familyForm.setValue('memberType', 'FAMILY')}
-                              className={cn('flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 transition text-sm',
-                                watchMemberType === 'FAMILY' ? 'border-olive-500 bg-olive-50 dark:bg-olive-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300')}>
-                              <Users className="w-4 h-4 text-olive-600" />
-                              <span className="font-medium">Familiar</span>
-                            </button>
-                            <button type="button" onClick={() => familyForm.setValue('memberType', 'PARENT')}
-                              className={cn('flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 transition text-sm',
-                                watchMemberType === 'PARENT' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300')}>
-                              <Crown className="w-4 h-4 text-amber-600" />
-                              <span className="font-medium">Responsável</span>
-                            </button>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Permissões</label>
-                          <select
-                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent"
-                            {...familyForm.register('role')}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleResendProfInvite(prof)}
+                            className="p-2 rounded-lg text-gray-400 hover:text-olive-600 hover:bg-olive-50 dark:hover:bg-olive-900/20 transition"
+                            title="Reenviar"
                           >
-                            {watchMemberType === 'PARENT' ? (
-                              <>
-                                <option value="OWNER_PARENT_1">Responsável Principal 1</option>
-                                <option value="OWNER_PARENT_2">Responsável Principal 2</option>
-                              </>
-                            ) : (
-                              <>
-                                <option value="FAMILY_VIEWER">Somente visualização</option>
-                                <option value="FAMILY_EDITOR">Pode editar registros</option>
-                              </>
-                            )}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                          <MessageSquare className="w-3.5 h-3.5 inline mr-1" />
-                          Mensagem (opcional)
-                        </label>
-                        <textarea
-                          {...familyForm.register('message')}
-                          rows={2}
-                          placeholder="Ex: Convite para acompanhar nosso bebê!"
-                          className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-olive-500 focus:border-transparent"
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-3 pt-2">
-                        <Button type="submit" disabled={isSubmitting} leftIcon={<Send className="w-4 h-4" />}>
-                          {isSubmitting ? 'Enviando...' : 'Enviar convite'}
-                        </Button>
-                        <Button variant="ghost" type="button" onClick={() => { setShowFamilyForm(false); familyForm.reset(); }}>
-                          Cancelar
-                        </Button>
-                      </div>
-                    </form>
-                  </CardBody>
-                </Card>
-              )}
-
-              {/* Active Members */}
-              <Card>
-                <CardHeader>
-                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                    Membros Ativos ({familyMembers.filter(m => m.status === 'ACTIVE').length})
-                  </h3>
-                </CardHeader>
-                <CardBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {familyMembers.filter(m => m.status === 'ACTIVE').length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhum membro ativo além de você</p>
-                  ) : (
-                    familyMembers.filter(m => m.status === 'ACTIVE').map((member) => (
-                      <div key={member.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                        <div className={cn('w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0',
-                          isOwner(member.role) ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-olive-100 dark:bg-olive-900/30')}>
-                          {isOwner(member.role) ? <Crown className="w-6 h-6 text-amber-600" /> : <Users className="w-6 h-6 text-olive-600" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white truncate">{member.user.email}</span>
-                            <StatusBadge status={member.status} />
-                          </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{roleLabels[member.role] || member.role}</p>
-                        </div>
-                        {!isOwner(member.role) && (
-                          <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => setConfirmRevoke({ type: 'member', id: member.id, name: member.user.email })}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </CardBody>
-              </Card>
-
-              {/* Pending Family Invites */}
-              {pendingFamilyInvites.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-amber-600" />
-                      Convites Pendentes ({pendingFamilyInvites.length})
-                    </h3>
-                  </CardHeader>
-                  <CardBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {pendingFamilyInvites.map((invite) => {
-                      const expiresDate = new Date(invite.expiresAt);
-                      const isExpiringSoon = expiresDate.getTime() - Date.now() < 24 * 60 * 60 * 1000;
-                      return (
-                        <div key={invite.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                          <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Send className="w-6 h-6 text-amber-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-gray-900 dark:text-white truncate">{invite.invitedName || invite.emailInvited}</span>
-                              <StatusBadge status={invite.status} />
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{invite.emailInvited}</p>
-                            <p className={cn('text-xs mt-1', isExpiringSoon ? 'text-red-500' : 'text-gray-400')}>
-                              {isExpiringSoon && <AlertTriangle className="w-3 h-3 inline mr-1" />}
-                              Expira em {formatDateBR(expiresDate)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleResendFamilyInvite(invite)} title="Reenviar">
-                              <RefreshCw className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                              onClick={() => setConfirmRevoke({ type: 'invite', id: invite.id, name: invite.emailInvited })}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </CardBody>
-                </Card>
-              )}
-            </>
-          )}
-
-          {/* ====== TAB: PROFISSIONAL ====== */}
-          {activeTab === 'professional' && (
-            <>
-              {/* Inline Professional Form */}
-              {showProfForm && (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Stethoscope className="w-5 h-5 text-teal-600" />
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Convidar profissional de saúde</h3>
-                    </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">O profissional receberá um email para criar sua conta e acompanhar o bebê.</p>
-                  </CardHeader>
-                  <CardBody>
-                    <form onSubmit={profForm.handleSubmit(onSubmitProfInvite)} className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nome completo *</label>
-                          <input
-                            {...profForm.register('fullName')}
-                            type="text"
-                            placeholder="Dr. João Silva"
-                            className={cn(
-                              'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
-                              profForm.formState.errors.fullName ? 'border-red-300' : 'border-gray-200 dark:border-gray-600'
-                            )}
-                          />
-                          {profForm.formState.errors.fullName && <p className="text-xs text-red-500 mt-1">{profForm.formState.errors.fullName.message}</p>}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email *</label>
-                          <input
-                            {...profForm.register('email')}
-                            type="email"
-                            placeholder="email@clinica.com"
-                            className={cn(
-                              'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
-                              profForm.formState.errors.email ? 'border-red-300' : 'border-gray-200 dark:border-gray-600'
-                            )}
-                          />
-                          {profForm.formState.errors.email && <p className="text-xs text-red-500 mt-1">{profForm.formState.errors.email.message}</p>}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Especialidade *</label>
-                          <input
-                            {...profForm.register('specialty')}
-                            type="text"
-                            placeholder="Pediatria, Neonatologia..."
-                            className={cn(
-                              'w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition focus:ring-2 focus:ring-olive-500 focus:border-transparent',
-                              profForm.formState.errors.specialty ? 'border-red-300' : 'border-gray-200 dark:border-gray-600'
-                            )}
-                          />
-                          {profForm.formState.errors.specialty && <p className="text-xs text-red-500 mt-1">{profForm.formState.errors.specialty.message}</p>}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Função *</label>
-                          <select
-                            {...profForm.register('role')}
-                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent"
-                          >
-                            <option value="PEDIATRICIAN">Pediatra</option>
-                            <option value="OBGYN">Obstetra/Ginecologista</option>
-                            <option value="LACTATION_CONSULTANT">Consultora de Amamentação</option>
-                            <option value="OTHER">Outro</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">CRM</label>
-                          <input {...profForm.register('crmNumber')} type="text" placeholder="123456"
-                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">UF</label>
-                          <input {...profForm.register('crmState')} type="text" placeholder="SP" maxLength={2}
-                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Telefone</label>
-                          <input {...profForm.register('phone')} type="tel" placeholder="(11) 99999-9999"
-                            className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Observações (opcional)</label>
-                        <textarea {...profForm.register('notes')} rows={2} placeholder="Ex: Pediatra que acompanha desde o nascimento"
-                          className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-olive-500 focus:border-transparent" />
-                      </div>
-
-                      <div className="flex items-center gap-3 pt-2">
-                        <Button type="submit" disabled={isSubmitting} leftIcon={<Send className="w-4 h-4" />}>
-                          {isSubmitting ? 'Enviando...' : 'Enviar convite'}
-                        </Button>
-                        <Button variant="ghost" type="button" onClick={() => { setShowProfForm(false); profForm.reset(); }}>
-                          Cancelar
-                        </Button>
-                      </div>
-                    </form>
-                  </CardBody>
-                </Card>
-              )}
-
-              {/* Active Professionals */}
-              <Card>
-                <CardHeader>
-                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                    Profissionais Ativos ({activeProfessionals.length})
-                  </h3>
-                </CardHeader>
-                <CardBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {activeProfessionals.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Stethoscope className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-500 dark:text-gray-400 mb-1">Nenhum profissional vinculado</p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500">Convide pediatras e especialistas</p>
-                    </div>
-                  ) : (
-                    activeProfessionals.map((prof) => (
-                      <div key={prof.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Stethoscope className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white truncate">{prof.professional.fullName}</span>
-                            <StatusBadge status={prof.professional.status} />
-                          </div>
-                          <p className="text-sm text-olive-600 dark:text-olive-400 font-medium">{roleLabels[prof.role] || prof.role} · {prof.professional.specialty}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{prof.professional.email}</p>
-                          {prof.professional.crmNumber && <p className="text-xs text-gray-400 dark:text-gray-500">CRM: {prof.professional.crmNumber}/{prof.professional.crmState}</p>}
-                        </div>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          onClick={() => setConfirmRevoke({ type: 'prof', id: prof.id, name: prof.professional.fullName })}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                </CardBody>
-              </Card>
-
-              {/* Pending Professionals */}
-              {pendingProfessionals.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                      Aguardando Ativação ({pendingProfessionals.length})
-                    </h3>
-                  </CardHeader>
-                  <CardBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {pendingProfessionals.map((prof) => (
-                      <div key={prof.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-                        <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Send className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white truncate">{prof.professional.fullName}</span>
-                            <StatusBadge status={prof.professional.status} />
-                          </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{prof.professional.email}</p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">Convidado em {formatDateBR(new Date(prof.createdAt))}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleResendProfInvite(prof)} title="Reenviar">
                             <RefreshCw className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => setConfirmRevoke({ type: 'prof', id: prof.id, name: prof.professional.fullName })}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          </button>
+                          <button
+                            onClick={() => setConfirmAction({ type: 'prof', id: prof.id, name: prof.professional.fullName })}
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                            title="Remover"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                     ))}
                   </CardBody>
                 </Card>
-              )}
-            </>
-          )}
+              </div>
+            )}
 
-          {/* Inline Revoke Confirmation */}
-          {confirmRevoke && (
-            <Card className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
-              <CardBody>
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {confirmRevoke.type === 'prof' ? 'Remover' : 'Revogar'} <strong>{confirmRevoke.name}</strong>?
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {confirmRevoke.type === 'prof' ? 'O profissional perderá acesso às informações do bebê.' : confirmRevoke.type === 'invite' ? 'O link de convite será invalidado.' : 'A pessoa perderá acesso às informações do bebê.'}
-                    </p>
-                    <div className="flex items-center gap-3 mt-3">
-                      <Button variant="danger" size="sm" onClick={executeRevoke} disabled={isSubmitting}>
-                        {isSubmitting ? '...' : 'Confirmar'}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setConfirmRevoke(null)}>Cancelar</Button>
+            {/* ====== Confirm Action Dialog ====== */}
+            {confirmAction && (
+              <Card className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10 sticky bottom-4">
+                <CardBody className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                        {confirmAction.type === 'invite' ? 'Revogar convite' : 'Remover acesso'}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                        {confirmAction.type === 'invite'
+                          ? `O convite para ${confirmAction.name} será invalidado.`
+                          : `${confirmAction.name} perderá acesso ao bebê.`}
+                      </p>
+                      <div className="flex items-center gap-2 mt-3">
+                        <Button variant="danger" size="sm" onClick={executeConfirmAction} disabled={isSubmitting}>
+                          {isSubmitting ? 'Processando...' : 'Confirmar'}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setConfirmAction(null)}>
+                          Cancelar
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardBody>
-            </Card>
-          )}
-        </div>
-      )}
+                </CardBody>
+              </Card>
+            )}
+
+            {/* ====== Empty state when no baby and no received invites ====== */}
+            {!currentBaby && receivedInvites.length === 0 && (
+              <EmptyState
+                icon={Inbox}
+                title="Nenhum convite"
+                description="Você não tem convites pendentes no momento"
+              />
+            )}
+          </>
+        )}
+      </div>
     </DashboardLayout>
   );
 }
