@@ -216,7 +216,7 @@ export const authService = {
     email: string;
     password: string;
     fullName: string;
-    cpf: string;
+    cpf?: string;
     phone?: string;
   }) => {
     const response = await api.post('/auth/register', data);

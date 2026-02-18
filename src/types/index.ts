@@ -311,7 +311,7 @@ export interface RegisterFormData {
   password: string;
   confirmPassword: string;
   fullName: string;
-  cpf: string;
+  cpf?: string;
   phone?: string;
 }
 
