@@ -1,14 +1,16 @@
-// Olive Baby Web - useStats Hook
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { statsService } from '../services/api';
 import type { BabyStats } from '../types';
 
-interface StatsHistory {
+export interface StatsHistory {
   labels: string[];
   sleepHours: number[];
   feedingCounts: number[];
   feedingMinutes: number[];
   diaperCounts: number[];
+  diaperWetCounts: number[];
+  diaperDirtyCounts: number[];
+  bathCounts: number[];
   extractionMl: number[];
   bottleMl: number[];
   complementMl: number[];
@@ -22,7 +24,11 @@ interface UseStatsReturn {
   refetch: () => Promise<void>;
 }
 
-export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d' = '24h'): UseStatsReturn {
+export function useStats(
+  babyId: number | undefined,
+  range: '24h' | '7d' | '30d' = '24h',
+  historyRange: '7d' | '14d' | '30d' = '7d'
+): UseStatsReturn {
   const [stats, setStats] = useState<BabyStats | null>(null);
   const [history, setHistory] = useState<StatsHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +41,6 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
       return;
     }
 
-    // Evitar chamadas duplicadas enquanto já está carregando
     if (isFetchingRef.current) {
       return;
     }
@@ -45,10 +50,9 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
     setError(null);
 
     try {
-      // Buscar stats atuais e histórico em paralelo
       const [statsResponse, historyResponse] = await Promise.all([
         statsService.getStats(babyId, range),
-        statsService.getHistory(babyId, '7d'),
+        statsService.getHistory(babyId, historyRange),
       ]);
 
       if (statsResponse.success) {
@@ -56,7 +60,6 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
       }
 
       if (historyResponse.success && historyResponse.data) {
-        // Processar dados do histórico para os gráficos
         const data = historyResponse.data;
         setHistory({
           labels: data.labels || [],
@@ -64,6 +67,9 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
           feedingCounts: data.feeding_counts || [],
           feedingMinutes: data.feeding_minutes || [],
           diaperCounts: data.diaper_counts || [],
+          diaperWetCounts: data.diaper_wet_counts || [],
+          diaperDirtyCounts: data.diaper_dirty_counts || [],
+          bathCounts: data.bath_counts || [],
           extractionMl: data.extraction_ml || [],
           bottleMl: data.bottle_ml || [],
           complementMl: data.complement_ml || [],
@@ -76,7 +82,7 @@ export function useStats(babyId: number | undefined, range: '24h' | '7d' | '30d'
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [babyId, range]);
+  }, [babyId, range, historyRange]);
 
   useEffect(() => {
     fetchStats();

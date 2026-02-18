@@ -19,11 +19,12 @@ import {
 export function RoutinesDashboardPage() {
   const { selectedBaby } = useBabyStore();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [chartRange, setChartRange] = useState<'7d' | '14d' | '30d'>('7d');
 
-  // Hooks de dados
   const { stats, history, isLoading: isLoadingStats, refetch: refetchStats } = useStats(
     selectedBaby?.id, 
-    '24h'
+    '24h',
+    chartRange
   );
   const { activeRoutines, hasActiveRoutine, isLoading: isLoadingActive, refetch: refetchActive } = useActiveRoutine(
     selectedBaby?.id
@@ -91,7 +92,10 @@ export function RoutinesDashboardPage() {
         <RoutineCharts
           history={history}
           breastSideDistribution={stats?.feeding?.breastSideDistribution as any}
+          hourlyCounts={(stats as any)?.hourlyCounts}
           isLoading={isLoadingStats}
+          range={chartRange}
+          onRangeChange={setChartRange}
         />
 
         {/* Lista de rotinas */}
