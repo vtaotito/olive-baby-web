@@ -4,11 +4,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format, parseISO, isToday, isYesterday, startOfDay, subDays, differenceInMinutes, differenceInHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Moon, Utensils, Droplets, Bath, Baby, ChevronRight, Clock, Filter, Droplet, Wind } from 'lucide-react';
+import { Moon, Utensils, Droplets, Bath, Baby, ChevronRight, Clock, Filter, Droplet, Wind, Pencil } from 'lucide-react';
 import { Card, CardBody, Button, Spinner } from '../../ui';
 import { routineService } from '../../../services/api';
 import { cn } from '../../../lib/utils';
 import type { RoutineLog } from '../../../types';
+import { RoutineRecordEditModal } from '../RoutineRecordEditModal';
 
 interface RoutinesListProps {
   babyId: number;
@@ -74,6 +75,7 @@ function formatDateHeader(date: Date): string {
 interface RoutineItemProps {
   routine: RoutineLog;
   refreshTimestamp?: Date;
+  onEdit?: (routine: RoutineLog) => void;
 }
 
 function formatTimeElapsed(startTime: string | Date, endTime: Date): string {
@@ -88,7 +90,7 @@ function formatTimeElapsed(startTime: string | Date, endTime: Date): string {
   return `00:${minutes.toString().padStart(2, '0')}`;
 }
 
-function RoutineItem({ routine, refreshTimestamp }: RoutineItemProps) {
+function RoutineItem({ routine, refreshTimestamp, onEdit }: RoutineItemProps) {
   const config = routineConfig[routine.routineType as keyof typeof routineConfig];
   if (!config) return null;
 
@@ -176,13 +178,15 @@ function RoutineItem({ routine, refreshTimestamp }: RoutineItemProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-gray-900">{config.label}</span>
+          {routine.updatedAt && routine.updatedAt !== routine.createdAt && (
+            <span className="text-[10px] px-1.5 py-0 rounded bg-gray-100 text-gray-400">editado</span>
+          )}
           {routine.durationSeconds && (
             <span className="text-xs text-gray-500 flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {formatDuration(routine.durationSeconds)}
             </span>
           )}
-          {/* Tempo decorrido desde última alimentação */}
           {routine.routineType === 'FEEDING' && timeSinceLastFeeding && (
             <span className="text-xs text-blue-600 font-medium flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded">
               <Clock className="w-3 h-3" />
@@ -217,7 +221,18 @@ function RoutineItem({ routine, refreshTimestamp }: RoutineItemProps) {
         )}
       </div>
       
-      <ChevronRight className="w-4 h-4 text-gray-300" />
+      <div className="flex items-center gap-1">
+        {onEdit && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(routine); }}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            title="Editar"
+          >
+            <Pencil className="w-3.5 h-3.5 text-gray-400" />
+          </button>
+        )}
+        <ChevronRight className="w-4 h-4 text-gray-300" />
+      </div>
     </div>
   );
 }
@@ -228,6 +243,8 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
   const [typeFilter, setTypeFilter] = useState<FilterType>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [refreshTimestamp, setRefreshTimestamp] = useState<Date>(new Date());
+  const [editingRoutine, setEditingRoutine] = useState<RoutineLog | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchRoutines = useCallback(async () => {
     if (!babyId) return;
@@ -258,6 +275,20 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
   useEffect(() => {
     fetchRoutines();
   }, [fetchRoutines]);
+
+  const handleEditSave = async (data: Record<string, unknown>) => {
+    if (!editingRoutine) return;
+    setIsUpdating(true);
+    try {
+      await routineService.update(editingRoutine.id, data as any);
+      setEditingRoutine(null);
+      fetchRoutines();
+    } catch (err) {
+      console.error('[RoutinesList] Update error:', err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // Agrupar rotinas por data
   const groupedRoutines = routines.reduce((groups, routine) => {
@@ -349,7 +380,7 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
                     {groupedRoutines[date]
                       .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
                       .map((routine) => (
-                        <RoutineItem key={routine.id} routine={routine} refreshTimestamp={refreshTimestamp} />
+                        <RoutineItem key={routine.id} routine={routine} refreshTimestamp={refreshTimestamp} onEdit={setEditingRoutine} />
                       ))}
                   </div>
                 </div>
@@ -358,6 +389,22 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
           )}
         </CardBody>
       </Card>
+
+      {/* Modal de Edição */}
+      {editingRoutine && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4">
+            <RoutineRecordEditModal
+              isOpen={!!editingRoutine}
+              onClose={() => setEditingRoutine(null)}
+              routine={editingRoutine}
+              routineType={editingRoutine.routineType}
+              onSave={handleEditSave}
+              isLoading={isUpdating}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

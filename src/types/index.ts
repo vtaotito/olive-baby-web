@@ -141,6 +141,7 @@ interface RoutineLogBase {
   durationSeconds?: number;
   notes?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 // Discriminated union para RoutineLog com meta tipado
@@ -183,6 +184,7 @@ export interface RoutineLog {
   notes?: string;
   meta: Record<string, unknown>;
   createdAt: string;
+  updatedAt?: string;
 }
 
 // Type guard helpers

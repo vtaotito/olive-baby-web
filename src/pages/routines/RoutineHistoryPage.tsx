@@ -26,6 +26,7 @@ import { useBabyStore } from '@/stores/babyStore';
 import { routineService } from '@/services/api';
 import { RoutineLog, RoutineType } from '@/types';
 import { cn } from '@/lib/utils';
+import { RoutineRecordEditModal } from '@/components/routines/RoutineRecordEditModal';
 
 // Tipos de rotina com labels e cores
 const ROUTINE_TYPES: Record<RoutineType, { label: string; color: string; icon: string }> = {
@@ -156,6 +157,21 @@ export function RoutineHistoryPage() {
 
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
   }, [filteredRoutines]);
+
+  // Mutação para editar
+  const updateMutation = useMutation({
+    mutationFn: ({ routineId, data }: { routineId: number; data: Record<string, unknown> }) =>
+      routineService.update(routineId, data as any),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['routines'] });
+      toast.success('Rotina atualizada com sucesso');
+      setShowEditModal(false);
+      setSelectedRoutine(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Erro ao atualizar rotina');
+    },
+  });
 
   // Mutação para deletar
   const deleteMutation = useMutation({
@@ -432,6 +448,11 @@ export function RoutineHistoryPage() {
                                   <Badge className={routineInfo.color}>
                                     {routineInfo.label}
                                   </Badge>
+                                  {routine.updatedAt && routine.updatedAt !== routine.createdAt && (
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-gray-400">
+                                      editado
+                                    </Badge>
+                                  )}
                                 </div>
 
                                 <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -572,37 +593,23 @@ export function RoutineHistoryPage() {
           </div>
         )}
 
-        {/* Modal de Edição (placeholder - pode ser expandido) */}
+        {/* Modal de Edição */}
         {showEditModal && selectedRoutine && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Editar Rotina</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setSelectedRoutine(null);
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-gray-500 mb-4">
-                Funcionalidade de edição em desenvolvimento...
-              </p>
-              <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setSelectedRoutine(null);
-                  }}
-                >
-                  Fechar
-                </Button>
-              </div>
+              <RoutineRecordEditModal
+                isOpen={showEditModal}
+                onClose={() => {
+                  setShowEditModal(false);
+                  setSelectedRoutine(null);
+                }}
+                routine={selectedRoutine}
+                routineType={selectedRoutine.routineType}
+                onSave={(data) => {
+                  updateMutation.mutate({ routineId: selectedRoutine.id, data });
+                }}
+                isLoading={updateMutation.isPending}
+              />
             </div>
           </div>
         )}

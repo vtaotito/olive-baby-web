@@ -15,6 +15,7 @@ import {
   InsightsCards,
   RoutinesList,
 } from '../../components/routines/dashboard';
+import { DayTimeline } from '../../components/routines/dashboard/DayTimeline';
 import { InsightsCarousel } from '../../components/notifications';
 
 export function DashboardPage() {
@@ -157,6 +158,8 @@ export function DashboardPage() {
           stats={stats}
           isLoading={isLoadingStats}
         />
+
+        <DayTimeline babyId={selectedBaby.id} />
 
         <RoutineCharts
           history={history}
