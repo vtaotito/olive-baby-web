@@ -3,6 +3,7 @@ import { format, parseISO, isToday, isYesterday, startOfDay, subDays, difference
 import { ptBR } from 'date-fns/locale';
 import { Moon, Utensils, Droplets, Bath, Baby, ChevronRight, Clock, Droplet, Wind, Pencil } from 'lucide-react';
 import { Card, CardBody, Spinner } from '../../ui';
+import { useToast } from '../../ui/Toast';
 import { routineService } from '../../../services/api';
 import { cn } from '../../../lib/utils';
 import type { RoutineLog } from '../../../types';
@@ -10,6 +11,7 @@ import { RoutineRecordEditModal } from '../RoutineRecordEditModal';
 
 interface RoutinesListProps {
   babyId: number;
+  onRoutineUpdated?: () => void;
 }
 
 const routineConfig = {
@@ -198,7 +200,7 @@ function RoutineItem({ routine, refreshTimestamp, isEditing, onEdit, onSave, onC
   );
 }
 
-export function RoutinesList({ babyId }: RoutinesListProps) {
+export function RoutinesList({ babyId, onRoutineUpdated }: RoutinesListProps) {
   const [routines, setRoutines] = useState<RoutineLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<FilterType>('all');
@@ -207,6 +209,7 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const editFormRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   const fetchRoutines = useCallback(async () => {
     if (!babyId) return;
@@ -245,10 +248,14 @@ export function RoutinesList({ babyId }: RoutinesListProps) {
     setIsUpdating(true);
     try {
       await routineService.update(editingId, data as any);
+      toast.success('Rotina atualizada', 'O registro foi salvo com sucesso.');
       setEditingId(null);
-      fetchRoutines();
-    } catch (err) {
+      await fetchRoutines();
+      onRoutineUpdated?.();
+    } catch (err: any) {
       console.error('[RoutinesList] Update error:', err);
+      const msg = err?.response?.data?.message || err?.message || 'Tente novamente.';
+      toast.error('Erro ao atualizar rotina', msg);
     } finally {
       setIsUpdating(false);
     }

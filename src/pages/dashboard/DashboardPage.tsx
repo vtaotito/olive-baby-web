@@ -159,7 +159,7 @@ export function DashboardPage() {
           isLoading={isLoadingStats}
         />
 
-        <DayTimeline babyId={selectedBaby.id} />
+        <DayTimeline babyId={selectedBaby.id} onRoutineUpdated={handleRoutineEnd} />
 
         <RoutineCharts
           history={history}
@@ -173,6 +173,7 @@ export function DashboardPage() {
         <RoutinesList
           key={refreshKey}
           babyId={selectedBaby.id}
+          onRoutineUpdated={handleRoutineEnd}
         />
       </div>
     </DashboardLayout>

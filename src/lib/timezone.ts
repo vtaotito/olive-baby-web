@@ -127,26 +127,22 @@ export function parseLocalDateTimeToUTC(
   localDateTimeString: string,
   timezone: string = DEFAULT_TIMEZONE
 ): string {
-  // datetime-local format: YYYY-MM-DDTHH:mm
   const [datePart, timePart] = localDateTimeString.split('T');
   const [year, month, day] = datePart.split('-').map(Number);
   const [hours, minutes] = (timePart || '00:00').split(':').map(Number);
 
-  // Create a date string with the timezone info
-  // We need to find the offset for the given timezone
   const tempDate = new Date();
   const utcStr = tempDate.toLocaleString('en-US', { timeZone: 'UTC' });
   const tzStr = tempDate.toLocaleString('en-US', { timeZone: timezone });
   const utcDate = new Date(utcStr);
   const tzDate = new Date(tzStr);
   const offsetMs = tzDate.getTime() - utcDate.getTime();
-  
-  // Create the local date
-  const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
-  
-  // Subtract the offset to get UTC
-  const utcTime = new Date(localDate.getTime() - offsetMs);
-  
+
+  // Use Date.UTC so the raw numbers are treated as UTC, then subtract
+  // the configured-timezone offset to get the real UTC instant.
+  const rawUtc = Date.UTC(year, month - 1, day, hours, minutes, 0, 0);
+  const utcTime = new Date(rawUtc - offsetMs);
+
   return utcTime.toISOString();
 }
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { format, parseISO, startOfDay, endOfDay, addDays, subDays, isSameDay, getHours, getMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { useToast } from '../../ui/Toast';
 import { routineService } from '../../../services/api';
 import { cn } from '../../../lib/utils';
 import type { RoutineLog, RoutineType } from '../../../types';
@@ -9,6 +10,7 @@ import { RoutineRecordEditModal } from '../RoutineRecordEditModal';
 
 interface DayTimelineProps {
   babyId: number;
+  onRoutineUpdated?: () => void;
 }
 
 const ROUTINE_COLORS: Record<RoutineType, { bg: string; border: string; text: string; label: string }> = {
@@ -100,7 +102,7 @@ function groupByType(routines: RoutineLog[]): RoutineRow[] {
     .map(t => ({ type: t, routines: groups[t]! }));
 }
 
-export function DayTimeline({ babyId }: DayTimelineProps) {
+export function DayTimeline({ babyId, onRoutineUpdated }: DayTimelineProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [routines, setRoutines] = useState<RoutineLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +113,7 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   const fetchRoutines = useCallback(async () => {
     if (!babyId) return;
@@ -149,10 +152,14 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
     setIsUpdating(true);
     try {
       await routineService.update(editingRoutine.id, data as any);
+      toast.success('Rotina atualizada', 'O registro foi salvo com sucesso.');
       setEditingRoutine(null);
-      fetchRoutines();
-    } catch (err) {
+      await fetchRoutines();
+      onRoutineUpdated?.();
+    } catch (err: any) {
       console.error('[DayTimeline] Update error:', err);
+      const msg = err?.response?.data?.message || err?.message || 'Tente novamente.';
+      toast.error('Erro ao atualizar rotina', msg);
     } finally {
       setIsUpdating(false);
     }
