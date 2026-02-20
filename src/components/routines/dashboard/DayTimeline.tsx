@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { format, parseISO, startOfDay, endOfDay, addDays, subDays, isSameDay, getHours, getMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { routineService } from '../../../services/api';
 import { cn } from '../../../lib/utils';
 import type { RoutineLog, RoutineType } from '../../../types';
@@ -91,12 +91,10 @@ type RoutineRow = { type: RoutineType; routines: RoutineLog[] };
 function groupByType(routines: RoutineLog[]): RoutineRow[] {
   const typeOrder: RoutineType[] = ['SLEEP', 'FEEDING', 'DIAPER', 'BATH', 'MILK_EXTRACTION'];
   const groups: Partial<Record<RoutineType, RoutineLog[]>> = {};
-
   routines.forEach(r => {
     if (!groups[r.routineType]) groups[r.routineType] = [];
     groups[r.routineType]!.push(r);
   });
-
   return typeOrder
     .filter(t => groups[t] && groups[t]!.length > 0)
     .map(t => ({ type: t, routines: groups[t]! }));
@@ -112,6 +110,7 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const editFormRef = useRef<HTMLDivElement>(null);
 
   const fetchRoutines = useCallback(async () => {
     if (!babyId) return;
@@ -134,9 +133,16 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
     }
   }, [babyId, selectedDate]);
 
-  useEffect(() => {
-    fetchRoutines();
-  }, [fetchRoutines]);
+  useEffect(() => { fetchRoutines(); }, [fetchRoutines]);
+
+  const handleBarClick = (routine: RoutineLog) => {
+    setEditingRoutine(prev => prev?.id === routine.id ? null : routine);
+    setHoveredRoutine(null);
+    setTooltipPos(null);
+    setTimeout(() => {
+      editFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
 
   const handleEditSave = async (data: Record<string, unknown>) => {
     if (!editingRoutine) return;
@@ -153,16 +159,14 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
   };
 
   const rows = useMemo(() => groupByType(routines), [routines]);
-  const isToday = isSameDay(selectedDate, new Date());
+  const isTodayDate = isSameDay(selectedDate, new Date());
 
   const handleBarHover = (routine: RoutineLog, e: React.MouseEvent) => {
+    if (editingRoutine) return;
     const rect = timelineRef.current?.getBoundingClientRect();
     if (!rect) return;
     setHoveredRoutine(routine);
-    setTooltipPos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
   const handleBarLeave = () => {
@@ -171,42 +175,31 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
   };
 
   const nowIndicatorPercent = useMemo(() => {
-    if (!isToday) return null;
+    if (!isTodayDate) return null;
     const now = new Date();
-    const h = getHours(now) + getMinutes(now) / 60;
-    return (h / 24) * 100;
-  }, [isToday]);
+    return ((getHours(now) + getMinutes(now) / 60) / 24) * 100;
+  }, [isTodayDate]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Header com seletor de data */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-semibold text-gray-700">Linha do Tempo</h3>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSelectedDate(d => subDays(d, 1))}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-          >
+          <button onClick={() => setSelectedDate(d => subDays(d, 1))} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
             <ChevronLeft className="w-4 h-4 text-gray-500" />
           </button>
           <button
             onClick={() => setSelectedDate(new Date())}
-            className={cn(
-              'text-sm font-medium px-3 py-1 rounded-lg transition-colors',
-              isToday ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-100 text-gray-700'
-            )}
+            className={cn('text-sm font-medium px-3 py-1 rounded-lg transition-colors', isTodayDate ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-100 text-gray-700')}
           >
-            {isToday ? 'Hoje' : format(selectedDate, "dd 'de' MMM", { locale: ptBR })}
+            {isTodayDate ? 'Hoje' : format(selectedDate, "dd 'de' MMM", { locale: ptBR })}
           </button>
-          <button
-            onClick={() => setSelectedDate(d => addDays(d, 1))}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-            disabled={isToday}
-          >
-            <ChevronRight className={cn('w-4 h-4', isToday ? 'text-gray-200' : 'text-gray-500')} />
+          <button onClick={() => setSelectedDate(d => addDays(d, 1))} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" disabled={isTodayDate}>
+            <ChevronRight className={cn('w-4 h-4', isTodayDate ? 'text-gray-200' : 'text-gray-500')} />
           </button>
         </div>
         <div className="text-xs text-gray-400">
@@ -231,62 +224,39 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500" />
           </div>
         ) : routines.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 text-sm">
-            Nenhuma rotina registrada neste dia
-          </div>
+          <div className="text-center py-8 text-gray-400 text-sm">Nenhuma rotina registrada neste dia</div>
         ) : (
           <div ref={scrollRef} className="overflow-x-auto">
             <div className="min-w-[700px]">
-              {/* Escala de horas */}
               <div className="flex border-b border-gray-100 px-2">
                 {HOURS.map(h => (
-                  <div
-                    key={h}
-                    className="flex-shrink-0 text-center text-[10px] text-gray-400 py-1"
-                    style={{ width: `${100 / 24}%` }}
-                  >
+                  <div key={h} className="flex-shrink-0 text-center text-[10px] text-gray-400 py-1" style={{ width: `${100 / 24}%` }}>
                     {h.toString().padStart(2, '0')}
                   </div>
                 ))}
               </div>
 
-              {/* Linhas de grade + barras por tipo */}
               <div className="relative px-2">
-                {/* Grade vertical */}
                 <div className="absolute inset-0 flex pointer-events-none px-2">
-                  {HOURS.map(h => (
-                    <div
-                      key={h}
-                      className="flex-shrink-0 border-l border-gray-50"
-                      style={{ width: `${100 / 24}%` }}
-                    />
-                  ))}
+                  {HOURS.map(h => (<div key={h} className="flex-shrink-0 border-l border-gray-50" style={{ width: `${100 / 24}%` }} />))}
                 </div>
 
-                {/* Indicador de agora */}
                 {nowIndicatorPercent !== null && (
-                  <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-red-400 z-20 pointer-events-none"
-                    style={{ left: `${nowIndicatorPercent}%` }}
-                  >
+                  <div className="absolute top-0 bottom-0 w-0.5 bg-red-400 z-20 pointer-events-none" style={{ left: `${nowIndicatorPercent}%` }}>
                     <div className="w-2 h-2 rounded-full bg-red-400 -ml-[3px] -mt-0.5" />
                   </div>
                 )}
 
-                {/* Rows por tipo */}
                 {rows.map(({ type, routines: typeRoutines }) => {
                   const config = ROUTINE_COLORS[type];
                   return (
                     <div key={type} className="relative h-10 flex items-center">
-                      {/* Label do tipo */}
                       <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
-                        <span className={cn('text-[9px] font-medium px-1 py-0.5 rounded', config.text, 'bg-white/80')}>
-                          {config.label}
-                        </span>
+                        <span className={cn('text-[9px] font-medium px-1 py-0.5 rounded', config.text, 'bg-white/80')}>{config.label}</span>
                       </div>
-                      {/* Barras */}
                       {typeRoutines.map(routine => {
                         const pos = getRoutinePosition(routine, selectedDate);
+                        const isActive = editingRoutine?.id === routine.id;
                         return (
                           <button
                             key={routine.id}
@@ -294,6 +264,7 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
                               'absolute h-6 rounded-md cursor-pointer transition-all hover:brightness-110 hover:shadow-md z-10',
                               config.bg,
                               pos.isInstant ? 'w-2.5 h-6 rounded-full' : '',
+                              isActive ? 'ring-2 ring-offset-1 ring-olive-500 shadow-lg brightness-110' : '',
                               hoveredRoutine?.id === routine.id ? 'ring-2 ring-offset-1 ring-gray-400 shadow-lg' : ''
                             )}
                             style={{
@@ -303,7 +274,7 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
                             }}
                             onMouseEnter={(e) => handleBarHover(routine, e)}
                             onMouseLeave={handleBarLeave}
-                            onClick={() => setEditingRoutine(routine)}
+                            onClick={() => handleBarClick(routine)}
                             title={`${config.label} · ${formatRoutineTime(routine)}`}
                           />
                         );
@@ -317,7 +288,7 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
         )}
 
         {/* Tooltip */}
-        {hoveredRoutine && tooltipPos && (
+        {hoveredRoutine && tooltipPos && !editingRoutine && (
           <div
             className="absolute z-30 bg-gray-900 text-white rounded-lg px-3 py-2 text-xs shadow-xl pointer-events-none max-w-[220px]"
             style={{
@@ -325,34 +296,26 @@ export function DayTimeline({ babyId }: DayTimelineProps) {
               top: tooltipPos.y - 70,
             }}
           >
-            <div className="font-semibold mb-0.5">
-              {ROUTINE_COLORS[hoveredRoutine.routineType]?.label}
-            </div>
+            <div className="font-semibold mb-0.5">{ROUTINE_COLORS[hoveredRoutine.routineType]?.label}</div>
             <div className="text-gray-300">{formatRoutineTime(hoveredRoutine)}</div>
-            {getRoutineDetails(hoveredRoutine) && (
-              <div className="text-gray-400 mt-0.5">{getRoutineDetails(hoveredRoutine)}</div>
-            )}
-            {hoveredRoutine.notes && (
-              <div className="text-gray-400 mt-0.5 italic truncate">"{hoveredRoutine.notes}"</div>
-            )}
+            {getRoutineDetails(hoveredRoutine) && (<div className="text-gray-400 mt-0.5">{getRoutineDetails(hoveredRoutine)}</div>)}
+            {hoveredRoutine.notes && (<div className="text-gray-400 mt-0.5 italic truncate">"{hoveredRoutine.notes}"</div>)}
             <div className="text-gray-500 mt-1 text-[10px]">Clique para editar</div>
           </div>
         )}
       </div>
 
-      {/* Modal de Edição */}
+      {/* Formulário inline de edição */}
       {editingRoutine && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4">
-            <RoutineRecordEditModal
-              isOpen={!!editingRoutine}
-              onClose={() => setEditingRoutine(null)}
-              routine={editingRoutine}
-              routineType={editingRoutine.routineType}
-              onSave={handleEditSave}
-              isLoading={isUpdating}
-            />
-          </div>
+        <div ref={editFormRef} className="border-t border-olive-100 bg-olive-50/30 px-4 py-3">
+          <RoutineRecordEditModal
+            isOpen={true}
+            onClose={() => setEditingRoutine(null)}
+            routine={editingRoutine}
+            routineType={editingRoutine.routineType}
+            onSave={handleEditSave}
+            isLoading={isUpdating}
+          />
         </div>
       )}
     </div>
