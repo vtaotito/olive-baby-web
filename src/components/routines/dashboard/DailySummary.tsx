@@ -94,7 +94,7 @@ export function DailySummary({ stats, isLoading }: DailySummaryProps) {
   const feedingMinutes = stats?.feeding?.totalMinutes || 0;
 
   const complementMl = stats?.feeding?.complementMl || 0;
-  const bottleMl = (stats as any)?.feeding?.bottleMl || 0;
+  const bottleMl = stats?.feeding?.bottleMl || 0;
   const totalVolumeMl = complementMl + bottleMl;
 
   const diaperCount = stats?.diaper?.count || 0;
@@ -137,7 +137,7 @@ export function DailySummary({ stats, isLoading }: DailySummaryProps) {
           label="Alimentações"
           value={feedingCount}
           subtext={feedingMinutes > 0 ? `${feedingMinutes} min total` : undefined}
-          detail={totalVolumeMl > 0 ? `+ ${totalVolumeMl}ml ofertado` : undefined}
+          detail={totalVolumeMl > 0 ? `${totalVolumeMl}ml ofertado` : undefined}
           color="text-amber-600"
           bgColor="bg-amber-50/80"
           iconBg="bg-amber-100"
@@ -174,10 +174,13 @@ export function DailySummary({ stats, isLoading }: DailySummaryProps) {
         />
 
         <SummaryCard
-          icon={Utensils}
-          label="Complemento"
-          value={complementMl > 0 ? `${complementMl}ml` : '—'}
-          subtext={complementMl > 0 ? 'fórmula/leite' : undefined}
+          icon={Droplets}
+          label="Leite Ofertado"
+          value={totalVolumeMl > 0 ? `${totalVolumeMl}ml` : '—'}
+          subtext={totalVolumeMl > 0 ? [
+            bottleMl > 0 ? `${bottleMl}ml mamadeira` : '',
+            complementMl > 0 ? `${complementMl}ml complemento` : '',
+          ].filter(Boolean).join(' + ') : undefined}
           color="text-orange-600"
           bgColor="bg-orange-50/80"
           iconBg="bg-orange-100"

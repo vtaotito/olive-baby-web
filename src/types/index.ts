@@ -241,6 +241,7 @@ export interface BabyStats {
     bottleFeedings?: number;
     totalMl?: number;
     complementMl?: number;
+    bottleMl?: number;
     breastSideDistribution?: {
       left: number;
       right: number;
