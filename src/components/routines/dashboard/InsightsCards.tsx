@@ -1,9 +1,9 @@
-// Olive Baby Web - Insights Cards Component
-// Cards acolhedores com insights automáticos
-
-import { Heart, Info, AlertTriangle, Lightbulb } from 'lucide-react';
-import { Card, CardBody } from '../../ui';
+import { useState } from 'react';
+import { Heart, Info, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, X, Sparkles } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { notificationService } from '../../../services/api';
 import { cn } from '../../../lib/utils';
+import type { Notification } from '../../../types';
 
 interface Insight {
   id: string;
@@ -16,86 +16,139 @@ interface Insight {
 
 interface InsightsCardsProps {
   insights: Insight[];
-  welcomeMessage: string;
+  serverInsights?: Notification[];
   isLoading?: boolean;
 }
 
 const toneStyles = {
   positive: {
-    bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
-    border: 'border-green-200',
-    icon: Heart,
+    bg: 'bg-green-50/80',
+    border: 'border-green-200/60',
     iconColor: 'text-green-500',
     titleColor: 'text-green-700',
+    Icon: Heart,
   },
   neutral: {
-    bg: 'bg-gradient-to-r from-blue-50 to-indigo-50',
-    border: 'border-blue-200',
-    icon: Info,
+    bg: 'bg-blue-50/80',
+    border: 'border-blue-200/60',
     iconColor: 'text-blue-500',
     titleColor: 'text-blue-700',
+    Icon: Info,
   },
   attention: {
-    bg: 'bg-gradient-to-r from-amber-50 to-yellow-50',
-    border: 'border-amber-200',
-    icon: AlertTriangle,
+    bg: 'bg-amber-50/90',
+    border: 'border-amber-300',
     iconColor: 'text-amber-500',
     titleColor: 'text-amber-700',
+    Icon: AlertTriangle,
   },
 };
 
-function InsightCard({ insight }: { insight: Insight }) {
+const severityToTone: Record<string, 'positive' | 'neutral' | 'attention'> = {
+  success: 'positive',
+  info: 'neutral',
+  warning: 'attention',
+  alert: 'attention',
+};
+
+function CompactInsightCard({ insight }: { insight: Insight }) {
   const style = toneStyles[insight.tone];
-  const Icon = style.icon;
+  const isAttention = insight.tone === 'attention';
 
   return (
-    <Card className={cn('border', style.bg, style.border)}>
-      <CardBody className="p-4">
-        <div className="flex gap-3">
-          <div className="flex-shrink-0">
-            <span className="text-2xl">{insight.emoji}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className={cn('font-semibold text-sm', style.titleColor)}>
-                {insight.title}
-              </h4>
-              <Icon className={cn('w-4 h-4', style.iconColor)} />
-            </div>
-            <p className="text-sm text-gray-600 mt-1 leading-relaxed">
-              {insight.message}
-            </p>
-          </div>
+    <div className={cn(
+      'flex items-start gap-2.5 rounded-lg border p-3 transition-all',
+      style.bg,
+      style.border,
+      isAttention && 'ring-1 ring-amber-300/50'
+    )}>
+      <span className="text-base leading-none mt-0.5 flex-shrink-0">{insight.emoji}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <h4 className={cn('font-semibold text-xs leading-tight', style.titleColor)}>
+            {insight.title}
+          </h4>
+          {isAttention && (
+            <style.Icon className={cn('w-3 h-3 animate-pulse', style.iconColor)} />
+          )}
         </div>
-      </CardBody>
-    </Card>
+        <p className="text-xs text-gray-600 mt-0.5 leading-relaxed line-clamp-2">
+          {insight.message}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ServerInsightCard({ notification, onDismiss }: { notification: Notification; onDismiss: (id: number) => void }) {
+  const tone = severityToTone[notification.severity] || 'neutral';
+  const style = toneStyles[tone];
+
+  return (
+    <div className={cn(
+      'flex items-start gap-2.5 rounded-lg border p-3 transition-all relative',
+      style.bg,
+      style.border,
+    )}>
+      <div className="flex-shrink-0 mt-0.5">
+        <Sparkles className={cn('w-4 h-4', style.iconColor)} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <h4 className={cn('font-semibold text-xs leading-tight', style.titleColor)}>
+            {notification.title}
+          </h4>
+          <span className="text-[10px] font-medium bg-olive-500 text-white px-1.5 py-0.5 rounded-full leading-none">
+            Novo
+          </span>
+        </div>
+        <p className="text-xs text-gray-600 mt-0.5 leading-relaxed line-clamp-2">
+          {notification.message}
+        </p>
+      </div>
+      <button
+        onClick={() => onDismiss(notification.id)}
+        className="flex-shrink-0 p-0.5 rounded hover:bg-black/5 transition-colors"
+        title="Dispensar"
+      >
+        <X className="w-3.5 h-3.5 text-gray-400" />
+      </button>
+    </div>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <Card>
-      <CardBody className="p-4">
-        <div className="animate-pulse flex gap-3">
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-          <div className="flex-1">
-            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-full mb-1"></div>
-            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
-      </CardBody>
-    </Card>
+    <div className="animate-pulse flex items-start gap-2.5 rounded-lg border border-gray-100 bg-gray-50/50 p-3">
+      <div className="w-5 h-5 bg-gray-200 rounded flex-shrink-0"></div>
+      <div className="flex-1">
+        <div className="h-3 bg-gray-200 rounded w-20 mb-1.5"></div>
+        <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+      </div>
+    </div>
   );
 }
 
-export function InsightsCards({ insights, welcomeMessage, isLoading }: InsightsCardsProps) {
+const VISIBLE_LIMIT = 4;
+
+export function InsightsCards({ insights, serverInsights = [], isLoading }: InsightsCardsProps) {
+  const [expanded, setExpanded] = useState(false);
+  const queryClient = useQueryClient();
+
+  const archiveMutation = useMutation({
+    mutationFn: (notificationId: number) => notificationService.archive(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-count'] });
+    },
+  });
+
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="animate-pulse h-6 bg-gray-200 rounded w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => (
+      <div className="space-y-3">
+        <div className="animate-pulse h-5 bg-gray-200 rounded w-36"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {[...Array(3)].map((_, i) => (
             <LoadingSkeleton key={i} />
           ))}
         </div>
@@ -103,41 +156,64 @@ export function InsightsCards({ insights, welcomeMessage, isLoading }: InsightsC
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Mensagem de boas-vindas */}
-      <Card className="bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 border-purple-100">
-        <CardBody className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center shadow-md">
-              <span className="text-2xl">💛</span>
-            </div>
-            <div>
-              <p className="text-lg font-medium text-purple-800">
-                {welcomeMessage}
-              </p>
-              <p className="text-sm text-purple-600">
-                Você está fazendo um trabalho incrível. 🌸
-              </p>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+  const hasServerInsights = serverInsights.length > 0;
+  const hasClientInsights = insights.length > 0;
+  if (!hasServerInsights && !hasClientInsights) return null;
 
-      {/* Lista de insights */}
-      {insights.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Lightbulb className="w-5 h-5 text-yellow-500" />
-            <h3 className="font-semibold text-gray-800">Insights do dia</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {insights.map((insight) => (
-              <InsightCard key={insight.id} insight={insight} />
-            ))}
-          </div>
-        </div>
+  const totalCount = serverInsights.length + insights.length;
+  const showToggle = totalCount > VISIBLE_LIMIT;
+
+  let visibleServer = serverInsights;
+  let visibleClient = insights;
+
+  if (!expanded && showToggle) {
+    visibleServer = serverInsights.slice(0, VISIBLE_LIMIT);
+    const remainingSlots = Math.max(0, VISIBLE_LIMIT - visibleServer.length);
+    visibleClient = insights.slice(0, remainingSlots);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Lightbulb className="w-4.5 h-4.5 text-yellow-500" />
+        <h3 className="font-semibold text-sm text-gray-800">Insights do dia</h3>
+        {totalCount > 0 && (
+          <span className="text-[11px] text-gray-400 font-medium">
+            ({totalCount})
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        {visibleServer.map((n) => (
+          <ServerInsightCard
+            key={`srv-${n.id}`}
+            notification={n}
+            onDismiss={(id) => archiveMutation.mutate(id)}
+          />
+        ))}
+        {visibleClient.map((insight) => (
+          <CompactInsightCard key={insight.id} insight={insight} />
+        ))}
+      </div>
+
+      {showToggle && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="flex items-center gap-1 text-xs font-medium text-olive-600 hover:text-olive-700 transition-colors mx-auto"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              Mostrar menos
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              Ver mais ({totalCount - VISIBLE_LIMIT})
+            </>
+          )}
+        </button>
       )}
     </div>
   );

@@ -75,16 +75,18 @@ export function RoutinesDashboardPage() {
           </div>
         )}
 
-        {/* Insights e mensagem de boas-vindas */}
-        <InsightsCards
-          insights={insights}
-          welcomeMessage={welcomeMessage}
-          isLoading={isLoadingStats}
-        />
+        {/* Welcome inline */}
+        <p className="text-sm text-gray-500">{welcomeMessage}</p>
 
         {/* Resumo do dia */}
         <DailySummary
           stats={stats}
+          isLoading={isLoadingStats}
+        />
+
+        {/* Insights */}
+        <InsightsCards
+          insights={insights}
           isLoading={isLoadingStats}
         />
 

@@ -242,6 +242,7 @@ export interface BabyStats {
     totalMl?: number;
     complementMl?: number;
     bottleMl?: number;
+    lastFeedingTime?: string | null;
     breastSideDistribution?: {
       left: number;
       right: number;

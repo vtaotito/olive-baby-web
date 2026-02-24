@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Baby, Plus, ArrowRight, Lightbulb } from 'lucide-react';
+import { Baby, Plus, ArrowRight } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout';
-import { Spinner, Button, Card, CardBody, CardHeader } from '../../components/ui';
+import { Spinner, Button, Card, CardBody } from '../../components/ui';
 import { useBabyStore } from '../../stores/babyStore';
 import { useStats } from '../../hooks/useStats';
 import { useActiveRoutine } from '../../hooks/useActiveRoutine';
@@ -16,7 +16,6 @@ import {
   RoutinesList,
 } from '../../components/routines/dashboard';
 import { DayTimeline } from '../../components/routines/dashboard/DayTimeline';
-import { InsightsCarousel } from '../../components/notifications';
 
 export function DashboardPage() {
   const { selectedBaby, babies } = useBabyStore();
@@ -125,6 +124,9 @@ export function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Welcome message inline */}
+        <p className="text-sm text-gray-500">{welcomeMessage}</p>
+
         {hasActiveRoutine && (
           <ActiveRoutineCard
             activeRoutines={activeRoutines}
@@ -133,29 +135,14 @@ export function DashboardPage() {
           />
         )}
 
-        {insightNotifications.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-olive-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Insights do Dia</h2>
-              </div>
-              <p className="text-sm text-gray-500 mt-1">Dicas personalizadas baseadas nas rotinas do seu bebê</p>
-            </CardHeader>
-            <CardBody>
-              <InsightsCarousel insights={insightNotifications} />
-            </CardBody>
-          </Card>
-        )}
-
-        <InsightsCards
-          insights={insights}
-          welcomeMessage={welcomeMessage}
+        <DailySummary
+          stats={stats}
           isLoading={isLoadingStats}
         />
 
-        <DailySummary
-          stats={stats}
+        <InsightsCards
+          insights={insights}
+          serverInsights={insightNotifications}
           isLoading={isLoadingStats}
         />
 

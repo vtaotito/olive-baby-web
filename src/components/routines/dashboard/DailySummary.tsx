@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { Moon, Utensils, Droplets, Bath, Baby, Clock } from 'lucide-react';
 import { Card, CardBody } from '../../ui';
 import { cn } from '../../../lib/utils';
@@ -70,7 +71,38 @@ function LoadingCard() {
   );
 }
 
+function formatRelativeTime(isoString: string): string {
+  const now = Date.now();
+  const then = new Date(isoString).getTime();
+  const diffMs = now - then;
+  if (diffMs < 0) return 'agora';
+
+  const totalMin = Math.floor(diffMs / 60000);
+  if (totalMin < 1) return 'agora';
+  if (totalMin < 60) return `há ${totalMin}min`;
+
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (mins === 0) return `há ${hours}h`;
+  return `há ${hours}h ${mins}min`;
+}
+
 export function DailySummary({ stats, isLoading }: DailySummaryProps) {
+  const lastFeedingTime = stats?.feeding?.lastFeedingTime;
+
+  const computeLabel = useCallback(() => {
+    if (!lastFeedingTime) return null;
+    return formatRelativeTime(lastFeedingTime);
+  }, [lastFeedingTime]);
+
+  const [lastFeedingLabel, setLastFeedingLabel] = useState<string | null>(computeLabel);
+
+  useEffect(() => {
+    setLastFeedingLabel(computeLabel());
+    const id = setInterval(() => setLastFeedingLabel(computeLabel()), 60_000);
+    return () => clearInterval(id);
+  }, [computeLabel]);
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -111,6 +143,11 @@ export function DailySummary({ stats, isLoading }: DailySummaryProps) {
   if (diaperDirty > 0) diaperBreakdown.push(`${diaperDirty} cocô`);
   const diaperSubtext = diaperBreakdown.length > 0 ? diaperBreakdown.join(', ') : (diaperCount > 0 ? `${diaperCount} troca(s)` : undefined);
 
+  const feedingDetail = [
+    lastFeedingLabel ? `Última ${lastFeedingLabel}` : '',
+    totalVolumeMl > 0 ? `${totalVolumeMl}ml ofertado` : '',
+  ].filter(Boolean).join(' · ') || undefined;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -137,7 +174,7 @@ export function DailySummary({ stats, isLoading }: DailySummaryProps) {
           label="Alimentações"
           value={feedingCount}
           subtext={feedingMinutes > 0 ? `${feedingMinutes} min total` : undefined}
-          detail={totalVolumeMl > 0 ? `${totalVolumeMl}ml ofertado` : undefined}
+          detail={feedingDetail}
           color="text-amber-600"
           bgColor="bg-amber-50/80"
           iconBg="bg-amber-100"
