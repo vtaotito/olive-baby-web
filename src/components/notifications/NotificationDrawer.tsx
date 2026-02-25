@@ -1,5 +1,6 @@
 // Olive Baby Web - Notification Drawer Component
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   X,
@@ -19,8 +20,10 @@ import {
   Shield,
   Crown,
   XCircle,
+  Stethoscope,
+  ArrowRight,
 } from 'lucide-react';
-import { notificationService, babyInviteService } from '../../services/api';
+import { notificationService, babyInviteService, patientInviteService } from '../../services/api';
 import { useToast } from '../ui/Toast';
 import { Button } from '../ui';
 import { cn } from '../../lib/utils';
@@ -37,20 +40,21 @@ type TabType = 'invites' | 'unread' | 'archived';
 // Types for pending invites
 interface PendingInvite {
   id: number;
-  inviteType: 'FAMILY' | 'PROFESSIONAL'; // Tipo do convite
-  babyId: number;
+  inviteType: 'FAMILY' | 'PROFESSIONAL' | 'PATIENT_INVITE';
+  babyId: number | null;
   babyName: string;
-  babyBirthDate: string;
+  babyBirthDate: string | null;
   memberType: 'PARENT' | 'FAMILY' | 'PROFESSIONAL';
   role: string;
   invitedName?: string;
   message?: string;
-  inviterEmail: string;
+  inviterEmail: string | null;
   inviterName: string;
   expiresAt: string;
   createdAt: string;
-  // Campos específicos de profissional
   specialty?: string;
+  professionalCRM?: string | null;
+  requiresBabySelection?: boolean;
   allBabies?: Array<{ id: number; name: string; role: string }>;
 }
 
@@ -102,6 +106,7 @@ const memberTypeLabels: Record<string, string> = {
 
 export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabType>('invites');
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { success, error: showError } = useToast();
   const { fetchBabies } = useBabyStore();
@@ -339,22 +344,28 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                           {/* Content */}
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-gray-900 text-sm">
-                              Convite para acompanhar {invite.babyName}
+                              {invite.inviteType === 'PATIENT_INVITE'
+                                ? `Convite de ${invite.inviterName}`
+                                : `Convite para acompanhar ${invite.babyName}`}
                             </h4>
                             <p className="text-sm text-gray-600 mt-0.5">
-                              De: {invite.inviterName}
+                              {invite.inviteType === 'PATIENT_INVITE'
+                                ? <>{invite.specialty && <span className="font-medium">{invite.specialty}</span>}{invite.specialty ? ' · ' : ''}Profissional quer acompanhar seu bebê</>
+                                : <>De: {invite.inviterName}</>}
                             </p>
                             
                             {/* Role info */}
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-700">
-                                <MemberIcon className="w-3 h-3" />
-                                {memberTypeLabels[invite.memberType]}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {roleLabels[invite.role] || invite.role}
-                              </span>
-                            </div>
+                            {invite.inviteType !== 'PATIENT_INVITE' && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-700">
+                                  <MemberIcon className="w-3 h-3" />
+                                  {memberTypeLabels[invite.memberType]}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {roleLabels[invite.role] || invite.role}
+                                </span>
+                              </div>
+                            )}
 
                             {/* Message if any */}
                             {invite.message && (
@@ -376,31 +387,46 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 mt-3">
-                              <Button
-                                size="sm"
-                                onClick={() => acceptInviteMutation.mutate({ 
-                                  inviteId: invite.id, 
-                                  inviteType: invite.inviteType || 'FAMILY' 
-                                })}
-                                disabled={acceptInviteMutation.isPending || rejectInviteMutation.isPending}
-                                isLoading={acceptInviteMutation.isPending}
-                                leftIcon={<Check className="w-4 h-4" />}
-                              >
-                                Aceitar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => rejectInviteMutation.mutate({ 
-                                  inviteId: invite.id, 
-                                  inviteType: invite.inviteType || 'FAMILY' 
-                                })}
-                                disabled={acceptInviteMutation.isPending || rejectInviteMutation.isPending}
-                                isLoading={rejectInviteMutation.isPending}
-                                leftIcon={<XCircle className="w-4 h-4" />}
-                              >
-                                Recusar
-                              </Button>
+                              {invite.inviteType === 'PATIENT_INVITE' ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    onClose();
+                                    navigate('/team');
+                                  }}
+                                  leftIcon={<ArrowRight className="w-4 h-4" />}
+                                >
+                                  Ver e escolher bebês
+                                </Button>
+                              ) : (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => acceptInviteMutation.mutate({ 
+                                      inviteId: invite.id, 
+                                      inviteType: invite.inviteType || 'FAMILY' 
+                                    })}
+                                    disabled={acceptInviteMutation.isPending || rejectInviteMutation.isPending}
+                                    isLoading={acceptInviteMutation.isPending}
+                                    leftIcon={<Check className="w-4 h-4" />}
+                                  >
+                                    Aceitar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => rejectInviteMutation.mutate({ 
+                                      inviteId: invite.id, 
+                                      inviteType: invite.inviteType || 'FAMILY' 
+                                    })}
+                                    disabled={acceptInviteMutation.isPending || rejectInviteMutation.isPending}
+                                    isLoading={rejectInviteMutation.isPending}
+                                    leftIcon={<XCircle className="w-4 h-4" />}
+                                  >
+                                    Recusar
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>

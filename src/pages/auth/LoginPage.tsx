@@ -48,8 +48,11 @@ export function LoginPage() {
         return;
       }
 
+      const searchParams = new URLSearchParams(location.search);
+      const isInviteRef = searchParams.get('ref') === 'invite';
+
       const fromState = (location.state as { from?: { pathname: string } })?.from?.pathname;
-      const destination = fromState || getRedirectForRole(user.role);
+      const destination = isInviteRef ? '/team' : (fromState || getRedirectForRole(user.role));
       navigate(destination, { replace: true });
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };

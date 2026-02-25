@@ -1462,13 +1462,11 @@ export const deviceTokenService = {
 
 // ====== Patient Invite Service ======
 export const patientInviteService = {
-  // List all patient invites sent by the professional
   list: async () => {
     const response = await api.get('/patient-invites');
     return response.data;
   },
 
-  // Create a new patient invite
   create: async (data: {
     patientName: string;
     email: string;
@@ -1480,15 +1478,28 @@ export const patientInviteService = {
     return response.data;
   },
 
-  // Resend an invite email
   resend: async (inviteId: number) => {
     const response = await api.post(`/patient-invites/${inviteId}/resend`);
     return response.data;
   },
 
-  // Cancel a pending invite
   cancel: async (inviteId: number) => {
     const response = await api.delete(`/patient-invites/${inviteId}`);
+    return response.data;
+  },
+
+  getReceived: async () => {
+    const response = await api.get('/patient-invites/received');
+    return response.data;
+  },
+
+  accept: async (inviteId: number, babyIds: number[]) => {
+    const response = await api.post(`/patient-invites/${inviteId}/accept`, { babyIds });
+    return response.data;
+  },
+
+  reject: async (inviteId: number) => {
+    const response = await api.post(`/patient-invites/${inviteId}/reject`);
     return response.data;
   },
 };
