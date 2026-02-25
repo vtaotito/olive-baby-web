@@ -108,9 +108,14 @@ export function RegisterPage() {
         email: data.email,
         password: data.password,
         fullName: data.fullName,
+        role: profileType === 'professional' ? 'PEDIATRICIAN' : 'PARENT',
       });
       success('Conta criada!', 'Bem-vindo(a) ao OlieCare');
-      navigate('/dashboard');
+      if (profileType === 'professional') {
+        navigate('/prof/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Erro ao criar conta';
       showError('Erro no cadastro', msg);

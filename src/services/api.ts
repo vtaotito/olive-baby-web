@@ -218,6 +218,7 @@ export const authService = {
     fullName: string;
     cpf?: string;
     phone?: string;
+    role?: string;
   }) => {
     const response = await api.post('/auth/register', data);
     return response.data;

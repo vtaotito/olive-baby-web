@@ -19,6 +19,7 @@ interface AuthState {
     fullName: string;
     cpf?: string;
     phone?: string;
+    role?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   refreshTokens: () => Promise<void>;
