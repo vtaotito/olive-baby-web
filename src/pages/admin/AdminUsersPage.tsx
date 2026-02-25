@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Users,
   Baby,
-  Activity,
+  Stethoscope,
   AlertTriangle,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
@@ -166,12 +166,13 @@ export function AdminUsersPage() {
   const pagination = data?.pagination;
   const metrics = metricsData?.data;
 
-  // Calculate inactive users
   const inactiveCount = users.filter(u => {
     if (!u.lastActivityAt) return true;
     const days = Math.floor((Date.now() - new Date(u.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
     return days > 7;
   }).length;
+
+  const professionalsCount = users.filter(u => u.role === 'PEDIATRICIAN' || u.role === 'SPECIALIST').length;
 
   return (
     <AdminLayout
@@ -179,7 +180,7 @@ export function AdminUsersPage() {
       subtitle="Gerencie usuários e visualize perfis completos"
     >
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <KpiCard
           title="Total de Usuários"
           value={metrics?.totalUsers || 0}
@@ -191,6 +192,12 @@ export function AdminUsersPage() {
           value={metrics?.premiumUsers || 0}
           icon={<Crown className="w-6 h-6" />}
           color="olive"
+        />
+        <KpiCard
+          title="Profissionais"
+          value={professionalsCount}
+          icon={<Stethoscope className="w-6 h-6" />}
+          color="teal"
         />
         <KpiCard
           title="Total de Bebês"

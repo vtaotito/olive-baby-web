@@ -18,6 +18,7 @@ import type {
   UpgradeCandidate,
   DataQualityReport,
   ErrorsAnalytics,
+  AuditEvent,
 } from '../types/admin';
 
 // ==========================================
@@ -114,6 +115,27 @@ export const adminService = {
     const response = await api.patch<{ success: boolean; message: string; data: { oldRole: string; newRole: string } }>(
       `/admin/users/${userId}/role`,
       { role }
+    );
+    return response.data;
+  },
+
+  /**
+   * Delete user
+   */
+  deleteUser: async (userId: number) => {
+    const response = await api.delete<{ success: boolean; message: string }>(
+      `/admin/users/${userId}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Get user audit trail
+   */
+  getUserAuditTrail: async (userId: number, limit: number = 30) => {
+    const response = await api.get<{ success: boolean; data: AuditEvent[] }>(
+      `/admin/users/${userId}/audit`,
+      { params: { limit } }
     );
     return response.data;
   },

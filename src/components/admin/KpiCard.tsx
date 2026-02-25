@@ -9,7 +9,7 @@ interface KpiCardProps {
   subtitle?: string;
   icon: ReactNode;
   trend?: { value: number; isPositive: boolean };
-  color?: 'olive' | 'emerald' | 'sky' | 'violet' | 'rose' | 'amber';
+  color?: 'olive' | 'emerald' | 'sky' | 'violet' | 'rose' | 'amber' | 'teal';
   className?: string;
 }
 
@@ -29,6 +29,7 @@ export function KpiCard({
     violet: 'bg-violet-100',
     rose: 'bg-rose-100',
     amber: 'bg-amber-100',
+    teal: 'bg-teal-100',
   };
 
   const iconTextColors = {
@@ -38,6 +39,7 @@ export function KpiCard({
     violet: 'text-violet-600',
     rose: 'text-rose-600',
     amber: 'text-amber-600',
+    teal: 'text-teal-600',
   };
 
   return (

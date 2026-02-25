@@ -129,6 +129,20 @@ export interface AdminAlert {
 }
 
 // ==========================================
+// Audit Event
+// ==========================================
+
+export interface AuditEvent {
+  id: number;
+  action: string;
+  performedBy: { id: number; email: string } | null;
+  targetId: number | null;
+  metadata: Record<string, unknown> | null;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
+// ==========================================
 // Admin User
 // ==========================================
 
