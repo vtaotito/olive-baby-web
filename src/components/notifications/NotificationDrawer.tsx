@@ -388,16 +388,31 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                             {/* Actions */}
                             <div className="flex items-center gap-2 mt-3">
                               {invite.inviteType === 'PATIENT_INVITE' ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    onClose();
-                                    navigate('/team');
-                                  }}
-                                  leftIcon={<ArrowRight className="w-4 h-4" />}
-                                >
-                                  Ver e escolher bebês
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      onClose();
+                                      navigate('/team');
+                                    }}
+                                    leftIcon={<ArrowRight className="w-4 h-4" />}
+                                  >
+                                    Ver e escolher bebês
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => rejectInviteMutation.mutate({ 
+                                      inviteId: invite.id, 
+                                      inviteType: 'PATIENT_INVITE' 
+                                    })}
+                                    disabled={rejectInviteMutation.isPending}
+                                    isLoading={rejectInviteMutation.isPending}
+                                    leftIcon={<XCircle className="w-4 h-4" />}
+                                  >
+                                    Recusar
+                                  </Button>
+                                </div>
                               ) : (
                                 <>
                                   <Button

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -85,6 +85,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 // ====== Main Component ======
 export function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register: registerUser, isLoading } = useAuthStore();
   const { success, error: showError } = useToast();
 
@@ -111,10 +112,14 @@ export function RegisterPage() {
         role: profileType === 'professional' ? 'PEDIATRICIAN' : 'PARENT',
       });
       success('Conta criada!', 'Bem-vindo(a) ao OlieCare');
-      if (profileType === 'professional') {
-        navigate('/prof/dashboard');
+      const searchParams = new URLSearchParams(location.search);
+      const isInviteRef = searchParams.get('ref') === 'invite';
+      if (isInviteRef) {
+        navigate('/team', { replace: true });
+      } else if (profileType === 'professional') {
+        navigate('/prof/dashboard', { replace: true });
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Erro ao criar conta';
