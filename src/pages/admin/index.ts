@@ -8,4 +8,5 @@ export { AdminMonetizationPage } from './AdminMonetizationPage';
 export { AdminQualityPage } from './AdminQualityPage';
 export { AdminErrorsPage } from './AdminErrorsPage';
 export { AdminAlertsPage } from './AdminAlertsPage';
+export { AdminCommunicationsPage } from './AdminCommunicationsPage';
 export { AdminSettingsPage } from './AdminSettingsPage';

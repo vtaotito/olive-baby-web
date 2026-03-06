@@ -19,6 +19,7 @@ import {
   Bell,
   CreditCard,
   Brain,
+  Mail,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -60,6 +61,12 @@ const adminNavSections = [
     items: [
       { path: '/admin/alerts', icon: AlertTriangle, label: 'Alertas', badge: true },
       { path: '/admin/errors', icon: TrendingUp, label: 'Erros & Fricção' },
+    ],
+  },
+  {
+    title: 'Comunicação',
+    items: [
+      { path: '/admin/communications', icon: Mail, label: 'Comunicações' },
     ],
   },
   {

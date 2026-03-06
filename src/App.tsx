@@ -7,8 +7,9 @@ import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGu
 import { PWAProvider } from './components/pwa';
 import { useAuthStore } from './stores/authStore';
 
-// Landing Page
-import { LandingPage } from './pages/landing';
+// Landing Pages
+import { LandingPage, ProfLandingPage } from './pages/landing';
+import { shouldShowB2BLanding } from './lib/landingRouter';
 
 // Auth Pages
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
@@ -24,6 +25,7 @@ import {
   AdminQualityPage,
   AdminErrorsPage,
   AdminAlertsPage,
+  AdminCommunicationsPage,
   AdminSettingsPage,
 } from './pages/admin';
 
@@ -111,13 +113,26 @@ function getHomeForRole(role?: string): string {
 
 /**
  * Componente para a rota "/" - Landing page OU redirect baseado na role
+ * Roteamento por domínio (prof.oliecare.cloud) e campanha (utm_campaign=prof, ref=prof)
  */
 function HomeRoute() {
   const { isAuthenticated, user } = useAuthStore();
   if (isAuthenticated && user) {
     return <Navigate to={getHomeForRole(user.role)} replace />;
   }
+  if (shouldShowB2BLanding()) return <ProfLandingPage />;
   return <LandingPage />;
+}
+
+/**
+ * Rota /para-profissionais - Landing B2B (sempre exibe ProfLandingPage para visitantes)
+ */
+function ProfLandingRoute() {
+  const { isAuthenticated, user } = useAuthStore();
+  if (isAuthenticated && user) {
+    return <Navigate to={getHomeForRole(user.role)} replace />;
+  }
+  return <ProfLandingPage />;
 }
 
 /**
@@ -144,7 +159,8 @@ function App() {
             <Routes>
             {/* Home: Landing page para visitantes, redirect baseado em role para logados */}
             <Route path="/" element={<HomeRoute />} />
-            
+            <Route path="/para-profissionais" element={<ProfLandingRoute />} />
+
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -432,6 +448,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAlertsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/communications"
+              element={
+                <AdminRoute>
+                  <AdminCommunicationsPage />
                 </AdminRoute>
               }
             />

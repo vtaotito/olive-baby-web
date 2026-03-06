@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Baby,
@@ -14,14 +13,14 @@ import {
   Heart,
   Shield,
   Sparkles,
-  Menu,
-  X,
   ArrowRight,
   Coffee,
   Clock,
   HelpCircle,
   Star,
 } from 'lucide-react';
+import { LandingHeader } from './components/LandingHeader';
+import { LandingFooter } from './components/LandingFooter';
 
 // ============================================
 // HERO SECTION
@@ -819,146 +818,12 @@ function CTASection() {
 }
 
 // ============================================
-// HEADER/NAV
-// ============================================
-function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-stone-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-olive-600 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-display text-xl font-bold text-stone-800">OlieCare</span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#funcionalidades" className="text-stone-600 hover:text-olive-600 transition-colors">
-              Funcionalidades
-            </a>
-            <a href="#como-funciona" className="text-stone-600 hover:text-olive-600 transition-colors">
-              Como funciona
-            </a>
-            <a href="#precos" className="text-stone-600 hover:text-olive-600 transition-colors">
-              Preços
-            </a>
-          </nav>
-
-          {/* Desktop CTAs */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link to="/login" className="text-stone-600 hover:text-olive-600 transition-colors font-medium">
-              Entrar
-            </Link>
-            <Link
-              to="/register"
-              className="bg-olive-600 hover:bg-olive-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-colors"
-            >
-              Começar grátis
-            </Link>
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-stone-600"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-stone-100">
-            <nav className="flex flex-col gap-4">
-              <a href="#funcionalidades" className="text-stone-600 hover:text-olive-600 transition-colors py-2">
-                Funcionalidades
-              </a>
-              <a href="#como-funciona" className="text-stone-600 hover:text-olive-600 transition-colors py-2">
-                Como funciona
-              </a>
-              <a href="#precos" className="text-stone-600 hover:text-olive-600 transition-colors py-2">
-                Preços
-              </a>
-              <Link to="/login" className="text-stone-600 hover:text-olive-600 transition-colors py-2 font-medium">
-                Entrar
-              </Link>
-              <Link
-                to="/register"
-                className="bg-olive-600 hover:bg-olive-700 text-white px-5 py-3 rounded-xl font-semibold transition-colors text-center"
-              >
-                Começar grátis
-              </Link>
-            </nav>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-}
-
-// ============================================
-// FOOTER
-// ============================================
-function Footer() {
-  return (
-    <footer className="bg-stone-900 text-stone-400 py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-12">
-          {/* Brand */}
-          <div className="md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-olive-600 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-display text-xl font-bold text-white">OlieCare</span>
-            </Link>
-            <p className="text-stone-400 max-w-sm leading-relaxed">
-              Ajudando famílias a acompanharem a rotina dos seus bebês com mais clareza, 
-              organização e tranquilidade.
-            </p>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Produto</h4>
-            <ul className="space-y-2">
-              <li><a href="#funcionalidades" className="hover:text-white transition-colors">Funcionalidades</a></li>
-              <li><a href="#precos" className="hover:text-white transition-colors">Preços</a></li>
-              <li><a href="#como-funciona" className="hover:text-white transition-colors">Como funciona</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-4">Legal</h4>
-            <ul className="space-y-2">
-              <li><Link to="/privacidade" className="hover:text-white transition-colors">Privacidade</Link></li>
-              <li><Link to="/termos" className="hover:text-white transition-colors">Termos de uso</Link></li>
-              <li><a href="mailto:contact@api.oliecare.cloud" className="hover:text-white transition-colors">Contato</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-stone-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm">© {new Date().getFullYear()} OlieCare. Todos os direitos reservados.</p>
-          <p className="text-sm">Feito com 💛 para famílias</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-// ============================================
 // MAIN LANDING PAGE
 // ============================================
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <LandingHeader variant="b2c" />
       <main className="pt-16">
         <HeroSection />
         <ProblemSection />
@@ -969,7 +834,7 @@ export function LandingPage() {
         <PricingSection />
         <CTASection />
       </main>
-      <Footer />
+      <LandingFooter variant="b2c" />
     </div>
   );
 }

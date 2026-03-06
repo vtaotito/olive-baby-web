@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -94,6 +94,15 @@ export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const totalSteps = 3;
+
+  // Pré-selecionar perfil profissional quando ?profile=professional (vindo da landing B2B)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('profile') === 'professional') {
+      setProfileType('professional');
+      setStep(2);
+    }
+  }, [location.search]);
 
   const form = useForm<CredentialsData>({
     resolver: zodResolver(credentialsSchema),

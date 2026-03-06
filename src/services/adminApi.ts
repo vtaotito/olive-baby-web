@@ -251,7 +251,57 @@ export const adminService = {
     );
     return response.data;
   },
+
+  // ============================================
+  // Communications (emails tracking / volumetria)
+  // ============================================
+
+  /**
+   * List email communications (log) with filters
+   */
+  getCommunications: async (params?: {
+    templateType?: string;
+    channel?: 'B2C' | 'B2B' | 'INTERNAL';
+    from?: string;
+    to?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const response = await api.get<{
+      success: boolean;
+      data: { items: EmailCommunication[]; total: number; page: number; limit: number };
+    }>('/admin/communications', { params });
+    return response.data;
+  },
+
+  /**
+   * Volumetria de envios (por dia, template ou canal)
+   */
+  getCommunicationsVolume: async (params?: {
+    range?: '7d' | '30d' | '90d';
+    groupBy?: 'day' | 'template' | 'channel';
+  }) => {
+    const response = await api.get<{
+      success: boolean;
+      data: CommunicationsVolumeData;
+    }>('/admin/communications/volume', { params });
+    return response.data;
+  },
 };
+
+export interface EmailCommunication {
+  id: number;
+  templateType: string;
+  channel: string;
+  recipientDomain: string | null;
+  sentAt: string;
+  metadata: Record<string, unknown>;
+}
+
+export type CommunicationsVolumeData =
+  | { groupBy: 'day'; series: { date: string; count: number }[] }
+  | { groupBy: 'template'; series: { templateType: string; count: number }[] }
+  | { groupBy: 'channel'; series: { channel: string; count: number }[] };
 
 export default adminService;
 
