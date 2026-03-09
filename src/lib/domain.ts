@@ -22,7 +22,7 @@ export function getClinicSlugFromHostname(): string | null {
     return search.get('clinic') || null;
   }
   const parts = hostname.split('.');
-  if (parts.length >= 2 && parts[parts.length - 2] === 'oliecare' && parts[parts.length - 1] === 'cloud') {
+  if (parts.length >= 3 && parts[parts.length - 2] === 'oliecare' && parts[parts.length - 1] === 'cloud') {
     const slug = parts[0];
     if (slug && slug !== 'app' && slug !== 'adm' && slug !== 'admin' && slug !== 'prof' && slug !== 'professional' && slug !== 'www') {
       return slug;
