@@ -287,6 +287,40 @@ export const adminService = {
     }>('/admin/communications/volume', { params });
     return response.data;
   },
+
+  /**
+   * KPI stats for communications
+   */
+  getCommunicationsStats: async () => {
+    const response = await api.get<{
+      success: boolean;
+      data: CommunicationsStats;
+    }>('/admin/communications/stats');
+    return response.data;
+  },
+
+  /**
+   * Get all email templates with rendered HTML previews
+   */
+  getEmailTemplates: async () => {
+    const response = await api.get<{
+      success: boolean;
+      data: EmailTemplatePreview[];
+    }>('/admin/email-templates');
+    return response.data;
+  },
+
+  /**
+   * Send a test email of a specific template type
+   */
+  sendTestEmail: async (email: string, type: string) => {
+    const response = await api.post<{
+      success: boolean;
+      message: string;
+      data: { email: string; type: string; sentAt: string };
+    }>('/admin/test-email', { email, type });
+    return response.data;
+  },
 };
 
 export interface EmailCommunication {
@@ -302,6 +336,23 @@ export type CommunicationsVolumeData =
   | { groupBy: 'day'; series: { date: string; count: number }[] }
   | { groupBy: 'template'; series: { templateType: string; count: number }[] }
   | { groupBy: 'channel'; series: { channel: string; count: number }[] };
+
+export interface CommunicationsStats {
+  total: number;
+  todayCount: number;
+  last30Days: number;
+  avgPerDay: number;
+  byChannel: Record<string, number>;
+  templateRanking: Array<{ templateType: string; count: number }>;
+}
+
+export interface EmailTemplatePreview {
+  type: string;
+  name: string;
+  channel: string;
+  subject: string;
+  html: string;
+}
 
 export default adminService;
 
