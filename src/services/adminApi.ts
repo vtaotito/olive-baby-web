@@ -321,6 +321,44 @@ export const adminService = {
     }>('/admin/test-email', { email, type });
     return response.data;
   },
+
+  // ============================================
+  // Push Notifications (Admin)
+  // ============================================
+
+  getPushStats: async () => {
+    const response = await api.get<{ success: boolean; data: PushStats }>('/admin/push/stats');
+    return response.data;
+  },
+
+  getPushTriggers: async () => {
+    const response = await api.get<{ success: boolean; data: PushTrigger[] }>('/admin/push/triggers');
+    return response.data;
+  },
+
+  sendPushBroadcast: async (data: {
+    segment: string;
+    title: string;
+    body: string;
+    clickAction?: string;
+    priority?: string;
+  }) => {
+    const response = await api.post<{
+      success: boolean;
+      message: string;
+      data: { sent: number; failed: number; noToken: number; segment: string };
+    }>('/admin/push/broadcast', data);
+    return response.data;
+  },
+
+  sendPushTest: async () => {
+    const response = await api.post<{
+      success: boolean;
+      message: string;
+      data: { results: Array<{ success: boolean; platform: string }>; sentAt: string };
+    }>('/admin/push/test');
+    return response.data;
+  },
 };
 
 export interface EmailCommunication {
@@ -352,6 +390,46 @@ export interface EmailTemplatePreview {
   channel: string;
   subject: string;
   html: string;
+}
+
+export interface PushStats {
+  devices: {
+    total: number;
+    active: number;
+    byPlatform: Record<string, number>;
+  };
+  capabilities: {
+    webPush: boolean;
+    fcm: boolean;
+    expo: boolean;
+  };
+  pushSends: {
+    total: number;
+    today: number;
+    last30Days: number;
+    byChannel: Record<string, number>;
+  };
+}
+
+export interface PushTrigger {
+  id: string;
+  name: string;
+  description: string;
+  channel: 'B2C' | 'B2B' | 'INTERNAL';
+  category: 'engagement' | 'lifecycle' | 'clinical' | 'system';
+  enabled: boolean;
+  defaultPayload: {
+    title: string;
+    body: string;
+    clickAction?: string;
+    priority?: string;
+  };
+  configSchema: Array<{
+    key: string;
+    label: string;
+    type: string;
+    default: number | boolean | string;
+  }>;
 }
 
 export default adminService;
