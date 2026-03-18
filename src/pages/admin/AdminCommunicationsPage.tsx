@@ -91,6 +91,8 @@ export function AdminCommunicationsPage() {
   // Push state
   const [broadcastForm, setBroadcastForm] = useState({ segment: 'all', title: '', body: '', clickAction: '' });
   const [showBroadcast, setShowBroadcast] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState<{ message: string; sent: number; failed: number; noToken: number } | null>(null);
+  const [confirmBroadcast, setConfirmBroadcast] = useState(false);
 
   // Log state
   const [logChannel, setLogChannel] = useState('');
@@ -150,10 +152,16 @@ export function AdminCommunicationsPage() {
 
   const sendBroadcastMut = useMutation({
     mutationFn: (data: typeof broadcastForm) => adminService.sendPushBroadcast(data),
-    onSuccess: () => {
-      setShowBroadcast(false);
+    onSuccess: (resp) => {
+      setBroadcastResult({
+        message: resp.message,
+        sent: resp.data?.sent ?? 0,
+        failed: resp.data?.failed ?? 0,
+        noToken: resp.data?.noToken ?? 0,
+      });
       setBroadcastForm({ segment: 'all', title: '', body: '', clickAction: '' });
       queryClient.invalidateQueries({ queryKey: ['admin-push-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-email-stats'] });
     },
   });
 
@@ -430,12 +438,35 @@ export function AdminCommunicationsPage() {
                         {sendPushTestMut.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Bell className="w-4 h-4 mr-2" />}
                         Enviar push de teste (para mim)
                       </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setShowBroadcast(true)}>
+                      <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => { setBroadcastResult(null); setShowBroadcast(true); }}>
                         <Megaphone className="w-4 h-4 mr-2" /> Enviar push broadcast
                       </Button>
                     </div>
-                    {sendPushTestMut.isSuccess && <p className="text-xs text-emerald-600 mt-2">{sendPushTestMut.data?.message}</p>}
-                    {sendPushTestMut.isError && <p className="text-xs text-rose-600 mt-2">Erro ao enviar push de teste.</p>}
+                    {sendPushTestMut.isSuccess && (
+                      <div className="mt-3 p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-start gap-2">
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400">{sendPushTestMut.data?.message}</p>
+                      </div>
+                    )}
+                    {sendPushTestMut.isError && (
+                      <div className="mt-3 p-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-lg flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-rose-700 dark:text-rose-400">Erro ao enviar push de teste.</p>
+                      </div>
+                    )}
+                    {broadcastResult && (
+                      <div className="mt-3 p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <div className="flex items-start gap-2 mb-1.5">
+                          <Megaphone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Broadcast enviado com sucesso</p>
+                        </div>
+                        <div className="flex gap-3 text-[10px] text-emerald-600 dark:text-emerald-500 ml-6">
+                          <span>{broadcastResult.sent} enviados</span>
+                          {broadcastResult.failed > 0 && <span className="text-amber-600">{broadcastResult.failed} falhas</span>}
+                          {broadcastResult.noToken > 0 && <span className="text-gray-500">{broadcastResult.noToken} sem token</span>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -644,48 +675,106 @@ export function AdminCommunicationsPage() {
 
       {/* ==================== BROADCAST MODAL ==================== */}
       {showBroadcast && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowBroadcast(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { if (!sendBroadcastMut.isPending) { setShowBroadcast(false); setConfirmBroadcast(false); } }}>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <h3 className="font-semibold text-gray-900 dark:text-white mb-1 flex items-center gap-2"><Megaphone className="w-5 h-5 text-violet-600" /> Push Broadcast</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Enviar push notification para um segmento de usuários.</p>
-            <form onSubmit={e => { e.preventDefault(); sendBroadcastMut.mutate(broadcastForm); }}>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Segmento</label>
-                  <select value={broadcastForm.segment} onChange={e => setBroadcastForm(f => ({ ...f, segment: e.target.value }))} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm">
-                    <option value="all">Todos os usuários</option>
-                    <option value="b2c">B2C (Pais/Cuidadores)</option>
-                    <option value="b2b">B2B (Profissionais)</option>
-                    <option value="premium">Premium</option>
-                    <option value="free">Free</option>
-                  </select>
+
+            {broadcastResult ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg"><Check className="w-5 h-5 text-emerald-600" /></div>
+                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Broadcast enviado com sucesso</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
+                      <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{broadcastResult.sent}</p>
+                      <p className="text-[10px] text-emerald-600 dark:text-emerald-500">Enviados</p>
+                    </div>
+                    <div className="text-center p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
+                      <p className="text-lg font-bold text-amber-600">{broadcastResult.failed}</p>
+                      <p className="text-[10px] text-amber-500">Falhas</p>
+                    </div>
+                    <div className="text-center p-2 bg-white/60 dark:bg-gray-800/60 rounded-lg">
+                      <p className="text-lg font-bold text-gray-500">{broadcastResult.noToken}</p>
+                      <p className="text-[10px] text-gray-400">Sem token</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título</label>
-                  <input type="text" required maxLength={100} placeholder="Título da notificação" value={broadcastForm.title} onChange={e => setBroadcastForm(f => ({ ...f, title: e.target.value }))} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mensagem</label>
-                  <textarea required maxLength={300} rows={3} placeholder="Corpo da notificação..." value={broadcastForm.body} onChange={e => setBroadcastForm(f => ({ ...f, body: e.target.value }))} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm resize-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL de destino (opcional)</label>
-                  <input type="text" placeholder="/dashboard" value={broadcastForm.clickAction} onChange={e => setBroadcastForm(f => ({ ...f, clickAction: e.target.value }))} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm" />
+                <div className="flex justify-end">
+                  <Button size="sm" onClick={() => { setShowBroadcast(false); setConfirmBroadcast(false); }}>Fechar</Button>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-5">
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowBroadcast(false)}>Cancelar</Button>
-                <Button type="submit" size="sm" disabled={!broadcastForm.title || !broadcastForm.body || sendBroadcastMut.isPending}>
-                  {sendBroadcastMut.isPending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Enviando...</> : <><Megaphone className="w-4 h-4 mr-1" /> Enviar Broadcast</>}
-                </Button>
-              </div>
-              {sendBroadcastMut.isSuccess && (
-                <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-sm text-emerald-700 dark:text-emerald-400">
-                  {sendBroadcastMut.data?.message} — {sendBroadcastMut.data?.data?.sent} enviados, {sendBroadcastMut.data?.data?.failed} falhas, {sendBroadcastMut.data?.data?.noToken} sem token
+            ) : (
+              <form onSubmit={e => {
+                e.preventDefault();
+                if (!confirmBroadcast) { setConfirmBroadcast(true); return; }
+                sendBroadcastMut.mutate(broadcastForm);
+              }}>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Segmento</label>
+                    <select value={broadcastForm.segment} onChange={e => { setBroadcastForm(f => ({ ...f, segment: e.target.value })); setConfirmBroadcast(false); }} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm">
+                      <option value="all">Todos os usuários</option>
+                      <option value="b2c">B2C (Pais/Cuidadores)</option>
+                      <option value="b2b">B2B (Profissionais)</option>
+                      <option value="premium">Premium</option>
+                      <option value="free">Free</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título</label>
+                    <input type="text" required maxLength={100} placeholder="Título da notificação" value={broadcastForm.title} onChange={e => { setBroadcastForm(f => ({ ...f, title: e.target.value })); setConfirmBroadcast(false); }} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mensagem</label>
+                    <textarea required maxLength={300} rows={3} placeholder="Corpo da notificação..." value={broadcastForm.body} onChange={e => { setBroadcastForm(f => ({ ...f, body: e.target.value })); setConfirmBroadcast(false); }} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm resize-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL de destino (opcional)</label>
+                    <input type="text" placeholder="/dashboard" value={broadcastForm.clickAction} onChange={e => setBroadcastForm(f => ({ ...f, clickAction: e.target.value }))} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm" />
+                  </div>
                 </div>
-              )}
-              {sendBroadcastMut.isError && <p className="text-sm text-rose-600 mt-3 text-center">Erro ao enviar broadcast.</p>}
-            </form>
+
+                {/* Preview da notificação */}
+                {broadcastForm.title && broadcastForm.body && (
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">Preview da notificação</p>
+                    <div className="flex gap-3 items-start">
+                      <div className="w-8 h-8 rounded-lg bg-olive-100 dark:bg-olive-900/30 flex items-center justify-center shrink-0">
+                        <Bell className="w-4 h-4 text-olive-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{broadcastForm.title}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{broadcastForm.body}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {confirmBroadcast && (
+                  <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Tem certeza?</p>
+                      <p className="text-xs text-amber-700 dark:text-amber-400">Esta ação enviará push para todos os dispositivos do segmento selecionado. Clique novamente para confirmar.</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 mt-5">
+                  <Button type="button" variant="outline" size="sm" onClick={() => { setShowBroadcast(false); setConfirmBroadcast(false); }} disabled={sendBroadcastMut.isPending}>Cancelar</Button>
+                  <Button type="submit" size="sm" disabled={!broadcastForm.title || !broadcastForm.body || sendBroadcastMut.isPending}
+                    className={confirmBroadcast ? 'bg-amber-600 hover:bg-amber-700' : ''}>
+                    {sendBroadcastMut.isPending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Enviando...</> :
+                      confirmBroadcast ? <><Check className="w-4 h-4 mr-1" /> Confirmar Envio</> :
+                        <><Megaphone className="w-4 h-4 mr-1" /> Enviar Broadcast</>}
+                  </Button>
+                </div>
+                {sendBroadcastMut.isError && <p className="text-sm text-rose-600 mt-3 text-center">Erro ao enviar broadcast.</p>}
+              </form>
+            )}
           </div>
         </div>
       )}
