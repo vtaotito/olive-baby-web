@@ -26,6 +26,13 @@ import {
   VolumeX,
   Send,
   BarChart3,
+  Activity,
+  Wifi,
+  WifiOff,
+  Smartphone,
+  Server,
+  Globe,
+  ArrowUpRight,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { KpiCard } from '../../components/admin';
@@ -38,9 +45,10 @@ import {
   type AlertStats,
   type AlertSeverityType,
   type AlertStatusType,
+  type CommunicationsHealth,
 } from '../../services/adminApi';
 
-type TabId = 'alerts' | 'configs' | 'comms';
+type TabId = 'status' | 'alerts' | 'configs' | 'comms';
 
 const SEVERITY_META: Record<AlertSeverityType, { label: string; icon: typeof AlertTriangle; color: string; bg: string; border: string }> = {
   CRITICAL: { label: 'Crítico', icon: XCircle, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/20', border: 'border-rose-200 dark:border-rose-800' },
@@ -71,7 +79,7 @@ const CONFIG_CATEGORY_META: Record<string, { label: string; color: string }> = {
 
 export function AdminAlertsPage() {
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<TabId>('alerts');
+  const [tab, setTab] = useState<TabId>('status');
   const [filterSeverity, setFilterSeverity] = useState<AlertSeverityType | ''>('');
   const [filterStatus, setFilterStatus] = useState<AlertStatusType | ''>('');
   const [alertPage, setAlertPage] = useState(1);
@@ -83,6 +91,11 @@ export function AdminAlertsPage() {
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-alert-stats'],
     queryFn: () => adminService.getAlertStats(),
+  });
+
+  const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
+    queryKey: ['admin-comms-health'],
+    queryFn: () => adminService.getCommunicationsHealth(),
   });
 
   const { data: alertsData, isLoading: alertsLoading, refetch: refetchAlerts } = useQuery({
@@ -149,15 +162,17 @@ export function AdminAlertsPage() {
   });
 
   const stats: AlertStats | undefined = statsData?.data;
+  const health: CommunicationsHealth | undefined = healthData?.data;
   const alerts: SystemAlert[] = alertsData?.data?.items ?? [];
   const totalAlerts = alertsData?.data?.total ?? 0;
   const configs: AlertConfig[] = configsData?.data ?? [];
   const comms = commsData?.data?.items ?? [];
 
-  const tabs: Array<{ id: TabId; label: string; icon: typeof AlertTriangle }> = [
-    { id: 'alerts', label: 'Alertas', icon: AlertTriangle },
+  const tabs: Array<{ id: TabId; label: string; icon: typeof AlertTriangle; badge?: boolean }> = [
+    { id: 'status', label: 'Status do Sistema', icon: Activity },
+    { id: 'alerts', label: 'Alertas', icon: AlertTriangle, badge: (stats?.unresolvedCritical ?? 0) > 0 },
     { id: 'configs', label: 'Configurações', icon: Settings2 },
-    { id: 'comms', label: 'Comunicações Enviadas', icon: Mail },
+    { id: 'comms', label: 'Log de Envios', icon: Mail },
   ];
 
   const toggleSelect = (id: number) => {
@@ -213,15 +228,201 @@ export function AdminAlertsPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-          {tabs.map(({ id, label, icon: Icon }) => (
+          {tabs.map(({ id, label, icon: Icon, badge }) => (
             <button key={id} onClick={() => setTab(id)} className={cn(
               'flex items-center gap-2 px-4 py-2.5 font-medium border-b-2 -mb-px transition-colors whitespace-nowrap text-sm',
               tab === id ? 'border-olive-600 text-olive-700 dark:text-olive-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             )}>
               <Icon className="w-4 h-4" /> {label}
+              {badge && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />}
             </button>
           ))}
         </div>
+
+        {/* ==================== STATUS TAB ==================== */}
+        {tab === 'status' && (
+          <div className="space-y-5">
+            {healthLoading ? (
+              <div className="flex justify-center py-16"><Spinner /></div>
+            ) : health ? (
+              <>
+                {/* Email Status */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',
+                        health.email.status === 'operational' ? 'bg-emerald-50 dark:bg-emerald-900/20' :
+                        health.email.status === 'degraded' ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-rose-50 dark:bg-rose-900/20')}>
+                        <Mail className={cn('w-5 h-5',
+                          health.email.status === 'operational' ? 'text-emerald-600' :
+                          health.email.status === 'degraded' ? 'text-amber-600' : 'text-rose-600')} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Serviço de E-mail</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={cn('inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                            health.email.status === 'operational' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                            health.email.status === 'degraded' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                            'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400')}>
+                            {health.email.status === 'operational' ? <><Wifi className="w-3 h-3" /> Operacional</> :
+                             health.email.status === 'degraded' ? <><AlertTriangle className="w-3 h-3" /> Degradado</> :
+                             <><WifiOff className="w-3 h-3" /> Indisponível</>}
+                          </span>
+                          <span className="text-[10px] text-gray-400">Provider: <span className="font-medium text-gray-600 dark:text-gray-300">{health.email.provider}</span></span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => refetchHealth()}>
+                      <RefreshCw className="w-3 h-3 mr-1" /> Atualizar
+                    </Button>
+                  </div>
+                  <div className="px-5 py-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{health.email.sentToday}</p>
+                        <p className="text-[10px] text-gray-500">Enviados hoje</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{health.email.sentLast7d}</p>
+                        <p className="text-[10px] text-gray-500">Últimos 7 dias</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {health.email.hasMailerSend ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-rose-400" />}
+                          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">MailerSend</p>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{health.email.hasMailerSend ? 'Configurado' : 'Sem API Key'}</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {health.email.hasSmtp ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <XCircle className="w-4 h-4 text-gray-300" />}
+                          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">SMTP</p>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{health.email.hasSmtp ? 'Fallback ativo' : 'Não configurado'}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                      <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>Remetente: <span className="font-medium text-gray-700 dark:text-gray-300">{health.email.fromEmail}</span></span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Alertas: <span className="font-medium text-gray-700 dark:text-gray-300">{health.email.alertEmail}</span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Push Status */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',
+                      health.push.status === 'operational' ? 'bg-violet-50 dark:bg-violet-900/20' : 'bg-rose-50 dark:bg-rose-900/20')}>
+                      <Bell className={cn('w-5 h-5', health.push.status === 'operational' ? 'text-violet-600' : 'text-rose-600')} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Serviço de Push Notifications</h3>
+                      <span className={cn('inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5',
+                        health.push.status === 'operational' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                        'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400')}>
+                        {health.push.status === 'operational' ? <><Wifi className="w-3 h-3" /> Operacional</> : <><WifiOff className="w-3 h-3" /> Indisponível</>}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-5 py-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{health.push.sentToday}</p>
+                        <p className="text-[10px] text-gray-500">Push hoje</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{health.push.sentLast7d}</p>
+                        <p className="text-[10px] text-gray-500">Últimos 7 dias</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <p className="text-lg font-bold text-violet-600">{health.push.activeDevices}</p>
+                        <p className="text-[10px] text-gray-500">Dispositivos ativos</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="text-center">
+                            {health.push.vapid ? <CheckCircle className="w-4 h-4 text-emerald-500 mx-auto" /> : <XCircle className="w-4 h-4 text-rose-400 mx-auto" />}
+                            <p className="text-[9px] text-gray-400 mt-0.5">VAPID</p>
+                          </div>
+                          <div className="text-center">
+                            {health.push.fcm ? <CheckCircle className="w-4 h-4 text-emerald-500 mx-auto" /> : <XCircle className="w-4 h-4 text-gray-300 mx-auto" />}
+                            <p className="text-[9px] text-gray-400 mt-0.5">FCM</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Active Alerts Summary */}
+                {health.alerts.unresolvedCommsAlerts > 0 && (
+                  <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl border border-rose-200 dark:border-rose-800 p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="w-5 h-5 text-rose-600" />
+                      <div>
+                        <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+                          {health.alerts.unresolvedCommsAlerts} alerta{health.alerts.unresolvedCommsAlerts > 1 ? 's' : ''} de comunicação não resolvido{health.alerts.unresolvedCommsAlerts > 1 ? 's' : ''}
+                        </p>
+                        <p className="text-xs text-rose-600 dark:text-rose-400">Nas últimas 24 horas</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => setTab('alerts')}>
+                      Ver alertas <ArrowUpRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button onClick={() => setTab('configs')}
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-olive-300 dark:hover:border-olive-700 transition-colors text-left">
+                    <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+                      <Settings2 className="w-5 h-5 text-violet-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">Configurar Alertas</p>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">{configs.length > 0 ? `${configs.filter(c => c.enabled).length} ativos de ${configs.length}` : 'Thresholds e canais'}</p>
+                    </div>
+                  </button>
+                  <button onClick={() => setTab('alerts')}
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-olive-300 dark:hover:border-olive-700 transition-colors text-left">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">Ver Alertas</p>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">{(stats?.byStatus?.NEW ?? 0) + (stats?.byStatus?.SEEN ?? 0)} pendentes · {stats?.todayCount ?? 0} hoje</p>
+                    </div>
+                  </button>
+                  <button onClick={() => setTab('comms')}
+                    className="flex items-center gap-3 p-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-olive-300 dark:hover:border-olive-700 transition-colors text-left">
+                    <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center shrink-0">
+                      <Send className="w-5 h-5 text-sky-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">Log de Envios</p>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">Emails e push enviados</p>
+                    </div>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <Server className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">Não foi possível carregar o status do sistema.</p>
+                <Button size="sm" variant="outline" className="mt-3" onClick={() => refetchHealth()}>
+                  <RefreshCw className="w-3 h-3 mr-1" /> Tentar novamente
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ==================== ALERTS TAB ==================== */}
         {tab === 'alerts' && (

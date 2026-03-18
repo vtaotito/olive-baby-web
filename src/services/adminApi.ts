@@ -360,6 +360,11 @@ export const adminService = {
     return response.data;
   },
 
+  getCommunicationsHealth: async () => {
+    const response = await api.get<{ success: boolean; data: CommunicationsHealth }>('/admin/communications/health');
+    return response.data;
+  },
+
   updatePushTrigger: async (triggerId: string, data: { enabled: boolean; config?: Record<string, unknown> }) => {
     const response = await api.patch<{ success: boolean; message: string; data: PushTrigger }>(
       `/admin/push/triggers/${triggerId}`, data
@@ -683,6 +688,31 @@ export interface AlertStats {
   typeRanking: Array<{ type: string; count: number }>;
   unresolvedCritical: number;
   recentCritical: SystemAlert[];
+}
+
+export interface CommunicationsHealth {
+  email: {
+    status: 'operational' | 'degraded' | 'down';
+    provider: string;
+    fromEmail: string;
+    alertEmail: string;
+    sentToday: number;
+    sentLast7d: number;
+    hasMailerSend: boolean;
+    hasSmtp: boolean;
+  };
+  push: {
+    status: 'operational' | 'down';
+    vapid: boolean;
+    fcm: boolean;
+    activeDevices: number;
+    sentToday: number;
+    sentLast7d: number;
+  };
+  alerts: {
+    unresolvedCommsAlerts: number;
+  };
+  updatedAt: string;
 }
 
 export default adminService;
