@@ -428,6 +428,62 @@ export const adminService = {
     );
     return response.data;
   },
+
+  // ============================================
+  // System Alerts
+  // ============================================
+
+  listAlerts: async (params?: { status?: string; severity?: string; type?: string; page?: number; limit?: number }) => {
+    const response = await api.get<{ success: boolean; data: { items: SystemAlert[]; total: number } }>(
+      '/admin/alerts', { params }
+    );
+    return response.data;
+  },
+
+  getAlertStats: async () => {
+    const response = await api.get<{ success: boolean; data: AlertStats }>('/admin/alerts/stats');
+    return response.data;
+  },
+
+  updateAlertStatus: async (id: number, status: string) => {
+    const response = await api.patch<{ success: boolean; data: SystemAlert; message: string }>(
+      `/admin/alerts/${id}/status`, { status }
+    );
+    return response.data;
+  },
+
+  bulkUpdateAlerts: async (ids: number[], status: string) => {
+    const response = await api.post<{ success: boolean; message: string }>(
+      '/admin/alerts/bulk-update', { ids, status }
+    );
+    return response.data;
+  },
+
+  resolveAlertsByType: async (type: string) => {
+    const response = await api.post<{ success: boolean; message: string }>(
+      '/admin/alerts/resolve-type', { type }
+    );
+    return response.data;
+  },
+
+  listAlertConfigs: async () => {
+    const response = await api.get<{ success: boolean; data: AlertConfig[] }>('/admin/alerts/configs');
+    return response.data;
+  },
+
+  updateAlertConfig: async (id: string, data: Partial<AlertConfig>) => {
+    const response = await api.patch<{ success: boolean; data: AlertConfig; message: string }>(
+      `/admin/alerts/configs/${id}`, data
+    );
+    return response.data;
+  },
+
+  createTestAlert: async (data?: { type?: string; severity?: string; title?: string; message?: string }) => {
+    const response = await api.post<{ success: boolean; data: SystemAlert; message: string }>(
+      '/admin/alerts/test', data ?? {}
+    );
+    return response.data;
+  },
 };
 
 export interface EmailCommunication {
@@ -580,6 +636,53 @@ export interface JourneyTemplate {
   category: string;
   audience: string;
   steps: JourneyStepInput[];
+}
+
+// ==========================================
+// Alert Types
+// ==========================================
+
+export type AlertSeverityType = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+export type AlertStatusType = 'NEW' | 'SEEN' | 'RESOLVED' | 'MUTED';
+
+export interface SystemAlert {
+  id: number;
+  type: string;
+  severity: AlertSeverityType;
+  status: AlertStatusType;
+  title: string;
+  message: string;
+  component: string;
+  metadata?: Record<string, unknown>;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  notified: boolean;
+  createdAt: string;
+}
+
+export interface AlertConfig {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  enabled: boolean;
+  threshold?: Record<string, unknown>;
+  channels: string[];
+  cooldownMin: number;
+  recipients?: string[];
+  updatedAt: string;
+}
+
+export interface AlertStats {
+  total: number;
+  todayCount: number;
+  last24hCount: number;
+  last7dCount: number;
+  byStatus: Record<string, number>;
+  bySeverity: Record<string, number>;
+  typeRanking: Array<{ type: string; count: number }>;
+  unresolvedCritical: number;
+  recentCritical: SystemAlert[];
 }
 
 export default adminService;
