@@ -26,6 +26,7 @@ import {
   AdminErrorsPage,
   AdminAlertsPage,
   AdminCommunicationsPage,
+  AdminJourneysPage,
   AdminSettingsPage,
 } from './pages/admin';
 
@@ -456,6 +457,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminCommunicationsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/journeys"
+              element={
+                <AdminRoute>
+                  <AdminJourneysPage />
                 </AdminRoute>
               }
             />

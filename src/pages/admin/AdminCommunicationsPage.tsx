@@ -165,6 +165,12 @@ export function AdminCommunicationsPage() {
     },
   });
 
+  const updateTriggerMut = useMutation({
+    mutationFn: ({ triggerId, enabled, config }: { triggerId: string; enabled: boolean; config?: Record<string, unknown> }) =>
+      adminService.updatePushTrigger(triggerId, { enabled, config }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-push-triggers'] }),
+  });
+
   const stats = emailStats?.data;
   const pushStats: PushStats | undefined = pushStatsData?.data;
   const templates: EmailTemplatePreview[] = templatesData?.data ?? [];
@@ -526,15 +532,19 @@ export function AdminCommunicationsPage() {
                                   ))}
                                 </div>
                               </div>
-                              <div className={cn(
-                                'shrink-0 w-10 h-6 rounded-full relative cursor-pointer transition-colors',
-                                trigger.enabled ? 'bg-olive-500' : 'bg-gray-300 dark:bg-gray-600'
-                              )}>
+                              <button
+                                onClick={() => updateTriggerMut.mutate({ triggerId: trigger.id, enabled: !trigger.enabled })}
+                                disabled={updateTriggerMut.isPending}
+                                className={cn(
+                                  'shrink-0 w-10 h-6 rounded-full relative cursor-pointer transition-colors',
+                                  trigger.enabled ? 'bg-olive-500' : 'bg-gray-300 dark:bg-gray-600'
+                                )}
+                              >
                                 <div className={cn(
                                   'absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform',
                                   trigger.enabled ? 'translate-x-4' : 'translate-x-0.5'
                                 )} />
-                              </div>
+                              </button>
                             </div>
                             {/* Preview payload */}
                             <div className="mt-3 p-2.5 bg-gray-50 dark:bg-gray-900 rounded-lg">

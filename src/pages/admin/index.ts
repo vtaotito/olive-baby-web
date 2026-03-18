@@ -9,4 +9,5 @@ export { AdminQualityPage } from './AdminQualityPage';
 export { AdminErrorsPage } from './AdminErrorsPage';
 export { AdminAlertsPage } from './AdminAlertsPage';
 export { AdminCommunicationsPage } from './AdminCommunicationsPage';
+export { AdminJourneysPage } from './AdminJourneysPage';
 export { AdminSettingsPage } from './AdminSettingsPage';

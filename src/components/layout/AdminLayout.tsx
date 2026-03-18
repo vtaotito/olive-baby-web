@@ -20,6 +20,7 @@ import {
   CreditCard,
   Brain,
   Mail,
+  Route,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -67,6 +68,7 @@ const adminNavSections = [
     title: 'Comunicação',
     items: [
       { path: '/admin/communications', icon: Mail, label: 'Comunicações' },
+      { path: '/admin/journeys', icon: Route, label: 'Jornadas' },
     ],
   },
   {

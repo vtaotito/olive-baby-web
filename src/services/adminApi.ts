@@ -359,6 +359,75 @@ export const adminService = {
     }>('/admin/push/test');
     return response.data;
   },
+
+  updatePushTrigger: async (triggerId: string, data: { enabled: boolean; config?: Record<string, unknown> }) => {
+    const response = await api.patch<{ success: boolean; message: string; data: PushTrigger }>(
+      `/admin/push/triggers/${triggerId}`, data
+    );
+    return response.data;
+  },
+
+  // ============================================
+  // Journeys
+  // ============================================
+
+  listJourneys: async (filters?: { category?: string; audience?: string; status?: string; page?: number; limit?: number }) => {
+    const response = await api.get<{ success: boolean; data: { items: Journey[]; total: number } }>(
+      '/admin/journeys', { params: filters }
+    );
+    return response.data;
+  },
+
+  getJourney: async (id: number) => {
+    const response = await api.get<{ success: boolean; data: Journey }>(`/admin/journeys/${id}`);
+    return response.data;
+  },
+
+  createJourney: async (data: CreateJourneyInput) => {
+    const response = await api.post<{ success: boolean; data: Journey; message: string }>('/admin/journeys', data);
+    return response.data;
+  },
+
+  updateJourney: async (id: number, data: Partial<CreateJourneyInput> & { status?: string }) => {
+    const response = await api.patch<{ success: boolean; data: Journey; message: string }>(`/admin/journeys/${id}`, data);
+    return response.data;
+  },
+
+  deleteJourney: async (id: number) => {
+    const response = await api.delete<{ success: boolean; message: string }>(`/admin/journeys/${id}`);
+    return response.data;
+  },
+
+  activateJourney: async (id: number, active: boolean) => {
+    const response = await api.post<{ success: boolean; data: Journey; message: string }>(
+      `/admin/journeys/${id}/activate`, { active }
+    );
+    return response.data;
+  },
+
+  replaceJourneySteps: async (journeyId: number, steps: JourneyStepInput[]) => {
+    const response = await api.put<{ success: boolean; data: JourneyStep[]; message: string }>(
+      `/admin/journeys/${journeyId}/steps`, { steps }
+    );
+    return response.data;
+  },
+
+  getJourneyMetrics: async () => {
+    const response = await api.get<{ success: boolean; data: JourneyMetrics }>('/admin/journeys/metrics');
+    return response.data;
+  },
+
+  getJourneyTemplates: async () => {
+    const response = await api.get<{ success: boolean; data: JourneyTemplate[] }>('/admin/journeys/templates');
+    return response.data;
+  },
+
+  createJourneyFromTemplate: async (templateId: string) => {
+    const response = await api.post<{ success: boolean; data: Journey; message: string }>(
+      '/admin/journeys/from-template', { templateId }
+    );
+    return response.data;
+  },
 };
 
 export interface EmailCommunication {
@@ -418,6 +487,7 @@ export interface PushTrigger {
   channel: 'B2C' | 'B2B' | 'INTERNAL';
   category: 'engagement' | 'lifecycle' | 'clinical' | 'system';
   enabled: boolean;
+  savedConfig?: Record<string, unknown>;
   defaultPayload: {
     title: string;
     body: string;
@@ -430,6 +500,86 @@ export interface PushTrigger {
     type: string;
     default: number | boolean | string;
   }>;
+}
+
+// ==========================================
+// Journey Types
+// ==========================================
+
+export type JourneyCategory = 'engagement' | 'onboarding' | 'premium' | 'invites' | 'retention';
+export type JourneyAudience = 'all' | 'b2c' | 'b2b' | 'premium' | 'free';
+export type JourneyStatusType = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED';
+export type StepType = 'email' | 'push' | 'delay' | 'condition';
+
+export interface JourneyStep {
+  id: number;
+  journeyId: number;
+  stepOrder: number;
+  type: StepType;
+  name: string;
+  config: Record<string, unknown>;
+  variables?: Record<string, unknown>[];
+  sent: number;
+  delivered: number;
+  failed: number;
+  opened: number;
+  clicked: number;
+  createdAt: string;
+}
+
+export interface Journey {
+  id: number;
+  name: string;
+  description?: string;
+  category: JourneyCategory;
+  audience: JourneyAudience;
+  status: JourneyStatusType;
+  priority: number;
+  tags: string[];
+  totalSent: number;
+  totalDelivered: number;
+  totalFailed: number;
+  totalConverted: number;
+  createdAt: string;
+  updatedAt: string;
+  activatedAt?: string;
+  steps: JourneyStep[];
+}
+
+export interface CreateJourneyInput {
+  name: string;
+  description?: string;
+  category: JourneyCategory;
+  audience: JourneyAudience;
+  priority?: number;
+  tags?: string[];
+  steps?: JourneyStepInput[];
+}
+
+export interface JourneyStepInput {
+  type: StepType;
+  name: string;
+  stepOrder: number;
+  config: Record<string, unknown>;
+  variables?: Record<string, unknown>[];
+}
+
+export interface JourneyMetrics {
+  total: number;
+  byStatus: Record<string, number>;
+  byCategory: Record<string, number>;
+  totalSent: number;
+  totalDelivered: number;
+  recentActive: Journey[];
+}
+
+export interface JourneyTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  audience: string;
+  steps: JourneyStepInput[];
 }
 
 export default adminService;
