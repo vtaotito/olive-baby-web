@@ -365,6 +365,37 @@ export const adminService = {
     return response.data;
   },
 
+  // n8n Integration
+  getN8nExecutionSummary: async () => {
+    const response = await api.get<{ success: boolean; data: N8nExecutionSummary }>('/admin/n8n/execution-summary');
+    return response.data;
+  },
+
+  getN8nActiveJourneys: async () => {
+    const response = await api.get<{ success: boolean; data: any[] }>('/admin/n8n/active-journeys');
+    return response.data;
+  },
+
+  executeJourneyViaN8n: async (journeyId: number) => {
+    const response = await api.post<{ success: boolean; data: any; message?: string }>('/admin/n8n/execute-journey', { journeyId });
+    return response.data;
+  },
+
+  executeStepViaN8n: async (journeyId: number, stepId: number) => {
+    const response = await api.post<{ success: boolean; data: any; message?: string }>('/admin/n8n/execute-step', { journeyId, stepId });
+    return response.data;
+  },
+
+  triggerPushViaN8n: async (triggerId: string, segment: string, payload: { title: string; body: string; clickAction?: string }) => {
+    const response = await api.post<{ success: boolean; data: any }>('/admin/n8n/trigger-push', { triggerId, segment, payload });
+    return response.data;
+  },
+
+  sendEmailViaN8n: async (data: { to: string; subject: string; templateType?: string; customBody?: string; variables?: Record<string, string> }) => {
+    const response = await api.post<{ success: boolean; message: string }>('/admin/n8n/send-email', data);
+    return response.data;
+  },
+
   updatePushTrigger: async (triggerId: string, data: { enabled: boolean; config?: Record<string, unknown> }) => {
     const response = await api.patch<{ success: boolean; message: string; data: PushTrigger }>(
       `/admin/push/triggers/${triggerId}`, data
@@ -713,6 +744,21 @@ export interface CommunicationsHealth {
     unresolvedCommsAlerts: number;
   };
   updatedAt: string;
+}
+
+export interface N8nExecutionSummary {
+  activeJourneys: number;
+  steps: {
+    totalSent: number;
+    totalDelivered: number;
+    totalFailed: number;
+  };
+  communications: {
+    emailsToday: number;
+    pushToday: number;
+    emailsWeek: number;
+    pushWeek: number;
+  };
 }
 
 export default adminService;

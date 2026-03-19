@@ -25,6 +25,15 @@ import {
   Monitor,
   Target,
   Megaphone,
+  Play,
+  Bot,
+  Activity,
+  ArrowUpRight,
+  ExternalLink,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -48,6 +57,7 @@ import {
   type EmailTemplatePreview,
   type PushStats,
   type PushTrigger,
+  type N8nExecutionSummary,
 } from '../../services/adminApi';
 import { KpiCard } from '../../components/admin';
 import { Button, Spinner } from '../../components/ui';
@@ -58,7 +68,7 @@ ChartJS.register(
   PointElement, Title, Tooltip, Legend, Filler, ArcElement
 );
 
-type TabId = 'overview' | 'email' | 'push' | 'triggers' | 'log';
+type TabId = 'overview' | 'email' | 'push' | 'triggers' | 'automation' | 'log';
 
 const CHANNEL_LABELS: Record<string, string> = { B2C: 'B2C', B2B: 'B2B', INTERNAL: 'Interno' };
 const CHANNEL_COLORS: Record<string, string> = { B2C: '#0ea5e9', B2B: '#4a7c59', INTERNAL: '#f59e0b' };
@@ -171,6 +181,27 @@ export function AdminCommunicationsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-push-triggers'] }),
   });
 
+  // n8n queries
+  const { data: n8nSummaryData, isLoading: n8nSummaryLoading, refetch: refetchN8n } = useQuery({
+    queryKey: ['admin-n8n-summary'],
+    queryFn: () => adminService.getN8nExecutionSummary(),
+    enabled: tab === 'automation' || tab === 'overview',
+  });
+
+  const { data: n8nActiveData, isLoading: n8nActiveLoading } = useQuery({
+    queryKey: ['admin-n8n-active'],
+    queryFn: () => adminService.getN8nActiveJourneys(),
+    enabled: tab === 'automation',
+  });
+
+  const executeJourneyMut = useMutation({
+    mutationFn: (journeyId: number) => adminService.executeJourneyViaN8n(journeyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-n8n-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-n8n-active'] });
+    },
+  });
+
   const stats = emailStats?.data;
   const pushStats: PushStats | undefined = pushStatsData?.data;
   const templates: EmailTemplatePreview[] = templatesData?.data ?? [];
@@ -207,11 +238,15 @@ export function AdminCommunicationsPage() {
     datasets: [{ data: Object.values(pushStats.devices.byPlatform), backgroundColor: ['#4a7c59', '#0ea5e9', '#f59e0b', '#8b5cf6'], borderWidth: 0 }],
   } : null;
 
+  const n8nSummary: N8nExecutionSummary | undefined = n8nSummaryData?.data;
+  const n8nActive: any[] = n8nActiveData?.data ?? [];
+
   const tabs: Array<{ id: TabId; label: string; icon: typeof Mail }> = [
     { id: 'overview', label: 'Visão Geral', icon: BarChart3 },
     { id: 'email', label: 'E-mail', icon: Mail },
     { id: 'push', label: 'Push', icon: Bell },
     { id: 'triggers', label: 'Triggers', icon: Zap },
+    { id: 'automation', label: 'Automação n8n', icon: Bot },
     { id: 'log', label: 'Log Unificado', icon: List },
   ];
 
@@ -558,6 +593,243 @@ export function AdminCommunicationsPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ==================== AUTOMAÇÃO N8N ==================== */}
+        {tab === 'automation' && (
+          <div className="space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Central de Automação</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Gerencie jornadas automatizadas, triggers e integrações via n8n</p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => refetchN8n()}>
+                  <RefreshCw className="w-3 h-3 mr-1" /> Atualizar
+                </Button>
+                <a href="https://n8n.oliecare.cloud" target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <ExternalLink className="w-3 h-3" /> Abrir n8n
+                </a>
+              </div>
+            </div>
+
+            {/* KPIs */}
+            {n8nSummaryLoading ? (
+              <div className="flex justify-center py-8"><Spinner /></div>
+            ) : n8nSummary ? (
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
+                        <Activity className="w-4 h-4 text-violet-600" />
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Jornadas Ativas</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{n8nSummary.activeJourneys}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Entregues (Steps)</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{n8nSummary.steps.totalDelivered}</p>
+                    <p className="text-[10px] text-gray-400">{n8nSummary.steps.totalFailed} falharam de {n8nSummary.steps.totalSent} enviados</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-sky-600" />
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Emails Hoje</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{n8nSummary.communications.emailsToday}</p>
+                    <p className="text-[10px] text-gray-400">{n8nSummary.communications.emailsWeek} nos últimos 7 dias</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+                        <Bell className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Push Hoje</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{n8nSummary.communications.pushToday}</p>
+                    <p className="text-[10px] text-gray-400">{n8nSummary.communications.pushWeek} nos últimos 7 dias</p>
+                  </div>
+                </div>
+
+                {/* Workflows n8n */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-violet-500" /> Workflows n8n Configurados
+                    </h4>
+                  </div>
+                  <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {[
+                      { name: 'Journey Executor', desc: 'Executa jornadas ativas a cada 6h', schedule: 'A cada 6 horas', file: '15-journey-executor' },
+                      { name: 'Push Triggers', desc: 'Dispara triggers de push habilitados', schedule: '09:00 e 18:00 diário', file: '16-push-triggers' },
+                      { name: 'Comms Monitor', desc: 'Monitora saúde de email/push e alerta no Slack', schedule: 'A cada hora', file: '17-comms-monitor' },
+                      { name: 'Daily Digest', desc: 'Resumo diário de KPIs enviado ao Slack', schedule: '08:00 diário', file: '10-daily-digest' },
+                      { name: 'Weekly Digest', desc: 'Resumo semanal de métricas enviado ao Slack', schedule: 'Segunda 08:15', file: '11-weekly-digest' },
+                      { name: 'Ops Alerts', desc: 'Alertas operacionais e de infraestrutura', schedule: '08:30 diário', file: '12-ops-alerts' },
+                    ].map(wf => (
+                      <div key={wf.file} className="flex items-center gap-4 px-5 py-3">
+                        <div className="w-9 h-9 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+                          <Bot className="w-4 h-4 text-violet-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{wf.name}</p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400">{wf.desc}</p>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-2">
+                          <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {wf.schedule}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Active Journeys */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <Play className="w-4 h-4 text-emerald-500" /> Jornadas Ativas
+                    </h4>
+                    <span className="text-[10px] text-gray-400">{n8nActive.length} jornadas</span>
+                  </div>
+                  {n8nActiveLoading ? (
+                    <div className="flex justify-center py-8"><Spinner /></div>
+                  ) : n8nActive.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Bot className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">Nenhuma jornada ativa no momento</p>
+                      <p className="text-[10px] text-gray-400 mt-1">Ative jornadas na página de Jornadas</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {n8nActive.map((j: any) => (
+                        <div key={j.id} className="px-5 py-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                              <h5 className="text-sm font-semibold text-gray-900 dark:text-white">{j.name}</h5>
+                              <span className={cn('text-[9px] font-medium px-1.5 py-0.5 rounded-full',
+                                j.audience === 'b2c' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' :
+                                j.audience === 'b2b' ? 'bg-olive-100 text-olive-700 dark:bg-olive-900/30 dark:text-olive-400' :
+                                'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                              )}>{j.audience?.toUpperCase()}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 font-medium">
+                                {j.category}
+                              </span>
+                            </div>
+                            <Button size="sm" variant="outline"
+                              disabled={executeJourneyMut.isPending}
+                              onClick={() => executeJourneyMut.mutate(j.id)}>
+                              {executeJourneyMut.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Play className="w-3 h-3 mr-1" />}
+                              Executar
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-4 text-[10px] text-gray-500 dark:text-gray-400">
+                            <span>{j.steps?.length ?? 0} etapas</span>
+                            <span>Enviados: {j.totalSent}</span>
+                            <span>Entregues: {j.totalDelivered}</span>
+                            {j.totalFailed > 0 && <span className="text-rose-500">Falharam: {j.totalFailed}</span>}
+                          </div>
+                          {j.steps && j.steps.length > 0 && (
+                            <div className="flex gap-1.5 mt-2 flex-wrap">
+                              {j.steps.map((s: any, idx: number) => (
+                                <span key={idx} className={cn('text-[9px] px-1.5 py-0.5 rounded-full font-medium',
+                                  s.type === 'email' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' :
+                                  s.type === 'push' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' :
+                                  s.type === 'delay' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
+                                  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                )}>
+                                  {s.type === 'email' ? '📧' : s.type === 'push' ? '🔔' : s.type === 'delay' ? '⏱' : '🔀'} {s.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Execution Result */}
+                {executeJourneyMut.isSuccess && executeJourneyMut.data && (
+                  <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-200 dark:border-emerald-800 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      <h4 className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Execução concluída</h4>
+                    </div>
+                    <div className="space-y-1">
+                      {(executeJourneyMut.data.data?.stepsExecuted ?? []).map((s: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
+                          <span className="font-medium">{s.name}</span>
+                          <span className="text-emerald-500">→</span>
+                          <span>
+                            {s.type === 'delay' ? `Aguardar ${s.result?.hours}h` :
+                             s.type === 'condition' ? `Avaliar ${s.result?.field}` :
+                             `Enviados: ${s.result?.sent ?? 0}, Entregues: ${s.result?.delivered ?? 0}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {executeJourneyMut.isError && (
+                  <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl border border-rose-200 dark:border-rose-800 p-4 flex items-center gap-3">
+                    <XCircle className="w-5 h-5 text-rose-600" />
+                    <p className="text-sm text-rose-700 dark:text-rose-400">{(executeJourneyMut.error as any)?.response?.data?.message || 'Erro ao executar jornada'}</p>
+                  </div>
+                )}
+
+                {/* API Endpoints Reference */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <ArrowUpRight className="w-4 h-4 text-sky-500" /> Endpoints de Integração n8n
+                    </h4>
+                    <p className="text-[10px] text-gray-400 mt-0.5">Use esses endpoints nos workflows n8n para integração</p>
+                  </div>
+                  <div className="px-5 py-3 space-y-2 text-xs font-mono">
+                    {[
+                      { method: 'GET', path: '/admin/n8n/active-journeys', desc: 'Listar jornadas ativas' },
+                      { method: 'POST', path: '/admin/n8n/execute-journey', desc: 'Executar jornada { journeyId }' },
+                      { method: 'POST', path: '/admin/n8n/execute-step', desc: 'Executar step { journeyId, stepId }' },
+                      { method: 'GET', path: '/admin/n8n/execution-summary', desc: 'Resumo de execução' },
+                      { method: 'POST', path: '/admin/n8n/trigger-push', desc: 'Disparar push trigger' },
+                      { method: 'POST', path: '/admin/n8n/send-email', desc: 'Enviar email via plataforma' },
+                    ].map(ep => (
+                      <div key={ep.path} className="flex items-center gap-3 py-1.5 border-b border-gray-50 dark:border-gray-800 last:border-0">
+                        <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded',
+                          ep.method === 'GET' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                          'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+                        )}>{ep.method}</span>
+                        <span className="text-gray-700 dark:text-gray-300">{ep.path}</span>
+                        <span className="text-gray-400 font-sans text-[10px] ml-auto">{ep.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <Bot className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">Não foi possível carregar os dados de automação.</p>
+                <Button size="sm" variant="outline" className="mt-3" onClick={() => refetchN8n()}>
+                  <RefreshCw className="w-3 h-3 mr-1" /> Tentar novamente
+                </Button>
               </div>
             )}
           </div>
