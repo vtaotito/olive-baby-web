@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -10,10 +10,16 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     
     <!-- SEO Meta Tags -->
-    <title>OlieCare - Acompanhe a rotina do seu bebê com tranquilidade</title>
-    <meta name="description" content="Registre alimentação, sono, fraldas e muito mais. Receba insights personalizados e tenha clareza mesmo nos dias mais cansativos. Grátis para começar." />
-    <meta name="keywords" content="bebê, recém-nascido, maternidade, paternidade, amamentação, sono do bebê, fraldas, rotina do bebê, app para mães, aplicativo para bebês" />
+    <title>OlieCare - Acompanhe a Rotina do Bebê | Alimentação, Sono e Fraldas</title>
+    <meta name="description" content="OlieCare é o app gratuito para acompanhar a rotina do seu bebê. Registre alimentação, sono, fraldas e banho. Receba insights com IA e tenha mais tranquilidade na maternidade e paternidade." />
+    <meta name="keywords" content="rotina do bebê, app para bebê, acompanhamento do bebê, amamentação, sono do bebê, troca de fraldas, diário do bebê, maternidade, paternidade, recém-nascido, cuidados com bebê, pediatria, crescimento do bebê, marcos do bebê, app para mães, app para pais" />
     <meta name="author" content="OlieCare" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="language" content="pt-BR" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="rating" content="general" />
+    <meta name="category" content="health" />
     
     <!-- PWA: Theme Color (light/dark) -->
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#738251" />
@@ -36,24 +42,156 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://oliecare.cloud/" />
-    <meta property="og:title" content="OlieCare - Acompanhe a rotina do seu bebê com tranquilidade" />
-    <meta property="og:description" content="Registre alimentação, sono, fraldas e muito mais. Receba insights personalizados e tenha clareza mesmo nos dias mais cansativos." />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:title" content="OlieCare - Acompanhe a Rotina do Bebê com Tranquilidade" />
+    <meta property="og:description" content="App gratuito para registrar alimentação, sono, fraldas e banho do bebê. Insights com IA, gráficos de crescimento e compartilhamento com cuidadores." />
+    <meta property="og:image" content="https://oliecare.cloud/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="OlieCare - App para acompanhar a rotina do bebê" />
+    <meta property="og:site_name" content="OlieCare" />
+    <meta property="og:locale" content="pt_BR" />
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://oliecare.cloud/" />
-    <meta property="twitter:title" content="OlieCare - Acompanhe a rotina do seu bebê com tranquilidade" />
-    <meta property="twitter:description" content="Registre alimentação, sono, fraldas e muito mais. Receba insights personalizados e tenha clareza mesmo nos dias mais cansativos." />
-    <meta property="twitter:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://oliecare.cloud/" />
+    <meta name="twitter:title" content="OlieCare - Acompanhe a Rotina do Bebê com Tranquilidade" />
+    <meta name="twitter:description" content="App gratuito para registrar alimentação, sono, fraldas e banho do bebê. Insights com IA e mais tranquilidade para sua família." />
+    <meta name="twitter:image" content="https://oliecare.cloud/og-image.png" />
+    <meta name="twitter:image:alt" content="OlieCare - App para acompanhar a rotina do bebê" />
+    
+    <!-- Preconnect & DNS Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://api.oliecare.cloud" />
     
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://oliecare.cloud/" />
+    
+    <!-- Alternate language -->
+    <link rel="alternate" hreflang="pt-BR" href="https://oliecare.cloud/" />
+    <link rel="alternate" hreflang="x-default" href="https://oliecare.cloud/" />
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://oliecare.cloud/#website",
+          "url": "https://oliecare.cloud/",
+          "name": "OlieCare",
+          "description": "App para acompanhar a rotina do bebê com tranquilidade",
+          "inLanguage": "pt-BR",
+          "publisher": { "@id": "https://oliecare.cloud/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://oliecare.cloud/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://oliecare.cloud/#organization",
+          "name": "OlieCare",
+          "url": "https://oliecare.cloud/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://oliecare.cloud/favicon-512.png",
+            "width": 512,
+            "height": 512
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "contact@api.oliecare.cloud",
+            "contactType": "customer service",
+            "availableLanguage": "Portuguese"
+          },
+          "sameAs": []
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "OlieCare",
+          "description": "App gratuito para acompanhar a rotina do bebê. Registre alimentação, sono, fraldas, banho e receba insights personalizados com inteligência artificial.",
+          "url": "https://oliecare.cloud/",
+          "applicationCategory": "HealthApplication",
+          "operatingSystem": "Web, Android, iOS",
+          "offers": [
+            {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "BRL",
+              "name": "Plano Grátis",
+              "description": "Registro de alimentação, sono e fraldas. Até 1 bebê, histórico de 7 dias."
+            },
+            {
+              "@type": "Offer",
+              "price": "29.99",
+              "priceCurrency": "BRL",
+              "name": "Plano Premium",
+              "description": "Bebês ilimitados, histórico completo, insights com IA, exportação de dados."
+            }
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "2400",
+            "bestRating": "5"
+          },
+          "featureList": [
+            "Registro de alimentação e amamentação",
+            "Acompanhamento de sono",
+            "Controle de fraldas",
+            "Gráficos de crescimento",
+            "Marcos de desenvolvimento",
+            "Insights com inteligência artificial",
+            "Exportação de dados para pediatra",
+            "Compartilhamento com cuidadores"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "O OlieCare é gratuito?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sim! O plano grátis permite registrar alimentação, sono e fraldas para 1 bebê, com histórico de 7 dias. O plano Premium (R$ 29,99/mês) oferece bebês ilimitados, histórico completo e insights com IA."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "O que posso registrar no OlieCare?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Você pode registrar amamentação, mamadeira, sono, fraldas, banho, extração de leite, crescimento (peso, altura, perímetro cefálico) e marcos de desenvolvimento do bebê."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Posso compartilhar os dados com o pediatra?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sim! No plano Premium, você pode exportar todos os dados em CSV para levar nas consultas pediátricas. Profissionais de saúde também podem usar o portal profissional gratuito."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "O OlieCare funciona offline?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sim! O OlieCare é um PWA (Progressive Web App) que funciona offline após a primeira instalação. Os dados são sincronizados quando a conexão é restabelecida."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <!-- Script inline para aplicar tema ANTES do React carregar (previne flash escuro) -->
@@ -79,6 +217,13 @@
         }
       })();
     </script>
+    <noscript>
+      <div style="padding:2rem;text-align:center;font-family:system-ui,sans-serif;">
+        <h1>OlieCare - Acompanhe a Rotina do Bebê</h1>
+        <p>Para utilizar o OlieCare, por favor habilite o JavaScript no seu navegador.</p>
+        <p>O OlieCare ajuda famílias a registrar alimentação, sono, fraldas e muito mais, com insights personalizados para mais tranquilidade na maternidade.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,86 +1,86 @@
 // Olive Baby Web - Main App Component
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './theme';
 import { ProtectedRoute, DashboardLayout, BabyInitializer, AdminRoute, SessionGuard, ProfessionalRoute, ProfessionalLayout, ScrollToTop } from './components/layout';
 import { PWAProvider } from './components/pwa';
 import { useAuthStore } from './stores/authStore';
 
-// Landing Pages
+// Critical path: Landing, Auth, Dashboard (eagerly loaded for fast LCP)
 import { LandingPage, ProfLandingPage } from './pages/landing';
 import { shouldShowB2BLanding } from './lib/landingRouter';
-
-// Auth Pages
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
-
-// Admin Pages
-import {
-  AdminDashboardPage,
-  AdminUsersPage,
-  AdminBabiesPage,
-  AdminUsagePage,
-  AdminActivationPage,
-  AdminMonetizationPage,
-  AdminQualityPage,
-  AdminErrorsPage,
-  AdminAlertsPage,
-  AdminCommunicationsPage,
-  AdminJourneysPage,
-  AdminSettingsPage,
-} from './pages/admin';
-
-// Onboarding removido - usuário vai direto para dashboard
-
-// Dashboard Pages
 import { DashboardPage } from './pages/dashboard';
 
-// Growth & Milestones
-import { GrowthPage } from './pages/growth';
-import { MilestonesPage } from './pages/milestones';
+// Public Legal Pages (small, public-facing, SEO-critical)
+import { PublicPrivacyPage } from './pages/legal/PrivacyPage';
+import { PublicTermsPage } from './pages/legal/TermsPage';
 
-// Vaccines
-import { VaccinesPage } from './pages/vaccines';
+// Lazy-loaded: Admin Pages (only for admins)
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
+const AdminBabiesPage = lazy(() => import('./pages/admin/AdminBabiesPage').then(m => ({ default: m.AdminBabiesPage })));
+const AdminUsagePage = lazy(() => import('./pages/admin/AdminUsagePage').then(m => ({ default: m.AdminUsagePage })));
+const AdminActivationPage = lazy(() => import('./pages/admin/AdminActivationPage').then(m => ({ default: m.AdminActivationPage })));
+const AdminMonetizationPage = lazy(() => import('./pages/admin/AdminMonetizationPage').then(m => ({ default: m.AdminMonetizationPage })));
+const AdminQualityPage = lazy(() => import('./pages/admin/AdminQualityPage').then(m => ({ default: m.AdminQualityPage })));
+const AdminErrorsPage = lazy(() => import('./pages/admin/AdminErrorsPage').then(m => ({ default: m.AdminErrorsPage })));
+const AdminAlertsPage = lazy(() => import('./pages/admin/AdminAlertsPage').then(m => ({ default: m.AdminAlertsPage })));
+const AdminCommunicationsPage = lazy(() => import('./pages/admin/AdminCommunicationsPage').then(m => ({ default: m.AdminCommunicationsPage })));
+const AdminJourneysPage = lazy(() => import('./pages/admin/AdminJourneysPage').then(m => ({ default: m.AdminJourneysPage })));
+const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
+const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage').then(m => ({ default: m.AdminBillingPage })));
+const AdminAiAssistantPage = lazy(() => import('./pages/admin/AdminAiAssistantPage').then(m => ({ default: m.AdminAiAssistantPage })));
 
-// Export Page
-import { ExportPage } from './pages/export';
+// Lazy-loaded: Protected feature pages
+const GrowthPage = lazy(() => import('./pages/growth').then(m => ({ default: m.GrowthPage })));
+const MilestonesPage = lazy(() => import('./pages/milestones').then(m => ({ default: m.MilestonesPage })));
+const VaccinesPage = lazy(() => import('./pages/vaccines').then(m => ({ default: m.VaccinesPage })));
+const ExportPage = lazy(() => import('./pages/export').then(m => ({ default: m.ExportPage })));
+const AssistantPage = lazy(() => import('./pages/assistant').then(m => ({ default: m.AssistantPage })));
+const RoutinesDashboardPage = lazy(() => import('./pages/routines').then(m => ({ default: m.RoutinesDashboardPage })));
+const FeedingDashboardPage = lazy(() => import('./pages/feeding/FeedingDashboardPage').then(m => ({ default: m.FeedingDashboardPage })));
 
-// Settings Pages
-import { SettingsPage, ProfilePage, BabiesPage, BillingPage, NotificationsPage, BabyMembersPage, ShareBabyPage, PrivacyPage, AppearancePage, HelpPage } from './pages/settings';
+// Lazy-loaded: Settings pages
+const SettingsPage = lazy(() => import('./pages/settings').then(m => ({ default: m.SettingsPage })));
+const ProfilePage = lazy(() => import('./pages/settings').then(m => ({ default: m.ProfilePage })));
+const BabiesPage = lazy(() => import('./pages/settings').then(m => ({ default: m.BabiesPage })));
+const BillingPage = lazy(() => import('./pages/settings').then(m => ({ default: m.BillingPage })));
+const NotificationsPage = lazy(() => import('./pages/settings').then(m => ({ default: m.NotificationsPage })));
+const BabyMembersPage = lazy(() => import('./pages/settings').then(m => ({ default: m.BabyMembersPage })));
+const ShareBabyPage = lazy(() => import('./pages/settings').then(m => ({ default: m.ShareBabyPage })));
+const PrivacyPage = lazy(() => import('./pages/settings').then(m => ({ default: m.PrivacyPage })));
+const AppearancePage = lazy(() => import('./pages/settings').then(m => ({ default: m.AppearancePage })));
+const HelpPage = lazy(() => import('./pages/settings').then(m => ({ default: m.HelpPage })));
 
-// Admin Billing and AI Pages
-import { AdminBillingPage } from './pages/admin/AdminBillingPage';
-import { AdminAiAssistantPage } from './pages/admin/AdminAiAssistantPage';
+// Lazy-loaded: Professional Portal
+const ProfDashboardPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfDashboardPage })));
+const ProfAgendaPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfAgendaPage })));
+const ProfPatientsPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfPatientsPage })));
+const ProfPatientChartPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfPatientChartPage })));
+const ProfInvitesPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfInvitesPage })));
+const ProfSettingsPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfSettingsPage })));
 
-// Team/Share - redireciona para ShareBabyPage unificado
+// Lazy-loaded: Routine Trackers
+const FeedingTracker = lazy(() => import('./components/routines').then(m => ({ default: m.FeedingTracker })));
+const SleepTracker = lazy(() => import('./components/routines').then(m => ({ default: m.SleepTracker })));
+const DiaperTracker = lazy(() => import('./components/routines').then(m => ({ default: m.DiaperTracker })));
+const BathTracker = lazy(() => import('./components/routines').then(m => ({ default: m.BathTracker })));
+const ExtractionTracker = lazy(() => import('./components/routines').then(m => ({ default: m.ExtractionTracker })));
 
-// Assistant Page
-import { AssistantPage } from './pages/assistant';
-
-// Professional Portal (prontuário, agenda, white-label)
-import {
-  ProfDashboardPage,
-  ProfAgendaPage,
-  ProfPatientsPage,
-  ProfPatientChartPage,
-  ProfInvitesPage,
-  ProfSettingsPage,
-} from './pages/prof';
-
-// Routine Trackers
-import {
-  FeedingTracker,
-  SleepTracker,
-  DiaperTracker,
-  BathTracker,
-  ExtractionTracker,
-} from './components/routines';
-
-// Feeding Dashboard
-import { FeedingDashboardPage } from './pages/feeding/FeedingDashboardPage';
-
-// Routines Dashboard
-import { RoutinesDashboardPage } from './pages/routines';
+function LazyFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-sand-50 dark:bg-gray-900">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-3 border-olive-200 border-t-olive-600 rounded-full animate-spin" />
+        <p className="text-sm text-stone-500 dark:text-stone-400">Carregando...</p>
+      </div>
+    </div>
+  );
+}
 
 // Create a client com configurações otimizadas
 const queryClient = new QueryClient({
@@ -149,6 +149,7 @@ function CatchAllRoute() {
 
 function App() {
   return (
+    <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
@@ -157,6 +158,7 @@ function App() {
             <ScrollToTop />
             <SessionGuard>
             <BabyInitializer>
+            <Suspense fallback={<LazyFallback />}>
             <Routes>
             {/* Home: Landing page para visitantes, redirect baseado em role para logados */}
             <Route path="/" element={<HomeRoute />} />
@@ -168,6 +170,10 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/invite/accept" element={<AcceptInvitePage />} />
+
+            {/* Legal Pages (public, SEO-indexed) */}
+            <Route path="/privacidade" element={<PublicPrivacyPage />} />
+            <Route path="/termos" element={<PublicTermsPage />} />
 
             {/* Protected Routes */}
             <Route
@@ -558,6 +564,7 @@ function App() {
             {/* Catch-all: redirect inteligente baseado na role */}
             <Route path="*" element={<CatchAllRoute />} />
           </Routes>
+            </Suspense>
             </BabyInitializer>
             </SessionGuard>
           </BrowserRouter>
@@ -565,6 +572,7 @@ function App() {
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

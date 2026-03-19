@@ -22,7 +22,7 @@ export function LandingFooter({ variant }: LandingFooterProps) {
   const tagline = variant === 'b2b' ? 'Feito com 💛 para profissionais de saúde' : 'Feito com 💛 para famílias';
 
   return (
-    <footer className="bg-stone-900 text-stone-400 py-16">
+    <footer className="bg-stone-900 text-stone-400 py-16" role="contentinfo" itemScope itemType="https://schema.org/WPFooter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-12">
           {/* Brand */}

@@ -176,12 +176,15 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'esbuild',
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           charts: ['chart.js', 'react-chartjs-2'],
           utils: ['date-fns', 'axios', 'zustand'],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          helmet: ['react-helmet-async'],
         },
       },
     },

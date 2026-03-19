@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, Lock, Eye, EyeOff, Stethoscope, Baby } from 'lucide-react';
+import { SEOHead } from '../../components/seo/SEOHead';
 import { AuthLayout } from '../../components/layout';
 import { Button, Input } from '../../components/ui';
 import { useAuthStore } from '../../stores/authStore';
@@ -61,6 +62,13 @@ export function LoginPage() {
   };
 
   return (
+    <>
+    <SEOHead
+      title="Entrar"
+      description="Acesse sua conta OlieCare para acompanhar a rotina do seu bebê. Login seguro para famílias, cuidadores e profissionais de saúde."
+      canonical="/login"
+      noindex
+    />
     <AuthLayout
       title="Bem-vindo ao OlieCare"
       subtitle="Entre na sua conta para continuar"
@@ -153,5 +161,6 @@ export function LoginPage() {
         </div>
       </form>
     </AuthLayout>
+    </>
   );
 }

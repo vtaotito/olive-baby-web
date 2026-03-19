@@ -40,7 +40,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav aria-label="Navegação principal" className="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" className="text-stone-600 hover:text-olive-600 transition-colors">
               Funcionalidades
             </a>
@@ -85,6 +85,8 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 text-stone-600"
+            aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -93,7 +95,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-stone-100">
-            <nav className="flex flex-col gap-4">
+            <nav aria-label="Menu mobile" className="flex flex-col gap-4">
               <a href="#funcionalidades" className="text-stone-600 hover:text-olive-600 transition-colors py-2">
                 Funcionalidades
               </a>

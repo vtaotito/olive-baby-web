@@ -1,5 +1,4 @@
 // Olive Baby Web - B2B Landing Page (Profissionais)
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Stethoscope,
@@ -16,26 +15,9 @@ import {
   BarChart3,
   Shield,
 } from 'lucide-react';
+import { SEOHead } from '../../components/seo/SEOHead';
 import { LandingHeader } from './components/LandingHeader';
 import { LandingFooter } from './components/LandingFooter';
-
-// Meta tags dinâmicos para SEO B2B
-function ProfLandingMeta() {
-  useEffect(() => {
-    const prevTitle = document.title;
-    const prevDesc = document.querySelector('meta[name="description"]')?.getAttribute('content');
-    document.title = 'OlieCare para Profissionais - Acompanhe seus pacientes com dados reais';
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-      metaDesc.setAttribute('content', 'Portal gratuito para pediatras e especialistas. Prontuário integrado, agenda, convites e dados de rotina dos bebês em um só lugar.');
-    }
-    return () => {
-      document.title = prevTitle;
-      if (metaDesc && prevDesc) metaDesc.setAttribute('content', prevDesc);
-    };
-  }, []);
-  return null;
-}
 
 function HeroSection() {
   return (
@@ -597,8 +579,13 @@ function CTASection() {
 
 export function ProfLandingPage() {
   return (
+    <>
+    <SEOHead
+      title="Para Profissionais - Acompanhe Pacientes com Dados Reais"
+      description="Portal gratuito OlieCare para pediatras e especialistas. Prontuário integrado, agenda, convites e dados de rotina dos bebês em um só lugar."
+      canonical="/para-profissionais"
+    />
     <div className="min-h-screen bg-white">
-      <ProfLandingMeta />
       <LandingHeader variant="b2b" />
       <main className="pt-16">
         <HeroSection />
@@ -612,5 +599,6 @@ export function ProfLandingPage() {
       </main>
       <LandingFooter variant="b2b" />
     </div>
+    </>
   );
 }

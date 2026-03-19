@@ -1,0 +1,32 @@
+# OlieCare - robots.txt
+# https://oliecare.cloud/
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /prof/
+Disallow: /settings/
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /routines/
+Disallow: /growth
+Disallow: /milestones
+Disallow: /vaccines
+Disallow: /export
+Disallow: /team
+Disallow: /assistant
+Disallow: /feeding/
+Disallow: /invite/
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# Allow crawling of public pages
+Allow: /$
+Allow: /login
+Allow: /register
+Allow: /privacidade
+Allow: /termos
+Allow: /para-profissionais
+
+# Sitemap
+Sitemap: https://oliecare.cloud/sitemap.xml

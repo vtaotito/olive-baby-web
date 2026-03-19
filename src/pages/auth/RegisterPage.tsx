@@ -7,6 +7,7 @@ import {
   Mail, Lock, Eye, EyeOff, User, Baby, Stethoscope,
   Heart, ArrowRight, ArrowLeft, Check, Sparkles,
 } from 'lucide-react';
+import { SEOHead } from '../../components/seo/SEOHead';
 import { Button } from '../../components/ui';
 import { useAuthStore } from '../../stores/authStore';
 import { useToast } from '../../components/ui/Toast';
@@ -141,6 +142,12 @@ export function RegisterPage() {
 
   // ====== Render ======
   return (
+    <>
+    <SEOHead
+      title="Criar Conta Grátis"
+      description="Crie sua conta gratuita na OlieCare e comece a acompanhar a rotina do seu bebê. Cadastro rápido, sem cartão de crédito. Para famílias e profissionais de saúde."
+      canonical="/register"
+    />
     <div className="min-h-screen bg-gradient-to-br from-olive-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col">
       {/* Header */}
       <header className="p-5 sm:p-6">
@@ -485,12 +492,16 @@ export function RegisterPage() {
               </div>
 
               <p className="text-center mt-6 text-xs text-gray-400 dark:text-gray-500">
-                Ao criar sua conta, você concorda com nossos termos e pode cancelar quando quiser.
+                Ao criar sua conta, você concorda com nossos{' '}
+                <Link to="/termos" className="text-olive-600 hover:underline">termos de uso</Link> e{' '}
+                <Link to="/privacidade" className="text-olive-600 hover:underline">política de privacidade</Link>.
+                Cancele quando quiser.
               </p>
             </div>
           )}
         </div>
       </main>
     </div>
+    </>
   );
 }

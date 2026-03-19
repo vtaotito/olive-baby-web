@@ -19,6 +19,7 @@ import {
   HelpCircle,
   Star,
 } from 'lucide-react';
+import { SEOHead } from '../../components/seo/SEOHead';
 import { LandingHeader } from './components/LandingHeader';
 import { LandingFooter } from './components/LandingFooter';
 
@@ -27,7 +28,7 @@ import { LandingFooter } from './components/LandingFooter';
 // ============================================
 function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+    <section aria-label="Apresentação do OlieCare" className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background com gradientes sutis */}
       <div className="absolute inset-0 bg-gradient-to-br from-sand-50 via-white to-olive-50" />
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-olive-100/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
@@ -221,7 +222,7 @@ function ProblemSection() {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-sand-50">
+    <section aria-label="Desafios da maternidade" className="py-20 bg-gradient-to-b from-white to-sand-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-block text-olive-600 font-medium mb-4">Você não está sozinho(a)</span>
@@ -265,7 +266,7 @@ function ProblemSection() {
 // ============================================
 function SolutionSection() {
   return (
-    <section className="py-20 bg-olive-600 relative overflow-hidden">
+    <section aria-label="Sobre a OlieCare" className="py-20 bg-olive-600 relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
@@ -554,7 +555,7 @@ function BenefitsSection() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section aria-label="Benefícios do OlieCare" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
@@ -771,7 +772,7 @@ function PricingSection() {
 // ============================================
 function CTASection() {
   return (
-    <section className="py-20 bg-gradient-to-br from-olive-600 via-olive-600 to-olive-700 relative overflow-hidden">
+    <section aria-label="Cadastre-se agora" className="py-20 bg-gradient-to-br from-olive-600 via-olive-600 to-olive-700 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -822,19 +823,26 @@ function CTASection() {
 // ============================================
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <LandingHeader variant="b2c" />
-      <main className="pt-16">
-        <HeroSection />
-        <ProblemSection />
-        <SolutionSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <BenefitsSection />
-        <PricingSection />
-        <CTASection />
-      </main>
-      <LandingFooter variant="b2c" />
-    </div>
+    <>
+      <SEOHead
+        title="Acompanhe a Rotina do Bebê com Tranquilidade"
+        description="OlieCare é o app gratuito para acompanhar a rotina do seu bebê. Registre alimentação, sono, fraldas e banho. Receba insights com IA e tenha mais tranquilidade na maternidade e paternidade."
+        canonical="/"
+      />
+      <div className="min-h-screen bg-white">
+        <LandingHeader variant="b2c" />
+        <main className="pt-16">
+          <HeroSection />
+          <ProblemSection />
+          <SolutionSection />
+          <FeaturesSection />
+          <HowItWorksSection />
+          <BenefitsSection />
+          <PricingSection />
+          <CTASection />
+        </main>
+        <LandingFooter variant="b2c" />
+      </div>
+    </>
   );
 }
