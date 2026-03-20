@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Você está aproveitando bem o OlieCare! 💚</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2c2c2c; margin: 0; padding: 0; background-color: #f7f8f3; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; padding: 40px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .content { background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; text-align: center; min-width: 200px; }
+    .button:hover { opacity: 0.9; }
+    .button-secondary { display: inline-block; padding: 14px 28px; background: #f7f8f3; color: #738251; text-decoration: none; border-radius: 8px; margin: 12px 8px; font-weight: 600; font-size: 14px; border: 2px solid #738251; }
+    .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; padding: 20px; }
+    .logo { font-size: 32px; margin-bottom: 10px; }
+    .hero-section { text-align: center; padding: 30px 0; }
+    .hero-icon { font-size: 64px; margin-bottom: 16px; }
+    .appreciation-box { background: linear-gradient(135deg, #f0f4ed 0%, #e8f5e9 100%); border: 2px solid #738251; padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .comparison-table th, .comparison-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .comparison-table th { background: #f9fafb; font-weight: 600; color: #2c2c2c; }
+    .comparison-table td { color: #6b7280; font-size: 14px; }
+    .premium-badge { background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .feature-list { list-style: none; padding: 0; margin: 20px 0; }
+    .feature-item { display: flex; align-items: center; margin: 12px 0; padding: 12px; background: #f9fafb; border-radius: 6px; }
+    .feature-icon { font-size: 24px; margin-right: 12px; }
+    .feature-text { flex: 1; color: #6b7280; font-size: 14px; }
+    .feature-premium { color: #738251; font-weight: 600; }
+    @media only screen and (max-width: 600px) {
+      .container { padding: 10px; }
+      .content { padding: 24px 20px; }
+      .header { padding: 30px 15px; }
+      .button { width: 100%; min-width: auto; }
+      .button-secondary { width: 100%; margin: 8px 0; }
+      .comparison-table { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">💚</div>
+      <h1>Você está aproveitando bem o OlieCare!</h1>
+    </div>
+    <div class="content">
+      <p>Olá <strong>{{userName}}</strong>,</p>
+      <p>Que alegria ver você usando o OlieCare regularmente para acompanhar <strong>{{babyName}}</strong>! 💚</p>
+      
+      <div class="appreciation-box">
+        <div class="hero-icon">✨</div>
+        <h2 style="margin: 0 0 12px 0; color: #2c2c2c;">Imagine ter acesso a ainda mais recursos...</h2>
+        <p style="margin: 0; color: #6b7280;">O plano Premium oferece funcionalidades avançadas para uma experiência ainda mais completa.</p>
+      </div>
+
+      <p style="font-weight: 600; color: #2c2c2c; margin: 24px 0 16px 0;">Compare os planos:</p>
+      
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Funcionalidade</th>
+            <th style="text-align: center;">Grátis</th>
+            <th style="text-align: center;">Premium</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Registro de rotinas</td>
+            <td style="text-align: center;">✓</td>
+            <td style="text-align: center;">✓</td>
+          </tr>
+          <tr>
+            <td>Bebês cadastrados</td>
+            <td style="text-align: center;">1</td>
+            <td style="text-align: center;">Ilimitados</td>
+          </tr>
+          <tr>
+            <td>Histórico</td>
+            <td style="text-align: center;">7 dias</td>
+            <td style="text-align: center;">Completo</td>
+          </tr>
+          <tr>
+            <td>Insights com IA</td>
+            <td style="text-align: center;">Básico</td>
+            <td style="text-align: center;"><span class="premium-badge">Avançado</span></td>
+          </tr>
+          <tr>
+            <td>Gráficos e análises</td>
+            <td style="text-align: center;">Básico</td>
+            <td style="text-align: center;"><span class="premium-badge">Avançado</span></td>
+          </tr>
+          <tr>
+            <td>Calendário de Vacinas</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;"><span class="premium-badge">✓</span></td>
+          </tr>
+          <tr>
+            <td>Exportação de dados</td>
+            <td style="text-align: center;">—</td>
+            <td style="text-align: center;"><span class="premium-badge">✓</span></td>
+          </tr>
+          <tr>
+            <td>Assistente IA (chat)</td>
+            <td style="text-align: center;">2 interações</td>
+            <td style="text-align: center;"><span class="premium-badge">Ilimitado</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="text-align: center; margin-top: 32px;">
+        <a href="https://oliecare.cloud/settings/billing" class="button">Conhecer Premium</a>
+        <a href="https://oliecare.cloud/dashboard" class="button-secondary">Continuar no Grátis</a>
+      </div>
+
+      <p style="margin-top: 32px; color: #6b7280; font-size: 14px; text-align: center;">
+        Teste grátis de 7 dias. Cancele quando quiser. 💚
+      </p>
+    </div>
+    <div class="footer">
+      <p><strong>OlieCare</strong></p>
+      <p>Acompanhe a rotina do seu bebê com tranquilidade</p>
+      <p style="margin-top: 16px; font-size: 11px; color: #9ca3af;">
+        Este é um email automático. Por favor, não responda diretamente.<br>
+        <a href="{{unsubscribeUrl}}" style="color: #738251;">Cancelar inscrição</a> | 
+        <a href="https://oliecare.cloud/privacidade" style="color: #738251;">Privacidade</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

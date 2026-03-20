@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parabéns! Seu bebê foi cadastrado</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2c2c2c; margin: 0; padding: 0; background-color: #f7f8f3; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; padding: 40px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .content { background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; text-align: center; min-width: 200px; }
+    .button:hover { opacity: 0.9; }
+    .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; padding: 20px; }
+    .logo { font-size: 32px; margin-bottom: 10px; }
+    .hero-section { text-align: center; padding: 30px 0; }
+    .hero-icon { font-size: 64px; margin-bottom: 16px; }
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+    .feature-item { background: #f9fafb; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #e5e7eb; }
+    .feature-icon { font-size: 40px; margin-bottom: 12px; }
+    .feature-title { font-weight: 600; font-size: 16px; color: #2c2c2c; margin-bottom: 4px; }
+    .feature-description { font-size: 12px; color: #6b7280; }
+    .tip-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 6px; }
+    @media only screen and (max-width: 600px) {
+      .container { padding: 10px; }
+      .content { padding: 24px 20px; }
+      .header { padding: 30px 15px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .button { width: 100%; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🎉</div>
+      <h1>Parabéns, {{userName}}!</h1>
+    </div>
+    <div class="content">
+      <p>Que momento especial! Você acabou de cadastrar <strong>{{babyName}}</strong> no OlieCare. 💚</p>
+      
+      <div class="hero-section">
+        <div class="hero-icon">👶</div>
+        <h2 style="margin: 0 0 16px 0; color: #2c2c2c;">Agora você pode começar a registrar a rotina!</h2>
+        <p style="color: #6b7280; margin: 0;">Cada registro ajuda você a entender melhor os padrões do seu bebê.</p>
+      </div>
+
+      <p style="font-weight: 600; color: #2c2c2c; margin: 24px 0 16px 0;">O que você pode registrar:</p>
+      
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-icon">🍼</div>
+          <div class="feature-title">Alimentação</div>
+          <div class="feature-description">Amamentação, mamadeira, complemento</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">😴</div>
+          <div class="feature-title">Sono</div>
+          <div class="feature-description">Sonecas e períodos de descanso</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🧴</div>
+          <div class="feature-title">Fraldas</div>
+          <div class="feature-description">Trocas e tipo (xixi, cocô, mista)</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛁</div>
+          <div class="feature-title">Banho</div>
+          <div class="feature-description">Registre banhos e cuidados</div>
+        </div>
+      </div>
+
+      <div class="tip-box">
+        <p style="margin: 0; font-weight: 600; color: #92400e; margin-bottom: 8px;">💡 Dica do dia:</p>
+        <p style="margin: 0; color: #78350f;">
+          Comece registrando a próxima mamada ou troca de fralda. Quanto mais você registra, mais insights personalizados você recebe!
+        </p>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="https://oliecare.cloud/routines" class="button">Registrar primeira rotina</a>
+      </div>
+
+      <p style="margin-top: 32px; color: #6b7280; font-size: 14px; text-align: center;">
+        Estamos aqui para apoiar você em cada momento desta jornada especial. 💚
+      </p>
+    </div>
+    <div class="footer">
+      <p><strong>OlieCare</strong></p>
+      <p>Acompanhe a rotina do seu bebê com tranquilidade</p>
+      <p style="margin-top: 16px; font-size: 11px; color: #9ca3af;">
+        Este é um email automático. Por favor, não responda diretamente.<br>
+        <a href="{{unsubscribeUrl}}" style="color: #738251;">Cancelar inscrição</a> | 
+        <a href="https://oliecare.cloud/privacidade" style="color: #738251;">Privacidade</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

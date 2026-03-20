@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esta funcionalidade está disponível no Premium 🔒</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2c2c2c; margin: 0; padding: 0; background-color: #f7f8f3; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; padding: 40px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .content { background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; text-align: center; min-width: 200px; }
+    .button:hover { opacity: 0.9; }
+    .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; padding: 20px; }
+    .logo { font-size: 32px; margin-bottom: 10px; }
+    .hero-section { text-align: center; padding: 30px 0; }
+    .hero-icon { font-size: 64px; margin-bottom: 16px; }
+    .locked-box { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 3px solid #f59e0b; padding: 32px; border-radius: 16px; margin: 24px 0; text-align: center; }
+    .feature-description { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid #738251; }
+    .feature-title { font-weight: 600; color: #2c2c2c; margin-bottom: 12px; font-size: 18px; }
+    .feature-text { color: #6b7280; font-size: 14px; line-height: 1.6; }
+    .trial-badge { background: #738251; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; display: inline-block; margin: 16px 0; }
+    .benefit-list { list-style: none; padding: 0; margin: 20px 0; }
+    .benefit-item { display: flex; align-items: flex-start; margin: 12px 0; padding: 12px; background: #f0f4ed; border-radius: 6px; }
+    .benefit-icon { font-size: 24px; margin-right: 12px; }
+    .benefit-text { flex: 1; color: #6b7280; font-size: 14px; }
+    @media only screen and (max-width: 600px) {
+      .container { padding: 10px; }
+      .content { padding: 24px 20px; }
+      .header { padding: 30px 15px; }
+      .button { width: 100%; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🔒</div>
+      <h1>Funcionalidade Premium</h1>
+    </div>
+    <div class="content">
+      <p>Olá <strong>{{userName}}</strong>,</p>
+      <p>Notamos que você tentou acessar <strong>{{premiumFeature}}</strong>. Esta funcionalidade está disponível no plano Premium! 💎</p>
+      
+      <div class="locked-box">
+        <div class="hero-icon">🔓</div>
+        <h2 style="margin: 0 0 12px 0; color: #2c2c2c;">Desbloqueie com Premium</h2>
+        <div class="trial-badge">7 dias grátis para testar</div>
+      </div>
+
+      <div class="feature-description">
+        <div class="feature-title">O que você ganha com {{premiumFeature}}:</div>
+        <div class="feature-text">
+          {{featureValue}}
+        </div>
+      </div>
+
+      <p style="font-weight: 600; color: #2c2c2c; margin: 24px 0 12px 0;">✨ Com o Premium você também tem acesso a:</p>
+      <ul class="benefit-list">
+        <li class="benefit-item">
+          <div class="benefit-icon">🧠</div>
+          <div class="benefit-text">Insights avançados com Inteligência Artificial</div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">📊</div>
+          <div class="benefit-text">Gráficos e análises detalhadas</div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">💉</div>
+          <div class="benefit-text">Calendário completo de vacinas</div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">📥</div>
+          <div class="benefit-text">Exportação de dados para o pediatra</div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">🤖</div>
+          <div class="benefit-text">Chat com Assistente IA ilimitado</div>
+        </li>
+      </ul>
+
+      <div style="text-align: center;">
+        <a href="https://oliecare.cloud/settings/billing" class="button">Experimentar Premium grátis</a>
+      </div>
+
+      <p style="margin-top: 32px; color: #6b7280; font-size: 14px; text-align: center;">
+        Teste por 7 dias sem compromisso. Cancele quando quiser. 💚
+      </p>
+    </div>
+    <div class="footer">
+      <p><strong>OlieCare</strong></p>
+      <p>Acompanhe a rotina do seu bebê com tranquilidade</p>
+      <p style="margin-top: 16px; font-size: 11px; color: #9ca3af;">
+        Este é um email automático. Por favor, não responda diretamente.<br>
+        <a href="{{unsubscribeUrl}}" style="color: #738251;">Cancelar inscrição</a> | 
+        <a href="https://oliecare.cloud/privacidade" style="color: #738251;">Privacidade</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

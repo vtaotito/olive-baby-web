@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumo Semanal - OlieCare Profissional</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2c2c2c; margin: 0; padding: 0; background-color: #f7f8f3; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; padding: 40px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .content { background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; text-align: center; min-width: 200px; }
+    .button:hover { opacity: 0.9; }
+    .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; padding: 20px; }
+    .logo { font-size: 32px; margin-bottom: 10px; }
+    .hero-section { text-align: center; padding: 30px 0; }
+    .hero-icon { font-size: 64px; margin-bottom: 16px; }
+    .summary-box { background: #f9fafb; padding: 24px; border-radius: 8px; margin: 24px 0; }
+    .summary-title { font-weight: 600; color: #2c2c2c; margin-bottom: 16px; font-size: 18px; }
+    .summary-stat { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
+    .summary-stat:last-child { border-bottom: none; }
+    .summary-label { color: #6b7280; font-size: 14px; }
+    .summary-value { font-weight: 600; color: #738251; font-size: 14px; }
+    .patients-list { margin: 24px 0; }
+    .patient-item { background: #f9fafb; padding: 16px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #738251; }
+    .patient-name { font-weight: 600; color: #2c2c2c; margin-bottom: 4px; }
+    .patient-activity { color: #6b7280; font-size: 14px; }
+    .alert-box { background: #fee2e2; border-left: 4px solid #ef4444; padding: 16px; margin: 24px 0; border-radius: 6px; }
+    .alert-title { font-weight: 600; color: #991b1b; margin-bottom: 8px; }
+    .alert-text { color: #7f1d1d; font-size: 14px; }
+    @media only screen and (max-width: 600px) {
+      .container { padding: 10px; }
+      .content { padding: 24px 20px; }
+      .header { padding: 30px 15px; }
+      .button { width: 100%; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">📊</div>
+      <h1>Resumo da Semana</h1>
+    </div>
+    <div class="content">
+      <p>Olá <strong>Dr(a). {{userName}}</strong>,</p>
+      <p>Aqui está um resumo da atividade dos seus pacientes na última semana. 💚</p>
+      
+      <div class="hero-section">
+        <div class="hero-icon">📈</div>
+        <h2 style="margin: 0 0 16px 0; color: #2c2c2c;">Sua semana em números</h2>
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-title">📊 Estatísticas gerais:</div>
+        <div class="summary-stat">
+          <span class="summary-label">Pacientes ativos</span>
+          <span class="summary-value">{{activePatientsCount}}</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-label">Total de rotinas registradas</span>
+          <span class="summary-value">{{totalRoutines}}</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-label">Novos pacientes conectados</span>
+          <span class="summary-value">{{newPatientsCount}}</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-label">Prontuários acessados</span>
+          <span class="summary-value">{{chartAccessCount}}</span>
+        </div>
+      </div>
+
+      {{#if topPatients}}
+      <div class="patients-list">
+        <div class="summary-title">👥 Pacientes com mais atividade:</div>
+        {{#each topPatients}}
+        <div class="patient-item">
+          <div class="patient-name">{{name}}</div>
+          <div class="patient-activity">{{activity}}</div>
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{#if hasAlerts}}
+      <div class="alert-box">
+        <div class="alert-title">⚠️ Alertas importantes:</div>
+        <div class="alert-text">
+          {{alerts}}
+        </div>
+      </div>
+      {{/if}}
+
+      <div style="text-align: center;">
+        <a href="https://oliecare.cloud/prof/patients" class="button">Ver todos os pacientes</a>
+      </div>
+
+      <p style="margin-top: 32px; color: #6b7280; font-size: 14px; text-align: center;">
+        Continue acompanhando seus pacientes com dados reais! 💚
+      </p>
+    </div>
+    <div class="footer">
+      <p><strong>OlieCare Profissional</strong></p>
+      <p>Portal gratuito para profissionais de saúde</p>
+      <p style="margin-top: 16px; font-size: 11px; color: #9ca3af;">
+        Este é um email automático. Por favor, não responda diretamente.<br>
+        <a href="{{unsubscribeUrl}}" style="color: #738251;">Cancelar inscrição</a> | 
+        <a href="https://oliecare.cloud/privacidade" style="color: #738251;">Privacidade</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

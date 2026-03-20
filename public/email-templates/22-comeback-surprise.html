@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Que bom ter você de volta! 🎉</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2c2c2c; margin: 0; padding: 0; background-color: #f7f8f3; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; padding: 40px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .content { background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; text-align: center; min-width: 200px; }
+    .button:hover { opacity: 0.9; }
+    .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; padding: 20px; }
+    .logo { font-size: 32px; margin-bottom: 10px; }
+    .hero-section { text-align: center; padding: 30px 0; }
+    .hero-icon { font-size: 64px; margin-bottom: 16px; }
+    .celebration-box { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 3px solid #f59e0b; padding: 32px; border-radius: 16px; margin: 24px 0; text-align: center; }
+    .summary-box { background: #f9fafb; padding: 24px; border-radius: 8px; margin: 24px 0; }
+    .summary-title { font-weight: 600; color: #2c2c2c; margin-bottom: 16px; }
+    .summary-item { display: flex; align-items: center; margin: 12px 0; padding: 12px; background: white; border-radius: 6px; }
+    .summary-icon { font-size: 24px; margin-right: 12px; }
+    .summary-text { flex: 1; color: #6b7280; font-size: 14px; }
+    .new-features-box { background: linear-gradient(135deg, #f0f4ed 0%, #e8f5e9 100%); border: 2px solid #738251; padding: 24px; border-radius: 12px; margin: 24px 0; }
+    .new-features-title { font-weight: 600; color: #2c2c2c; margin-bottom: 12px; }
+    .new-features-list { list-style: none; padding: 0; margin: 0; }
+    .new-feature-item { display: flex; align-items: center; margin: 8px 0; color: #6b7280; font-size: 14px; }
+    .new-feature-item::before { content: "✨"; margin-right: 8px; }
+    @media only screen and (max-width: 600px) {
+      .container { padding: 10px; }
+      .content { padding: 24px 20px; }
+      .header { padding: 30px 15px; }
+      .button { width: 100%; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🎉</div>
+      <h1>Que bom ter você de volta!</h1>
+    </div>
+    <div class="content">
+      <p>Olá <strong>{{userName}}</strong>,</p>
+      <p>Que alegria ver você de volta ao OlieCare! 💚</p>
+      
+      <div class="celebration-box">
+        <div class="hero-icon">🎊</div>
+        <h2 style="margin: 0 0 12px 0; color: #2c2c2c;">Bem-vindo de volta!</h2>
+        <p style="margin: 0; color: #78350f; font-size: 16px;">Faz {{daysAway}} dias que você não acessava o app. Estamos felizes em ter você aqui novamente!</p>
+      </div>
+
+      {{#if hasSummary}}
+      <div class="summary-box">
+        <div class="summary-title">📊 Resumo do que aconteceu enquanto você estava fora:</div>
+        {{#if routinesRecorded}}
+        <div class="summary-item">
+          <div class="summary-icon">📝</div>
+          <div class="summary-text"><strong>{{routinesRecorded}}</strong> rotinas foram registradas por outros cuidadores</div>
+        </div>
+        {{/if}}
+        {{#if insightsGenerated}}
+        <div class="summary-item">
+          <div class="summary-icon">🧠</div>
+          <div class="summary-text"><strong>{{insightsGenerated}}</strong> novos insights foram gerados</div>
+        </div>
+        {{/if}}
+        {{#if milestonesReached}}
+        <div class="summary-item">
+          <div class="summary-icon">🏆</div>
+          <div class="summary-text"><strong>{{milestonesReached}}</strong> marcos foram alcançados</div>
+        </div>
+        {{/if}}
+      </div>
+      {{/if}}
+
+      {{#if hasNewFeatures}}
+      <div class="new-features-box">
+        <div class="new-features-title">✨ Novidades da plataforma:</div>
+        <ul class="new-features-list">
+          {{#each newFeatures}}
+          <li class="new-feature-item">{{this}}</li>
+          {{/each}}
+        </ul>
+      </div>
+      {{/if}}
+
+      <div style="text-align: center;">
+        <a href="https://oliecare.cloud/dashboard" class="button">Ver meu dashboard</a>
+      </div>
+
+      <p style="margin-top: 32px; color: #6b7280; font-size: 14px; text-align: center;">
+        Estamos aqui para apoiar você nesta jornada! 💚
+      </p>
+    </div>
+    <div class="footer">
+      <p><strong>OlieCare</strong></p>
+      <p>Acompanhe a rotina do seu bebê com tranquilidade</p>
+      <p style="margin-top: 16px; font-size: 11px; color: #9ca3af;">
+        Este é um email automático. Por favor, não responda diretamente.<br>
+        <a href="{{unsubscribeUrl}}" style="color: #738251;">Cancelar inscrição</a> | 
+        <a href="https://oliecare.cloud/privacidade" style="color: #738251;">Privacidade</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

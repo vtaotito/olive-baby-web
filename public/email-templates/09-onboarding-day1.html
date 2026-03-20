@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comece sua jornada no OlieCare</title>
+  <!-- #region agent log -->
+  <!-- #endregion -->
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #2c2c2c; margin: 0; padding: 0; background-color: #f7f8f3; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; padding: 40px 20px; border-radius: 12px 12px 0 0; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .content { background: white; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #738251 0%, #5a6940 100%); color: white; text-decoration: none; border-radius: 8px; margin: 24px 0; font-weight: 600; font-size: 16px; text-align: center; min-width: 200px; }
+    .button:hover { opacity: 0.9; }
+    .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px; padding: 20px; }
+    .logo { font-size: 32px; margin-bottom: 10px; }
+    .info-box { background: #f0f4ed; border-left: 4px solid #738251; padding: 16px; margin: 20px 0; border-radius: 6px; }
+    .hero-section { text-align: center; padding: 30px 0; }
+    .hero-icon { font-size: 64px; margin-bottom: 16px; }
+    .step-list { list-style: none; padding: 0; margin: 20px 0; }
+    .step-item { display: flex; align-items: flex-start; margin: 16px 0; padding: 16px; background: #f9fafb; border-radius: 8px; }
+    .step-number { background: #738251; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 16px; flex-shrink: 0; }
+    .step-content { flex: 1; }
+    .step-title { font-weight: 600; color: #2c2c2c; margin-bottom: 4px; }
+    .step-description { color: #6b7280; font-size: 14px; }
+    @media only screen and (max-width: 600px) {
+      .container { padding: 10px; }
+      .content { padding: 24px 20px; }
+      .header { padding: 30px 15px; }
+      .button { width: 100%; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">💚</div>
+      <h1>Bem-vindo ao OlieCare!</h1>
+    </div>
+    <div class="content">
+      <p>Olá <strong>{{userName}}</strong>,</p>
+      <p>Que alegria ter você conosco! Estamos aqui para tornar a rotina do seu bebê mais organizada e tranquila.</p>
+      
+      <div class="hero-section">
+        <div class="hero-icon">👶</div>
+        <h2 style="margin: 0 0 16px 0; color: #2c2c2c;">Vamos começar?</h2>
+        <p style="color: #6b7280; margin: 0;">O primeiro passo é cadastrar seu bebê. É rápido e simples!</p>
+      </div>
+
+      <div class="info-box">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #2c2c2c;">Como cadastrar seu primeiro bebê:</p>
+        <ol style="margin: 0; padding-left: 20px; color: #6b7280;">
+          <li style="margin-bottom: 8px;">Acesse o OlieCare pelo app ou site</li>
+          <li style="margin-bottom: 8px;">Clique em "Adicionar Bebê"</li>
+          <li style="margin-bottom: 8px;">Preencha as informações básicas (nome, data de nascimento)</li>
+          <li>Pronto! Agora você pode começar a registrar a rotina</li>
+        </ol>
+      </div>
+
+      <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 24px 0;">
+        <p style="margin: 0 0 12px 0; font-weight: 600; color: #2c2c2c;">✨ Benefícios imediatos:</p>
+        <ul style="margin: 0; padding-left: 20px; color: #6b7280;">
+          <li style="margin-bottom: 6px;">Registre alimentação, sono, fraldas e banho</li>
+          <li style="margin-bottom: 6px;">Veja padrões e insights sobre a rotina</li>
+          <li style="margin-bottom: 6px;">Compartilhe com familiares e cuidadores</li>
+          <li>Receba lembretes personalizados</li>
+        </ul>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="https://oliecare.cloud/dashboard" class="button">Cadastrar meu bebê agora</a>
+      </div>
+
+      <p style="margin-top: 32px; color: #6b7280; font-size: 14px; text-align: center;">
+        Precisa de ajuda? Nossa equipe está sempre disponível para você! 💚
+      </p>
+    </div>
+    <div class="footer">
+      <p><strong>OlieCare</strong></p>
+      <p>Acompanhe a rotina do seu bebê com tranquilidade</p>
+      <p style="margin-top: 16px; font-size: 11px; color: #9ca3af;">
+        Este é um email automático. Por favor, não responda diretamente.<br>
+        <a href="{{unsubscribeUrl}}" style="color: #738251;">Cancelar inscrição</a> | 
+        <a href="https://oliecare.cloud/privacidade" style="color: #738251;">Privacidade</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
