@@ -23,8 +23,8 @@ RUN npm run build
 # ========================================
 FROM nginx:alpine AS runner
 
-# Copiar configuração do Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copiar configuração do Nginx (SPA static serving, não o reverse proxy)
+COPY nginx-web.conf /etc/nginx/conf.d/default.conf
 
 # Copiar build do React
 COPY --from=builder /app/dist /usr/share/nginx/html

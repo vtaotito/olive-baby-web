@@ -56,7 +56,7 @@ export function LandingFooter({ variant }: LandingFooterProps) {
             <ul className="space-y-2">
               <li><Link to="/privacidade" className="hover:text-white transition-colors">Privacidade</Link></li>
               <li><Link to="/termos" className="hover:text-white transition-colors">Termos de uso</Link></li>
-              <li><a href="mailto:contact@api.oliecare.cloud" className="hover:text-white transition-colors">Contato</a></li>
+              <li><a href="mailto:contact@oliecare.cloud" className="hover:text-white transition-colors">Contato</a></li>
             </ul>
             {variant === 'b2b' && (
               <div className="mt-4">

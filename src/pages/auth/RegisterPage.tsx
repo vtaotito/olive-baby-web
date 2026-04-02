@@ -339,9 +339,9 @@ export function RegisterPage() {
                       className="w-4 h-4 mt-0.5 text-olive-600 rounded border-gray-300 focus:ring-olive-500" />
                     <label htmlFor="terms" className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                       Concordo com os{' '}
-                      <Link to="/terms" className="text-olive-600 dark:text-olive-400 hover:underline">Termos de Uso</Link>
+                      <Link to="/termos" className="text-olive-600 dark:text-olive-400 hover:underline">Termos de Uso</Link>
                       {' '}e{' '}
-                      <Link to="/privacy" className="text-olive-600 dark:text-olive-400 hover:underline">Política de Privacidade</Link>
+                      <Link to="/privacidade" className="text-olive-600 dark:text-olive-400 hover:underline">Política de Privacidade</Link>
                     </label>
                   </div>
 
