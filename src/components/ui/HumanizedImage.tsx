@@ -7,6 +7,8 @@ interface HumanizedImageProps {
   className?: string;
   caption?: string;
   priority?: boolean;
+  /** Use 'hero' variant for full-bleed background images without rounded corners */
+  variant?: 'default' | 'hero';
 }
 
 export function HumanizedImage({ 
@@ -14,13 +16,18 @@ export function HumanizedImage({
   alt, 
   className = '', 
   caption,
-  priority = false 
+  priority = false,
+  variant = 'default'
 }: HumanizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  const containerClasses = variant === 'hero' 
+    ? `group relative overflow-hidden bg-stone-100 ${className}` 
+    : `group relative overflow-hidden rounded-3xl bg-stone-100 ${className}`;
+
   return (
-    <div className={`group relative overflow-hidden rounded-3xl bg-stone-100 ${className}`}>
+    <div className={containerClasses}>
       <motion.img
         initial={{ opacity: 0, scale: 1.05 }}
         animate={{ 

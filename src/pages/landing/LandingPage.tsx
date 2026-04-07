@@ -42,8 +42,9 @@ function HeroSection() {
     <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
       <HumanizedImage
         src={ASSETS.hero}
-        alt="Mãe segurando seu bebê recém-nascido enquanto usa o app OlieCare com tranquilidade"
+        alt="Mãe jovem segurando seu bebê recém-nascido com carinho enquanto usa o app OlieCare com tranquilidade em um quarto iluminado por luz natural"
         className="absolute inset-0"
+        variant="hero"
         priority
       />
       
