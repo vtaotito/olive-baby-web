@@ -26,6 +26,11 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isMenuOpen]);
+
   const registerLink = variant === 'b2b' ? '/register?profile=professional' : '/register';
   const registerCta = variant === 'b2b' ? 'Cadastrar grátis' : 'Começar grátis';
 
@@ -102,47 +107,61 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
           </button>
         </div>
 
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.nav
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-              className="md:hidden overflow-hidden border-t border-stone-100"
+      </div>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 top-0 z-40 md:hidden"
+          >
+            <div className="absolute inset-0 bg-white" />
+            <nav
+              className="relative flex flex-col h-full pt-24 px-8 pb-10"
               aria-label="Menu mobile"
             >
-              <div className="py-6 flex flex-col gap-4">
-                <a href="#funcionalidades" onClick={() => setIsMenuOpen(false)} className="text-stone-600 hover:text-olive-600 transition-colors py-1">
+              <motion.div
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className="flex flex-col gap-6"
+              >
+                <a href="#funcionalidades" onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-700 hover:text-olive-600 transition-colors font-medium">
                   Funcionalidades
                 </a>
-                <a href="#como-funciona" onClick={() => setIsMenuOpen(false)} className="text-stone-600 hover:text-olive-600 transition-colors py-1">
+                <a href="#como-funciona" onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-700 hover:text-olive-600 transition-colors font-medium">
                   Como funciona
                 </a>
-                <a href="#precos" onClick={() => setIsMenuOpen(false)} className="text-stone-600 hover:text-olive-600 transition-colors py-1">
+                <a href="#precos" onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-700 hover:text-olive-600 transition-colors font-medium">
                   Preços
                 </a>
-                <div className="h-px bg-stone-100 my-2" />
+                <div className="h-px bg-stone-200 my-2" />
                 {variant === 'b2b' ? (
-                  <a href={B2C_URL} className="text-sm text-stone-400">Para famílias</a>
+                  <a href={B2C_URL} className="text-stone-400 hover:text-stone-600 transition-colors">Para famílias</a>
                 ) : (
-                  <a href={B2B_URL} className="text-sm text-stone-400">Para profissionais</a>
+                  <a href={B2B_URL} className="text-stone-400 hover:text-stone-600 transition-colors">Para profissionais</a>
                 )}
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-stone-600 font-medium">
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-stone-700 font-medium text-lg">
                   Entrar
                 </Link>
+              </motion.div>
+
+              <div className="mt-auto">
                 <Link
                   to={registerLink}
                   onClick={() => setIsMenuOpen(false)}
-                  className="bg-olive-600 text-white px-5 py-3 rounded-xl font-semibold text-center"
+                  className="block w-full bg-olive-600 hover:bg-olive-700 text-white px-6 py-4 rounded-2xl font-semibold text-center text-lg transition-colors"
                 >
                   {registerCta}
                 </Link>
               </div>
-            </motion.nav>
-          )}
-        </AnimatePresence>
-      </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
