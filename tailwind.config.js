@@ -28,7 +28,6 @@ export default {
           green: '#e8f5e9',
           purple: '#f3e5f5',
         },
-        // Landing page colors
         sand: {
           50: '#fdfcfa',
           100: '#f9f6f1',
@@ -69,17 +68,31 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        editorial: ['Lora', 'Georgia', 'serif'],
+      },
+      letterSpacing: {
+        'tight-editorial': '-0.02em',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-slow': 'bounce 2s infinite',
         'float': 'float 6s ease-in-out infinite',
         'float-delayed': 'float 6s ease-in-out infinite 3s',
+        'breathe': 'breathe 4s ease-in-out infinite',
+        'draw': 'draw 1.5s ease-out forwards',
       },
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        breathe: {
+          '0%, 100%': { opacity: '0.7' },
+          '50%': { opacity: '1' },
+        },
+        draw: {
+          from: { strokeDashoffset: '1' },
+          to: { strokeDashoffset: '0' },
         },
       },
     },
