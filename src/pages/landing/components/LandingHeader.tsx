@@ -16,6 +16,12 @@ interface LandingHeaderProps {
   variant: 'b2c' | 'b2b';
 }
 
+const NAV_LINKS = [
+  { href: '#funcionalidades', label: 'Funcionalidades' },
+  { href: '#como-funciona', label: 'Como funciona' },
+  { href: '#precos', label: 'Preços' },
+];
+
 export function LandingHeader({ variant }: LandingHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -27,141 +33,170 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
     return () => { document.body.style.overflow = ''; };
   }, [isMenuOpen]);
 
+  const closeMenu = () => setIsMenuOpen(false);
   const registerLink = variant === 'b2b' ? '/register?profile=professional' : '/register';
   const registerCta = variant === 'b2b' ? 'Cadastrar grátis' : 'Começar grátis';
+  const switchUrl = variant === 'b2b' ? B2C_URL : B2B_URL;
+  const switchLabel = variant === 'b2b' ? 'Para famílias' : 'Para profissionais';
 
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled || isMenuOpen
-          ? 'bg-white/95 backdrop-blur-xl shadow-sm shadow-stone-900/5 border-b border-stone-100/80'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-18 py-4">
-          <Link to={variant === 'b2b' ? '/para-profissionais' : '/'} className="flex items-center gap-2.5 group">
-            <LogoIcon size={36} className="transition-transform duration-300 group-hover:scale-105" />
-            <span className="font-display text-lg font-bold text-stone-800 tracking-tight-editorial">
-              OlieCare
-            </span>
-            {variant === 'b2b' && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-olive-600 bg-olive-50 px-2 py-0.5 rounded-full">
-                <Stethoscope className="w-3 h-3" />
-                Pro
+    <>
+      {/* ── Desktop & Mobile header bar ── */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? 'bg-white/90 backdrop-blur-xl shadow-sm shadow-stone-900/5 border-b border-stone-100/80'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link to={variant === 'b2b' ? '/para-profissionais' : '/'} className="flex items-center gap-2.5 group">
+              <LogoIcon size={36} className="transition-transform duration-300 group-hover:scale-105" />
+              <span className="font-display text-lg font-bold text-stone-800 tracking-tight-editorial">
+                OlieCare
               </span>
-            )}
-          </Link>
+              {variant === 'b2b' && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-olive-600 bg-olive-50 px-2 py-0.5 rounded-full">
+                  <Stethoscope className="w-3 h-3" />
+                  Pro
+                </span>
+              )}
+            </Link>
 
-          <nav aria-label="Navegação principal" className="hidden md:flex items-center gap-8">
-            {[
-              { href: '#funcionalidades', label: 'Funcionalidades' },
-              { href: '#como-funciona', label: 'Como funciona' },
-              { href: '#precos', label: 'Preços' },
-            ].map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm text-stone-500 hover:text-stone-800 transition-colors duration-200"
+            <nav aria-label="Navegação principal" className="hidden md:flex items-center gap-8">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-stone-500 hover:text-stone-800 transition-colors duration-200"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+
+            <div className="hidden md:flex items-center gap-5">
+              <a href={switchUrl} className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
+                {switchLabel}
+              </a>
+              <Link to="/login" className="text-sm text-stone-600 hover:text-stone-800 transition-colors font-medium">
+                Entrar
+              </Link>
+              <Link
+                to={registerLink}
+                className="bg-olive-600 hover:bg-olive-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-olive-600/20"
               >
-                {link.label}
-              </a>
-            ))}
-          </nav>
+                {registerCta}
+              </Link>
+            </div>
 
-          <div className="hidden md:flex items-center gap-5">
-            {variant === 'b2b' ? (
-              <a href={B2C_URL} className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
-                Para famílias
-              </a>
-            ) : (
-              <a href={B2B_URL} className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
-                Para profissionais
-              </a>
-            )}
-            <Link to="/login" className="text-sm text-stone-600 hover:text-stone-800 transition-colors font-medium">
-              Entrar
-            </Link>
-            <Link
-              to={registerLink}
-              className="bg-olive-600 hover:bg-olive-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-olive-600/20"
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="md:hidden p-2 -mr-2 text-stone-600 hover:text-stone-800 transition-colors"
+              aria-label="Abrir menu"
             >
-              {registerCta}
-            </Link>
+              <Menu className="w-6 h-6" />
+            </button>
           </div>
-
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-stone-500 hover:text-stone-700 transition-colors"
-            aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
+      </motion.header>
 
-      </div>
-
+      {/* ── Mobile fullscreen overlay (sibling, NOT child of header) ── */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
+            key="mobile-menu"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 top-0 z-40 md:hidden"
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed inset-0 z-[100] bg-white md:hidden flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navegação"
           >
-            <div className="absolute inset-0 bg-white" />
-            <nav
-              className="relative flex flex-col h-full pt-24 px-8 pb-10"
-              aria-label="Menu mobile"
-            >
-              <motion.div
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.2 }}
-                className="flex flex-col gap-6"
+            {/* Overlay header bar */}
+            <div className="flex items-center justify-between h-16 px-6 flex-shrink-0">
+              <Link to={variant === 'b2b' ? '/para-profissionais' : '/'} onClick={closeMenu} className="flex items-center gap-2.5">
+                <LogoIcon size={36} />
+                <span className="font-display text-lg font-bold text-stone-800 tracking-tight-editorial">
+                  OlieCare
+                </span>
+              </Link>
+              <button
+                onClick={closeMenu}
+                className="p-2 -mr-2 text-stone-600 hover:text-stone-800 transition-colors"
+                aria-label="Fechar menu"
               >
-                <a href="#funcionalidades" onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-700 hover:text-olive-600 transition-colors font-medium">
-                  Funcionalidades
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Navigation links */}
+            <nav className="flex-1 flex flex-col px-6 pt-6 pb-8 overflow-y-auto" aria-label="Menu mobile">
+              <motion.div
+                initial={{ y: 12, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.08, duration: 0.25 }}
+                className="flex flex-col gap-1"
+              >
+                {NAV_LINKS.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={closeMenu}
+                    className="text-[22px] font-medium text-stone-800 hover:text-olive-600 transition-colors py-3 border-b border-stone-100"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </motion.div>
+
+              <motion.div
+                initial={{ y: 12, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.15, duration: 0.25 }}
+                className="flex flex-col gap-3 mt-6"
+              >
+                <a href={switchUrl} className="text-base text-stone-400 hover:text-stone-600 transition-colors py-2">
+                  {switchLabel}
                 </a>
-                <a href="#como-funciona" onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-700 hover:text-olive-600 transition-colors font-medium">
-                  Como funciona
-                </a>
-                <a href="#precos" onClick={() => setIsMenuOpen(false)} className="text-xl text-stone-700 hover:text-olive-600 transition-colors font-medium">
-                  Preços
-                </a>
-                <div className="h-px bg-stone-200 my-2" />
-                {variant === 'b2b' ? (
-                  <a href={B2C_URL} className="text-stone-400 hover:text-stone-600 transition-colors">Para famílias</a>
-                ) : (
-                  <a href={B2B_URL} className="text-stone-400 hover:text-stone-600 transition-colors">Para profissionais</a>
-                )}
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-stone-700 font-medium text-lg">
+                <Link to="/login" onClick={closeMenu} className="text-base text-stone-700 font-medium py-2">
                   Entrar
                 </Link>
               </motion.div>
 
-              <div className="mt-auto">
+              {/* CTA at bottom */}
+              <motion.div
+                initial={{ y: 12, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.22, duration: 0.25 }}
+                className="mt-auto pt-8"
+              >
                 <Link
                   to={registerLink}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block w-full bg-olive-600 hover:bg-olive-700 text-white px-6 py-4 rounded-2xl font-semibold text-center text-lg transition-colors"
+                  onClick={closeMenu}
+                  className="block w-full bg-olive-600 hover:bg-olive-700 text-white px-6 py-4 rounded-2xl font-semibold text-center text-lg transition-colors shadow-lg shadow-olive-600/20"
                 >
                   {registerCta}
                 </Link>
-              </div>
+              </motion.div>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </>
   );
 }
