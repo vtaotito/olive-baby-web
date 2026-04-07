@@ -37,12 +37,12 @@ export function HumanizedImage({
         decoding="async"
       />
       
-      {/* Overlay gradient sutil */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Overlay gradient sutil para legendas */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
       {caption && (
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-          <p className="text-sm font-light leading-snug opacity-90">{caption}</p>
+          <p className="text-sm font-light leading-snug opacity-95 drop-shadow-sm">{caption}</p>
         </div>
       )}
 

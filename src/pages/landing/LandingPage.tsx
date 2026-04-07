@@ -308,9 +308,6 @@ function HowItWorksSection() {
   );
 }
 
-// (O resto do arquivo permanece igual - SocialProofSection, PlansSection, CTASection, etc.)
-// ... [código original mantido nas seções abaixo]
-
 function SocialProofSection() {
   return (
     <section className={`${sectionPadding} bg-sand-50`}>
@@ -357,7 +354,6 @@ function SocialProofSection() {
   );
 }
 
-// Manter as seções PlansSection e CTASection originais (para não quebrar nada)
 function PlansSection() {
   const plans = [
     {
