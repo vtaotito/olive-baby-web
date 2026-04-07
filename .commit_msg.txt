@@ -1,0 +1,8 @@
+fix: ajustes finais no redesign visual da landing + melhoria no HumanizedImage
+
+- Melhorado contraste e legibilidade das legendas no HumanizedImage
+- Limpeza de comentários e duplicações no LandingPage.tsx
+- Garantido que todas as seções (Hero, Empatia, Funcionalidades com mockups, Como Funciona, Planos) estão completas
+- Melhor UX visual com imagens humanizadas e mockups reais do app
+
+O site agora tem um visual muito mais profissional, emocional e moderno.
