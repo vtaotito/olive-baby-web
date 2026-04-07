@@ -1,7 +1,13 @@
-fix: refinar componente HumanizedImage e hero section
+fix: corrigir hero image — usar img nativa com object-cover
 
-- Adicionado suporte a variant="hero" para imagens full-bleed sem bordas arredondadas
-- Melhorado alt text da imagem principal
-- Ajustado gradiente do overlay para melhor legibilidade do texto sobre a foto do hero
+O HumanizedImage nao funcionava como background full-bleed porque
+o wrapper div nao propagava as dimensoes absolutas para o img interno.
 
-Melhoria visual no layout da seção principal da landing page.
+- Substituido HumanizedImage por tag img nativa no Hero
+- object-cover + object-top garante fill total da viewport
+- fetchPriority high para carregamento imediato
+- Overlay mais escuro para legibilidade
+- text-shadow para legibilidade extra no mobile
+- Paddings responsivos ajustados (pt-28 sm:pt-32 pb-24)
+- h1 menor no mobile (text-4xl) para nao estourar
+- bg-stone-900 como fallback enquanto imagem carrega

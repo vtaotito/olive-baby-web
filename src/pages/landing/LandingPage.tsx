@@ -39,30 +39,33 @@ const ASSETS = {
 // ─── HERO ────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
-      <HumanizedImage
+    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-stone-900">
+      {/* Background image — tag nativa para garantir fill correto */}
+      <img
         src={ASSETS.hero}
-        alt="Mãe jovem segurando seu bebê recém-nascido com carinho enquanto usa o app OlieCare com tranquilidade em um quarto iluminado por luz natural"
-        className="absolute inset-0"
-        variant="hero"
-        priority
+        alt="Mãe segurando bebê recém-nascido enquanto usa o app OlieCare"
+        className="absolute inset-0 w-full h-full object-cover object-top"
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
       />
-      
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70" />
 
-      <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center pt-20 pb-20 z-10">
+      {/* Overlay escuro para legibilidade */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/75" />
+
+      <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center pt-28 sm:pt-32 pb-24 z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-md text-olive-700 text-sm font-medium px-5 py-2 rounded-2xl mb-8">
+          <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-md text-olive-700 text-sm font-medium px-5 py-2 rounded-full mb-8 shadow-lg">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
             Usado por mais de 2.400 famílias
           </div>
-          
-          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight-editorial mb-8 drop-shadow-xl">
-            Mais tranquilidade para cuidar do seu{' '}
+
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight-editorial mb-6 sm:mb-8 [text-shadow:0_2px_20px_rgba(0,0,0,0.3)]">
+            Mais tranquilidade<br className="hidden sm:block" /> para cuidar do seu{' '}
             <span className="text-olive-200">bebê</span>.
           </h1>
         </motion.div>
@@ -71,7 +74,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-xl text-white/90 max-w-2xl mx-auto leading-relaxed mb-12 drop-shadow-md"
+          className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed mb-10 sm:mb-12 [text-shadow:0_1px_8px_rgba(0,0,0,0.2)]"
         >
           Acompanhe alimentação, sono, fraldas e desenvolvimento.
           Receba insights personalizados e tenha clareza mesmo nos dias mais cansativos.
@@ -92,7 +95,7 @@ function HeroSection() {
           </Link>
           <a
             href="#funcionalidades"
-            className="inline-flex items-center justify-center gap-2 border border-white/70 hover:bg-white/10 text-white px-8 py-4 rounded-2xl text-lg font-medium transition-all"
+            className="inline-flex items-center justify-center gap-2 border-2 border-white/60 hover:bg-white/10 text-white px-8 py-4 rounded-2xl text-lg font-medium transition-all"
           >
             Ver como funciona
           </a>
@@ -102,15 +105,15 @@ function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="mt-12 flex flex-wrap items-center gap-8 justify-center text-sm text-white/70"
+          className="mt-10 sm:mt-12 flex flex-wrap items-center gap-6 sm:gap-8 justify-center text-sm text-white/80"
         >
-          <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> 7 dias grátis Premium</span>
+          <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> 7 dias grátis</span>
           <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> Sem cartão</span>
           <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> Cancele quando quiser</span>
         </motion.div>
       </div>
 
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
         <a href="#empatia" aria-label="Rolar para baixo" className="block">
           <ArrowDown className="w-6 h-6 text-white/60 animate-bounce" />
         </a>
