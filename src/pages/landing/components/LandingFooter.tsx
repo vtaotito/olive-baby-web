@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { LogoIcon } from '@/components/brand/OlieCareLogo';
 
 const B2C_URL = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? '/'
@@ -27,9 +27,7 @@ export function LandingFooter({ variant }: LandingFooterProps) {
               to={variant === 'b2b' ? '/para-profissionais' : '/'}
               className="flex items-center gap-2.5 mb-5"
             >
-              <div className="w-9 h-9 rounded-xl bg-olive-600 flex items-center justify-center">
-                <Heart className="w-4 h-4 text-white" />
-              </div>
+              <LogoIcon size={36} />
               <span className="font-display text-lg font-bold text-white tracking-tight-editorial">OlieCare</span>
             </Link>
             <p className="text-stone-500 max-w-sm leading-relaxed text-[15px]">

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Menu, X, Stethoscope } from 'lucide-react';
+import { Menu, X, Stethoscope } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LogoIcon } from '@/components/brand/OlieCareLogo';
 
 const B2C_URL = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? '/'
@@ -34,17 +35,15 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-white/90 backdrop-blur-xl shadow-sm shadow-stone-900/5 border-b border-stone-100/80'
+        scrolled || isMenuOpen
+          ? 'bg-white/95 backdrop-blur-xl shadow-sm shadow-stone-900/5 border-b border-stone-100/80'
           : 'bg-transparent'
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-18 py-4">
           <Link to={variant === 'b2b' ? '/para-profissionais' : '/'} className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-olive-600 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-              <Heart className="w-4 h-4 text-white" />
-            </div>
+            <LogoIcon size={36} className="transition-transform duration-300 group-hover:scale-105" />
             <span className="font-display text-lg font-bold text-stone-800 tracking-tight-editorial">
               OlieCare
             </span>
