@@ -18,31 +18,51 @@ import { SEOHead } from '../../components/seo/SEOHead';
 import { LandingHeader } from './components/LandingHeader';
 import { LandingFooter } from './components/LandingFooter';
 import { ScrollReveal, StaggerReveal, StaggerItem } from '../../components/animations/ScrollReveal';
+import { HumanizedImage } from '../../components/ui/HumanizedImage';
 
 const sectionPadding = 'py-28 sm:py-36';
+
+const ASSETS = {
+  hero: '/assets/prof/prof-hero-pediatra-mamae.jpg',
+  dashboard: '/assets/prof/prof-dashboard-mockup.png',
+  prontuario: '/assets/prof/prof-prontuario-pediatra.jpg',
+  convite: '/assets/prof/prof-convite-pediatra.jpg',
+  agenda: '/assets/prof/prof-agenda-mockup.png',
+  crescimento: '/assets/prof/prof-grafico-crescimento.jpg',
+  conexao: '/assets/prof/prof-pediatra-mamae-conexao.jpg',
+};
 
 // ─── HERO ────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-sand-50 via-white to-white" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-olive-100/20 rounded-full blur-[120px]" />
+    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-stone-900">
+      <img
+        src={ASSETS.hero}
+        alt="Pediatra mostrando dashboard do OlieCare Pro para mãe com bebê no consultório"
+        className="absolute inset-0 w-full h-full object-cover object-center"
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+      />
 
-      <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center pt-28 pb-20">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/75" />
+
+      <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center pt-28 sm:pt-32 pb-24 z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <div className="inline-flex items-center gap-2 bg-olive-50 text-olive-700 px-4 py-1.5 rounded-full text-sm font-medium mb-8">
+          <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-md text-olive-700 px-5 py-2 rounded-full text-sm font-medium mb-8 shadow-lg">
             <Stethoscope className="w-4 h-4" />
             <span>Portal gratuito para profissionais de saúde</span>
           </div>
 
-          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-stone-800 leading-[1.1] tracking-tight-editorial mb-8">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight-editorial mb-6 sm:mb-8 [text-shadow:0_2px_20px_rgba(0,0,0,0.3)]">
             Acompanhe seus{' '}
-            <span className="text-olive-600">pacientes</span>{' '}
-            com dados reais da rotina.
+            <span className="text-olive-200">pacientes</span>{' '}
+            <br className="hidden sm:block" />
+            com dados reais.
           </h1>
         </motion.div>
 
@@ -50,7 +70,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-lg sm:text-xl text-stone-500 max-w-2xl mx-auto leading-relaxed mb-12"
+          className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed mb-10 sm:mb-12 [text-shadow:0_1px_8px_rgba(0,0,0,0.2)]"
         >
           Prontuário integrado, agenda, convites e dados de rotina em um só lugar.
           Consultas mais informadas, menos retrabalho.
@@ -64,14 +84,14 @@ function HeroSection() {
         >
           <Link
             to="/register?profile=professional"
-            className="group inline-flex items-center justify-center gap-2 bg-olive-600 hover:bg-olive-700 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg shadow-olive-600/20 hover:shadow-xl hover:shadow-olive-600/30"
+            className="group inline-flex items-center justify-center gap-2 bg-white hover:bg-olive-50 text-olive-700 px-10 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-2xl shadow-black/30 hover:shadow-xl"
           >
             Começar como profissional
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           <a
             href="#como-funciona"
-            className="inline-flex items-center justify-center gap-2 text-stone-500 hover:text-stone-700 px-8 py-4 rounded-2xl text-lg font-medium transition-colors"
+            className="inline-flex items-center justify-center gap-2 border-2 border-white/60 hover:bg-white/10 text-white px-8 py-4 rounded-2xl text-lg font-medium transition-all"
           >
             Veja como funciona
           </a>
@@ -81,23 +101,18 @@ function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="mt-10 flex flex-wrap items-center gap-6 justify-center text-sm text-stone-400"
+          className="mt-10 sm:mt-12 flex flex-wrap items-center gap-6 sm:gap-8 justify-center text-sm text-white/80"
         >
-          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-olive-500" /> 100% gratuito</span>
-          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-olive-500" /> Até 50 pacientes</span>
-          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-olive-500" /> Sem cartão de crédito</span>
+          <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> 100% gratuito</span>
+          <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> Até 50 pacientes</span>
+          <span className="flex items-center gap-1.5"><Check className="w-4 h-4" /> Sem cartão</span>
         </motion.div>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.4 }}
-          transition={{ duration: 0.5, delay: 1.4 }}
-          className="mt-20"
-        >
-          <a href="#desafio" aria-label="Rolar para baixo">
-            <ArrowDown className="w-5 h-5 text-stone-400 mx-auto animate-bounce" />
-          </a>
-        </motion.div>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <a href="#desafio" aria-label="Rolar para baixo" className="block">
+          <ArrowDown className="w-6 h-6 text-white/60 animate-bounce" />
+        </a>
       </div>
     </section>
   );
@@ -107,39 +122,52 @@ function HeroSection() {
 function ProblemSection() {
   return (
     <section id="desafio" className={`${sectionPadding} bg-white`}>
-      <div className="max-w-3xl mx-auto px-6 lg:px-8">
-        <ScrollReveal>
-          <p className="text-sm font-medium text-olive-600 mb-6 tracking-wider uppercase">O desafio</p>
-        </ScrollReveal>
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <ScrollReveal>
+              <p className="text-sm font-medium text-olive-600 mb-6 tracking-wider uppercase">O desafio</p>
+            </ScrollReveal>
 
-        <ScrollReveal delay={0.1}>
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-800 leading-[1.15] tracking-tight-editorial mb-10">
-            Consultas mais informadas começam com dados reais.
-          </h2>
-        </ScrollReveal>
+            <ScrollReveal delay={0.1}>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-800 leading-[1.15] tracking-tight-editorial mb-10">
+                Consultas mais informadas começam com dados reais.
+              </h2>
+            </ScrollReveal>
 
-        <ScrollReveal delay={0.2}>
-          <p className="text-lg text-stone-500 leading-relaxed mb-12">
-            Quando os pais registram a rotina do bebê, você tem acesso a dados concretos
-            para tomar decisões clínicas mais precisas. Sem "acho que mamou bem" ou "dormiu mais ou menos".
-          </p>
-        </ScrollReveal>
+            <ScrollReveal delay={0.2}>
+              <p className="text-lg text-stone-500 leading-relaxed mb-12">
+                Quando os pais registram a rotina do bebê, você tem acesso a dados concretos
+                para tomar decisões clínicas mais precisas. Sem "acho que mamou bem" ou "dormiu mais ou menos".
+              </p>
+            </ScrollReveal>
 
-        <StaggerReveal className="grid sm:grid-cols-2 gap-8">
-          {[
-            { title: 'Pais chegam sem dados', desc: 'Consultas baseadas em memória — imprecisas por natureza.' },
-            { title: 'Consultas superficiais', desc: 'Pouco tempo para entender padrões reais de alimentação e sono.' },
-            { title: 'Informações dispersas', desc: 'Planilhas, anotações e apps diferentes. Nada integrado.' },
-            { title: 'Engajamento baixo', desc: 'Pais não seguem recomendações por falta de organização.' },
-          ].map((problem, i) => (
-            <StaggerItem key={i}>
-              <div className="border-l-2 border-stone-200 pl-5">
-                <h3 className="font-display font-semibold text-stone-800 mb-1">{problem.title}</h3>
-                <p className="text-stone-500 text-[15px]">{problem.desc}</p>
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerReveal>
+            <StaggerReveal className="grid sm:grid-cols-2 gap-8">
+              {[
+                { title: 'Pais chegam sem dados', desc: 'Consultas baseadas em memória — imprecisas por natureza.' },
+                { title: 'Consultas superficiais', desc: 'Pouco tempo para entender padrões reais de alimentação e sono.' },
+                { title: 'Informações dispersas', desc: 'Planilhas, anotações e apps diferentes. Nada integrado.' },
+                { title: 'Engajamento baixo', desc: 'Pais não seguem recomendações por falta de organização.' },
+              ].map((problem, i) => (
+                <StaggerItem key={i}>
+                  <div className="border-l-2 border-stone-200 pl-5">
+                    <h3 className="font-display font-semibold text-stone-800 mb-1">{problem.title}</h3>
+                    <p className="text-stone-500 text-[15px]">{problem.desc}</p>
+                  </div>
+                </StaggerItem>
+              ))}
+            </StaggerReveal>
+          </div>
+
+          <ScrollReveal delay={0.2}>
+            <HumanizedImage
+              src={ASSETS.prontuario}
+              alt="Pediatra analisando prontuário integrado com dados de rotina do bebê"
+              className="aspect-[4/3]"
+              caption="Dados reais de rotina integrados ao prontuário"
+            />
+          </ScrollReveal>
+        </div>
       </div>
     </section>
   );
@@ -200,38 +228,13 @@ function SolutionSection() {
           </div>
 
           <ScrollReveal delay={0.2}>
-            <div className="hidden lg:flex justify-center">
-              <div className="relative w-72 h-72">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-28 h-28 rounded-full bg-white/15 flex items-center justify-center backdrop-blur-sm">
-                    <div className="w-18 h-18 rounded-full bg-white flex items-center justify-center" style={{ width: 72, height: 72 }}>
-                      <Stethoscope className="w-8 h-8 text-olive-600" />
-                    </div>
-                  </div>
-                </div>
-                {[Users, Calendar, FileText, LineChart, UserPlus, Shield].map((Icon, index) => {
-                  const angle = (index * 60) * (Math.PI / 180);
-                  const radius = 110;
-                  const x = Math.cos(angle) * radius;
-                  const y = Math.sin(angle) * radius;
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.08, duration: 0.5 }}
-                      viewport={{ once: true }}
-                      className="absolute w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center"
-                      style={{
-                        left: `calc(50% + ${x}px - 24px)`,
-                        top: `calc(50% + ${y}px - 24px)`,
-                      }}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </motion.div>
-                  );
-                })}
-              </div>
+            <div className="hidden lg:block">
+              <HumanizedImage
+                src={ASSETS.dashboard}
+                alt="Dashboard profissional do OlieCare Pro mostrando lista de pacientes, gráficos e alertas"
+                className="aspect-[16/10] shadow-2xl shadow-black/30"
+                caption="Dashboard completo para o dia a dia clínico"
+              />
             </div>
           </ScrollReveal>
         </div>
@@ -243,19 +246,34 @@ function SolutionSection() {
 // ─── FEATURES ────────────────────────────────────────────────────────────
 function FeaturesSection() {
   const feats = [
-    { icon: Users, title: 'Pacientes vinculados', description: 'Até 50 pacientes com dados de rotina em tempo real.', accent: 'bg-peach-50 text-peach-600' },
-    { icon: Calendar, title: 'Agenda', description: 'Agende consultas e acompanhe sua rotina clínica.', accent: 'bg-lavender-50 text-lavender-600' },
-    { icon: FileText, title: 'Prontuário', description: 'Visitas, receitas, atestados e dados do bebê em um só lugar.', accent: 'bg-sky-50 text-sky-600' },
-    { icon: UserPlus, title: 'Convites', description: 'Convide pacientes por e-mail para se cadastrarem na OlieCare.', accent: 'bg-olive-50 text-olive-600' },
-    { icon: LineChart, title: 'Crescimento', description: 'Gráficos com curvas de referência (OMS) para acompanhamento.', accent: 'bg-amber-50 text-amber-600' },
-    { icon: Shield, title: 'Segurança', description: 'Dados com consentimento do responsável. LGPD.', accent: 'bg-teal-50 text-teal-600' },
+    {
+      icon: Users,
+      title: 'Pacientes vinculados',
+      description: 'Até 50 pacientes com dados de rotina em tempo real.',
+      image: ASSETS.conexao,
+      imageAlt: 'Pediatra e mãe com bebê conectados pelo OlieCare',
+    },
+    {
+      icon: Calendar,
+      title: 'Agenda integrada',
+      description: 'Agende consultas e acompanhe sua rotina clínica com alertas.',
+      image: ASSETS.agenda,
+      imageAlt: 'Agenda do dia do profissional com consultas e alertas',
+    },
+    {
+      icon: LineChart,
+      title: 'Gráficos de crescimento',
+      description: 'Curvas de referência OMS com dados reais do bebê.',
+      image: ASSETS.crescimento,
+      imageAlt: 'Pediatra analisando gráfico de crescimento OMS no tablet',
+    },
   ];
 
   return (
     <section id="funcionalidades" className={`${sectionPadding} bg-white`}>
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <ScrollReveal>
-          <div className="max-w-2xl mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-16">
             <p className="text-sm font-medium text-olive-600 mb-4 tracking-wider uppercase">Funcionalidades</p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-stone-800 leading-[1.15] tracking-tight-editorial">
               Tudo para simplificar o seu dia a dia clínico.
@@ -263,24 +281,50 @@ function FeaturesSection() {
           </div>
         </ScrollReveal>
 
-        <StaggerReveal className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-          {feats.map((feature, i) => {
-            const [bgClass, textClass] = feature.accent.split(' ');
-            return (
-              <StaggerItem key={i}>
-                <div className="flex gap-5">
-                  <div className={`w-12 h-12 rounded-2xl ${bgClass} flex items-center justify-center flex-shrink-0`}>
-                    <feature.icon className={`w-6 h-6 ${textClass}`} />
+        <div className="space-y-20">
+          {feats.map((feature, i) => (
+            <ScrollReveal key={i} delay={i * 0.1}>
+              <div className={`grid lg:grid-cols-2 gap-12 items-center ${i % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}>
+                <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-olive-50 flex items-center justify-center">
+                      <feature.icon className="w-6 h-6 text-olive-600" />
+                    </div>
+                    <h3 className="font-display text-2xl font-bold text-stone-800">{feature.title}</h3>
                   </div>
-                  <div>
-                    <h3 className="font-display text-lg font-semibold text-stone-800 mb-1">{feature.title}</h3>
-                    <p className="text-stone-500 text-[15px] leading-relaxed">{feature.description}</p>
-                  </div>
+                  <p className="text-lg text-stone-500 leading-relaxed">{feature.description}</p>
                 </div>
-              </StaggerItem>
-            );
-          })}
-        </StaggerReveal>
+                <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
+                  <HumanizedImage
+                    src={feature.image}
+                    alt={feature.imageAlt}
+                    className="aspect-[4/3]"
+                  />
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+
+        <ScrollReveal delay={0.2}>
+          <div className="mt-20 grid sm:grid-cols-3 gap-8">
+            {[
+              { icon: FileText, title: 'Prontuário', description: 'Visitas, receitas, atestados e dados do bebê.' },
+              { icon: UserPlus, title: 'Convites', description: 'Convide pacientes por e-mail com um clique.' },
+              { icon: Shield, title: 'LGPD', description: 'Dados com consentimento do responsável.' },
+            ].map((feat, i) => (
+              <div key={i} className="flex gap-4">
+                <div className="w-10 h-10 rounded-xl bg-olive-50 flex items-center justify-center flex-shrink-0">
+                  <feat.icon className="w-5 h-5 text-olive-600" />
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-stone-800 mb-1">{feat.title}</h3>
+                  <p className="text-stone-500 text-[15px]">{feat.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );
@@ -289,16 +333,31 @@ function FeaturesSection() {
 // ─── HOW IT WORKS ────────────────────────────────────────────────────────
 function HowItWorksSection() {
   const steps = [
-    { title: 'Cadastre-se grátis.', description: 'Crie sua conta em menos de 1 minuto. Sem cartão.' },
-    { title: 'Convide seus pacientes.', description: 'Envie convites por e-mail. Eles se cadastram na OlieCare.' },
-    { title: 'Veja dados nas consultas.', description: 'Rotinas, vacinas, marcos e crescimento em tempo real.' },
+    {
+      title: 'Cadastre-se grátis.',
+      description: 'Crie sua conta em menos de 1 minuto. Sem cartão.',
+      image: ASSETS.dashboard,
+      imageAlt: 'Dashboard profissional do OlieCare',
+    },
+    {
+      title: 'Convide seus pacientes.',
+      description: 'Envie convites por e-mail. Eles se cadastram na OlieCare e começam a registrar.',
+      image: ASSETS.convite,
+      imageAlt: 'Pediatra enviando convite para pacientes pelo OlieCare',
+    },
+    {
+      title: 'Veja dados nas consultas.',
+      description: 'Rotinas, vacinas, marcos e crescimento — tudo em tempo real no prontuário.',
+      image: ASSETS.crescimento,
+      imageAlt: 'Pediatra visualizando gráficos de crescimento do bebê',
+    },
   ];
 
   return (
     <section id="como-funciona" className={`${sectionPadding} bg-sand-50`}>
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <ScrollReveal>
-          <div className="text-center mb-16">
+          <div className="text-center mb-20">
             <p className="text-sm font-medium text-olive-600 mb-4 tracking-wider uppercase">Como funciona</p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-stone-800 tracking-tight-editorial">
               Três passos para começar.
@@ -306,24 +365,35 @@ function HowItWorksSection() {
           </div>
         </ScrollReveal>
 
-        <StaggerReveal className="space-y-12">
+        <div className="space-y-24">
           {steps.map((step, i) => (
-            <StaggerItem key={i}>
-              <div className="flex items-start gap-6">
-                <div className="w-10 h-10 rounded-full bg-olive-100 flex items-center justify-center flex-shrink-0 text-olive-700 font-display font-bold text-sm">
-                  {String(i + 1).padStart(2, '0')}
+            <ScrollReveal key={i} delay={i * 0.1}>
+              <div className={`grid lg:grid-cols-2 gap-12 items-center ${i % 2 === 1 ? '' : ''}`}>
+                <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
+                  <div className="flex items-start gap-5 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-olive-100 flex items-center justify-center flex-shrink-0 text-olive-700 font-display font-bold">
+                      {String(i + 1).padStart(2, '0')}
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl font-bold text-stone-800 mb-2">{step.title}</h3>
+                      <p className="text-lg text-stone-500 leading-relaxed">{step.description}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-display text-xl font-semibold text-stone-800 mb-1">{step.title}</h3>
-                  <p className="text-stone-500">{step.description}</p>
+                <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
+                  <HumanizedImage
+                    src={step.image}
+                    alt={step.imageAlt}
+                    className="aspect-[4/3]"
+                  />
                 </div>
               </div>
-            </StaggerItem>
+            </ScrollReveal>
           ))}
-        </StaggerReveal>
+        </div>
 
         <ScrollReveal delay={0.3}>
-          <div className="text-center mt-14">
+          <div className="text-center mt-16">
             <Link
               to="/register?profile=professional"
               className="group inline-flex items-center gap-2 bg-olive-600 hover:bg-olive-700 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-lg shadow-olive-600/20"
@@ -374,7 +444,16 @@ function BenefitsSection() {
             </StaggerReveal>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 space-y-6">
+            <ScrollReveal delay={0.1}>
+              <HumanizedImage
+                src={ASSETS.conexao}
+                alt="Pediatra e mãe compartilhando dados do bebê pelo OlieCare"
+                className="aspect-[16/10]"
+                caption="Conexão direta entre profissional e família"
+              />
+            </ScrollReveal>
+
             <ScrollReveal delay={0.2}>
               <div className="bg-gradient-to-br from-sand-50 to-olive-50/30 rounded-3xl p-8 sm:p-10 border border-stone-100">
                 <div className="flex items-center gap-2 mb-5">
