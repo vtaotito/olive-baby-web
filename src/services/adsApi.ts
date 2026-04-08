@@ -11,7 +11,9 @@ import type {
   CreateAdPayload,
 } from '../types/ads';
 
-const ADS_API_URL = import.meta.env.VITE_ADS_API_URL || 'http://localhost:3001';
+const ADS_API_URL = import.meta.env.VITE_ADS_API_URL || (
+  import.meta.env.PROD ? '/ads-api' : 'http://localhost:3002'
+);
 
 const adsApi = axios.create({
   baseURL: ADS_API_URL,
