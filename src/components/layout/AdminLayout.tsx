@@ -21,6 +21,7 @@ import {
   Brain,
   Mail,
   Route,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -47,6 +48,7 @@ const adminNavSections = [
       { path: '/admin/activation', icon: Rocket, label: 'Ativação & Retenção' },
       { path: '/admin/monetization', icon: DollarSign, label: 'Monetização' },
       { path: '/admin/billing', icon: CreditCard, label: 'Billing (Stripe)' },
+      { path: '/admin/ads', icon: Megaphone, label: 'Google Ads' },
     ],
   },
   {

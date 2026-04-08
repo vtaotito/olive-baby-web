@@ -34,6 +34,9 @@ const AdminJourneysPage = lazy(() => import('./pages/admin/AdminJourneysPage').t
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
 const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage').then(m => ({ default: m.AdminBillingPage })));
 const AdminAiAssistantPage = lazy(() => import('./pages/admin/AdminAiAssistantPage').then(m => ({ default: m.AdminAiAssistantPage })));
+const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage').then(m => ({ default: m.AdminAdsPage })));
+const AdminAdsCampaignsPage = lazy(() => import('./pages/admin/AdminAdsCampaignsPage').then(m => ({ default: m.AdminAdsCampaignsPage })));
+const AdminAdsAgentPage = lazy(() => import('./pages/admin/AdminAdsAgentPage').then(m => ({ default: m.AdminAdsAgentPage })));
 
 // Lazy-loaded: Protected feature pages
 const GrowthPage = lazy(() => import('./pages/growth').then(m => ({ default: m.GrowthPage })));
@@ -495,6 +498,30 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAiAssistantPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/ads"
+              element={
+                <AdminRoute>
+                  <AdminAdsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/ads/campaigns"
+              element={
+                <AdminRoute>
+                  <AdminAdsCampaignsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/ads/agent"
+              element={
+                <AdminRoute>
+                  <AdminAdsAgentPage />
                 </AdminRoute>
               }
             />
