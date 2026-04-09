@@ -29,6 +29,7 @@ import {
   Send,
   AlertTriangle,
   GripVertical,
+  MessageCircle,
   Megaphone,
   Crown,
   UserPlus,
@@ -77,6 +78,7 @@ const STATUS_META: Record<JourneyStatusType, { label: string; color: string; bg:
 const STEP_META: Record<StepType, { label: string; icon: typeof Mail; color: string; bg: string }> = {
   email: { label: 'E-mail', icon: Mail, color: 'text-sky-600', bg: 'bg-sky-100 dark:bg-sky-900/30' },
   push: { label: 'Push', icon: Bell, color: 'text-violet-600', bg: 'bg-violet-100 dark:bg-violet-900/30' },
+  whatsapp: { label: 'WhatsApp', icon: MessageCircle, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
   delay: { label: 'Aguardar', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
   condition: { label: 'Condição', icon: GitBranch, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
 };
@@ -649,12 +651,14 @@ function JourneyBuilderModal({ journey, onClose, onSaved }: {
     const defaultNames: Record<StepType, string> = {
       email: 'Enviar E-mail',
       push: 'Enviar Push',
+      whatsapp: 'Enviar WhatsApp',
       delay: 'Aguardar',
       condition: 'Verificar condição',
     };
     const defaultConfigs: Record<StepType, Record<string, unknown>> = {
       email: { templateType: 'welcome', subject: '' },
       push: { title: '', body: '', clickAction: '/' },
+      whatsapp: { message: '', instanceName: 'oliecare' },
       delay: { hours: 24 },
       condition: { field: '', operator: 'equals', value: '' },
     };
