@@ -159,7 +159,7 @@ export function AdminJourneysPage() {
             <>
               <KpiCard title="Total Jornadas" value={metrics?.total ?? 0} icon={<Route className="w-5 h-5" />} color="olive" />
               <KpiCard title="Ativas" value={metrics?.byStatus?.ACTIVE ?? 0} subtitle={`de ${metrics?.total ?? 0}`} icon={<Play className="w-5 h-5" />} color="emerald" />
-              <KpiCard title="Rascunhos" value={metrics?.byStatus?.DRAFT ?? 0} icon={<Edit3 className="w-5 h-5" />} color="amber" />
+              <KpiCard title="Enrollments" value={(metrics?.enrollments?.ACTIVE ?? 0).toLocaleString('pt-BR')} subtitle={`${(metrics?.enrollments?.COMPLETED ?? 0).toLocaleString('pt-BR')} concluídos`} icon={<Users className="w-5 h-5" />} color="amber" />
               <KpiCard title="Total Enviados" value={(metrics?.totalSent ?? 0).toLocaleString('pt-BR')} subtitle="comunicações" icon={<Send className="w-5 h-5" />} color="sky" />
               <KpiCard title="Entregues" value={(metrics?.totalDelivered ?? 0).toLocaleString('pt-BR')} icon={<Check className="w-5 h-5" />} color="violet" />
             </>
@@ -324,6 +324,12 @@ function JourneyCard({ journey, expanded, onToggle, onActivate, onDelete, onEdit
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 shrink-0">
+          {journey._count?.enrollments != null && (
+            <div className="text-center">
+              <p className="font-semibold text-amber-600 text-sm">{journey._count.enrollments.toLocaleString('pt-BR')}</p>
+              <p>Inscritos</p>
+            </div>
+          )}
           <div className="text-center">
             <p className="font-semibold text-gray-900 dark:text-white text-sm">{journey.totalSent.toLocaleString('pt-BR')}</p>
             <p>Enviados</p>

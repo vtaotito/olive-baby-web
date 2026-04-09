@@ -623,7 +623,7 @@ export function AdminCommunicationsPage() {
               <div className="flex justify-center py-8"><Spinner /></div>
             ) : n8nSummary ? (
               <>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
@@ -632,6 +632,16 @@ export function AdminCommunicationsPage() {
                       <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Jornadas Ativas</span>
                     </div>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">{n8nSummary.activeJourneys}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-teal-600" />
+                      </div>
+                      <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollments Ativos</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{(n8nSummary as any).enrollments?.ACTIVE ?? 0}</p>
+                    <p className="text-[10px] text-gray-400">{(n8nSummary as any).enrollments?.COMPLETED ?? 0} concluídos</p>
                   </div>
                   <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -674,9 +684,10 @@ export function AdminCommunicationsPage() {
                   </div>
                   <div className="divide-y divide-gray-100 dark:divide-gray-800">
                     {[
-                      { name: 'Journey Executor', desc: 'Executa jornadas ativas a cada 6h', schedule: 'A cada 6 horas', file: '15-journey-executor' },
+                      { name: 'Journey Executor', desc: 'Executa jornadas ativas com enrollment por usuário a cada 6h', schedule: 'A cada 6 horas', file: '15-journey-executor' },
                       { name: 'Push Triggers', desc: 'Dispara triggers de push habilitados', schedule: '09:00 e 18:00 diário', file: '16-push-triggers' },
                       { name: 'Comms Monitor', desc: 'Monitora saúde de email/push e alerta no Slack', schedule: 'A cada hora', file: '17-comms-monitor' },
+                      { name: 'WhatsApp Campaigns', desc: 'Campanhas WhatsApp para reativação via Evolution API', schedule: '10:00 diário', file: '18-whatsapp-campaigns' },
                       { name: 'Daily Digest', desc: 'Resumo diário de KPIs enviado ao Slack', schedule: '08:00 diário', file: '10-daily-digest' },
                       { name: 'Weekly Digest', desc: 'Resumo semanal de métricas enviado ao Slack', schedule: 'Segunda 08:15', file: '11-weekly-digest' },
                       { name: 'Ops Alerts', desc: 'Alertas operacionais e de infraestrutura', schedule: '08:30 diário', file: '12-ops-alerts' },
@@ -807,9 +818,11 @@ export function AdminCommunicationsPage() {
                       { method: 'GET', path: '/admin/n8n/active-journeys', desc: 'Listar jornadas ativas' },
                       { method: 'POST', path: '/admin/n8n/execute-journey', desc: 'Executar jornada { journeyId }' },
                       { method: 'POST', path: '/admin/n8n/execute-step', desc: 'Executar step { journeyId, stepId }' },
-                      { method: 'GET', path: '/admin/n8n/execution-summary', desc: 'Resumo de execução' },
+                      { method: 'GET', path: '/admin/n8n/execution-summary', desc: 'Resumo de execução + enrollments' },
+                      { method: 'GET', path: '/admin/n8n/enrollment-stats/:id', desc: 'Stats de enrollment por jornada' },
                       { method: 'POST', path: '/admin/n8n/trigger-push', desc: 'Disparar push trigger' },
                       { method: 'POST', path: '/admin/n8n/send-email', desc: 'Enviar email via plataforma' },
+                      { method: 'POST', path: '/admin/n8n/send-whatsapp', desc: 'Enviar WhatsApp via Evolution API' },
                     ].map(ep => (
                       <div key={ep.path} className="flex items-center gap-3 py-1.5 border-b border-gray-50 dark:border-gray-800 last:border-0">
                         <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded',

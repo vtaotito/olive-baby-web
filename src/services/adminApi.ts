@@ -396,6 +396,16 @@ export const adminService = {
     return response.data;
   },
 
+  sendWhatsAppViaN8n: async (data: { phone: string; message: string; instanceName?: string }) => {
+    const response = await api.post<{ success: boolean; data: any }>('/admin/n8n/send-whatsapp', data);
+    return response.data;
+  },
+
+  getEnrollmentStats: async (journeyId: number) => {
+    const response = await api.get<{ success: boolean; data: { total: number; byStatus: Record<string, number> } }>(`/admin/n8n/enrollment-stats/${journeyId}`);
+    return response.data;
+  },
+
   updatePushTrigger: async (triggerId: string, data: { enabled: boolean; config?: Record<string, unknown> }) => {
     const response = await api.patch<{ success: boolean; message: string; data: PushTrigger }>(
       `/admin/push/triggers/${triggerId}`, data
@@ -601,7 +611,7 @@ export interface PushTrigger {
 export type JourneyCategory = 'engagement' | 'onboarding' | 'premium' | 'invites' | 'retention';
 export type JourneyAudience = 'all' | 'b2c' | 'b2b' | 'premium' | 'free';
 export type JourneyStatusType = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED';
-export type StepType = 'email' | 'push' | 'delay' | 'condition';
+export type StepType = 'email' | 'push' | 'delay' | 'condition' | 'whatsapp';
 
 export interface JourneyStep {
   id: number;
@@ -636,6 +646,7 @@ export interface Journey {
   updatedAt: string;
   activatedAt?: string;
   steps: JourneyStep[];
+  _count?: { enrollments: number };
 }
 
 export interface CreateJourneyInput {
@@ -662,6 +673,7 @@ export interface JourneyMetrics {
   byCategory: Record<string, number>;
   totalSent: number;
   totalDelivered: number;
+  enrollments?: Record<string, number>;
   recentActive: Journey[];
 }
 
