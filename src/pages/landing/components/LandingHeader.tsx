@@ -56,19 +56,25 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
         transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'bg-white/90 backdrop-blur-xl shadow-sm shadow-stone-900/5 border-b border-stone-100/80'
-            : 'bg-transparent'
+            ? 'bg-white/95 backdrop-blur-2xl shadow-sm shadow-stone-900/5 border-b border-stone-100'
+            : 'bg-black/50 backdrop-blur-xl border-b border-white/10'
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to={variant === 'b2b' ? '/para-profissionais' : '/'} className="flex items-center gap-2.5 group">
               <LogoIcon size={36} className="transition-transform duration-300 group-hover:scale-105" />
-              <span className="font-display text-lg font-bold text-stone-800 tracking-tight-editorial">
+              <span className={`font-display text-lg font-bold tracking-tight-editorial transition-colors ${
+                scrolled ? 'text-stone-900' : 'text-white'
+              }`}>
                 OlieCare
               </span>
               {variant === 'b2b' && (
-                <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-olive-600 bg-olive-50 px-2 py-0.5 rounded-full">
+                <span className={`hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full transition-all ${
+                  scrolled 
+                    ? 'text-olive-600 bg-olive-50' 
+                    : 'text-white bg-white/20 border border-white/30'
+                }`}>
                   <Stethoscope className="w-3 h-3" />
                   Pro
                 </span>
@@ -80,7 +86,11 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-sm text-stone-500 hover:text-stone-800 transition-colors duration-200"
+                  className={`text-sm transition-colors duration-200 ${
+                    scrolled 
+                      ? 'text-stone-500 hover:text-stone-900' 
+                      : 'text-white/90 hover:text-white'
+                  }`}
                 >
                   {link.label}
                 </a>
@@ -88,15 +98,33 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
             </nav>
 
             <div className="hidden md:flex items-center gap-5">
-              <a href={switchUrl} className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
+              <a 
+                href={switchUrl} 
+                className={`text-sm transition-colors ${
+                  scrolled 
+                    ? 'text-stone-500 hover:text-stone-700' 
+                    : 'text-white/80 hover:text-white'
+                }`}
+              >
                 {switchLabel}
               </a>
-              <Link to="/login" className="text-sm text-stone-600 hover:text-stone-800 transition-colors font-medium">
+              <Link 
+                to="/login" 
+                className={`text-sm font-medium transition-colors ${
+                  scrolled 
+                    ? 'text-stone-600 hover:text-stone-900' 
+                    : 'text-white hover:text-white'
+                }`}
+              >
                 Entrar
               </Link>
               <Link
                 to={registerLink}
-                className="bg-olive-600 hover:bg-olive-700 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-olive-600/20"
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-lg ${
+                  scrolled 
+                    ? 'bg-olive-600 hover:bg-olive-700 text-white hover:shadow-olive-600/20' 
+                    : 'bg-white text-olive-700 hover:bg-olive-50 hover:text-olive-800 shadow-xl shadow-black/20'
+                }`}
               >
                 {registerCta}
               </Link>
@@ -104,7 +132,11 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
 
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="md:hidden p-2 -mr-2 text-stone-600 hover:text-stone-800 transition-colors"
+              className={`md:hidden p-2 -mr-2 transition-colors ${
+                scrolled 
+                  ? 'text-stone-600 hover:text-stone-900' 
+                  : 'text-white hover:text-white'
+              }`}
               aria-label="Abrir menu"
             >
               <Menu className="w-6 h-6" />
