@@ -45,7 +45,7 @@ function HeroSection() {
         fetchPriority="high"
       />
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/75" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
 
       <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center pt-28 sm:pt-32 pb-24 z-10">
         <motion.div
@@ -58,7 +58,7 @@ function HeroSection() {
             <span>Portal gratuito para profissionais de saúde</span>
           </div>
 
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight-editorial mb-6 sm:mb-8 [text-shadow:0_2px_20px_rgba(0,0,0,0.3)]">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight-editorial mb-6 sm:mb-8 [text-shadow:0_2px_24px_rgba(0,0,0,0.5),0_1px_4px_rgba(0,0,0,0.4)]">
             Acompanhe seus{' '}
             <span className="text-olive-200">pacientes</span>{' '}
             <br className="hidden sm:block" />
@@ -70,7 +70,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed mb-10 sm:mb-12 [text-shadow:0_1px_8px_rgba(0,0,0,0.2)]"
+          className="text-lg sm:text-xl text-white/95 max-w-2xl mx-auto leading-relaxed mb-10 sm:mb-12 [text-shadow:0_1px_12px_rgba(0,0,0,0.4),0_1px_3px_rgba(0,0,0,0.3)]"
         >
           Prontuário integrado, agenda, convites e dados de rotina em um só lugar.
           Consultas mais informadas, menos retrabalho.

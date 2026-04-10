@@ -57,7 +57,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
             ? 'bg-white/95 backdrop-blur-2xl shadow-sm shadow-stone-900/5 border-b border-stone-100'
-            : 'bg-black/50 backdrop-blur-xl border-b border-white/10'
+            : 'bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-md'
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -65,7 +65,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
             <Link to={variant === 'b2b' ? '/para-profissionais' : '/'} className="flex items-center gap-2.5 group">
               <LogoIcon size={36} className="transition-transform duration-300 group-hover:scale-105" />
               <span className={`font-display text-lg font-bold tracking-tight-editorial transition-colors ${
-                scrolled ? 'text-stone-900' : 'text-white'
+                scrolled ? 'text-stone-900' : 'text-white drop-shadow-md'
               }`}>
                 OlieCare
               </span>
@@ -86,10 +86,10 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`text-sm transition-colors duration-200 ${
+                  className={`text-sm font-medium transition-colors duration-200 ${
                     scrolled 
                       ? 'text-stone-500 hover:text-stone-900' 
-                      : 'text-white/90 hover:text-white'
+                      : 'text-white drop-shadow-sm hover:text-white'
                   }`}
                 >
                   {link.label}
@@ -103,7 +103,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
                 className={`text-sm transition-colors ${
                   scrolled 
                     ? 'text-stone-500 hover:text-stone-700' 
-                    : 'text-white/80 hover:text-white'
+                    : 'text-white/90 drop-shadow-sm hover:text-white'
                 }`}
               >
                 {switchLabel}
@@ -113,7 +113,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
                 className={`text-sm font-medium transition-colors ${
                   scrolled 
                     ? 'text-stone-600 hover:text-stone-900' 
-                    : 'text-white hover:text-white'
+                    : 'text-white drop-shadow-sm hover:text-white'
                 }`}
               >
                 Entrar
