@@ -57,7 +57,7 @@ export function LandingHeader({ variant }: LandingHeaderProps) {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
             ? 'bg-white/95 backdrop-blur-2xl shadow-sm shadow-stone-900/5 border-b border-stone-100'
-            : 'bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-md'
+            : 'bg-stone-900/85 backdrop-blur-lg shadow-[0_1px_0_rgba(255,255,255,0.08)]'
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 lg:px-8">

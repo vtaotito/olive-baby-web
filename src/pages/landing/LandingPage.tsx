@@ -51,7 +51,7 @@ function HeroSection() {
       />
 
       {/* Overlay escuro para legibilidade */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/65 to-black/85" />
 
       <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center pt-28 sm:pt-32 pb-24 z-10">
         <motion.div
