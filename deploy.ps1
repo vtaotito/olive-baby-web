@@ -402,11 +402,9 @@ Write-Success "Arquivos temporários removidos"
 # Finalização
 # ============================================
 Write-ColorOutput Green @"
-
 ╔══════════════════════════════════════════╗
 ║   ✓ SCRIPT DE DEPLOY CONCLUÍDO           ║
 ╚══════════════════════════════════════════╝
-
 "@
 
 Write-Info "Próximos passos:"
