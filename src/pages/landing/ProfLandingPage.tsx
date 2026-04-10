@@ -19,6 +19,7 @@ import { LandingHeader } from './components/LandingHeader';
 import { LandingFooter } from './components/LandingFooter';
 import { ScrollReveal, StaggerReveal, StaggerItem } from '../../components/animations/ScrollReveal';
 import { HumanizedImage } from '../../components/ui/HumanizedImage';
+import { OliveAssistantSection } from './components/OliveAssistantSection';
 
 const sectionPadding = 'py-28 sm:py-36';
 
@@ -599,6 +600,7 @@ export function ProfLandingPage() {
           <FeaturesSection />
           <HowItWorksSection />
           <BenefitsSection />
+          <OliveAssistantSection variant="b2b" />
           <PricingSection />
           <CTASection />
         </main>

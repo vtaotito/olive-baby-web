@@ -18,6 +18,7 @@ interface LandingHeaderProps {
 
 const NAV_LINKS = [
   { href: '#funcionalidades', label: 'Funcionalidades' },
+  { href: '#olive-assistente', label: 'Olive Assistente' },
   { href: '#como-funciona', label: 'Como funciona' },
   { href: '#precos', label: 'Preços' },
 ];

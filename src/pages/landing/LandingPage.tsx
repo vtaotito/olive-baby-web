@@ -23,6 +23,7 @@ import { LandingFooter } from './components/LandingFooter';
 import { ScrollReveal, StaggerReveal, StaggerItem } from '../../components/animations/ScrollReveal';
 import { DailyRhythmTimeline } from '../../components/animations/DailyRhythmTimeline';
 import { HumanizedImage } from '../../components/ui/HumanizedImage';
+import { OliveAssistantSection } from './components/OliveAssistantSection';
 
 const sectionPadding = 'py-28 sm:py-36';
 
@@ -377,9 +378,9 @@ function PlansSection() {
     },
     {
       name: 'Premium',
-      price: 'R$ 19,90',
+      price: 'R$ 29,99',
       period: 'mês',
-      yearlyNote: 'ou R$ 191,90/ano (20% off)',
+      yearlyNote: 'ou R$ 287,90/ano (20% off)',
       description: 'Para famílias que querem o máximo de organização e insights.',
       features: [
         'Tudo do plano grátis',
@@ -534,6 +535,7 @@ export function LandingPage() {
         <FeaturesSection />
         <HowItWorksSection />
         <SocialProofSection />
+        <OliveAssistantSection variant="b2c" />
         <PlansSection />
         <CTASection />
       </main>

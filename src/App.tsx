@@ -10,7 +10,7 @@ import { PWAProvider } from './components/pwa';
 import { useAuthStore } from './stores/authStore';
 
 // Critical path: Landing, Auth, Dashboard (eagerly loaded for fast LCP)
-import { LandingPage, ProfLandingPage } from './pages/landing';
+import { LandingPage, ProfLandingPage, OliveAssistantPage } from './pages/landing';
 import { shouldShowB2BLanding } from './lib/landingRouter';
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage, ActivateProfessionalPage, AcceptInvitePage } from './pages/auth';
 import { DashboardPage } from './pages/dashboard';
@@ -166,6 +166,9 @@ function App() {
             {/* Home: Landing page para visitantes, redirect baseado em role para logados */}
             <Route path="/" element={<HomeRoute />} />
             <Route path="/para-profissionais" element={<ProfLandingRoute />} />
+
+            {/* Public: Olive Assistente (marketing page) */}
+            <Route path="/olive-assistente" element={<OliveAssistantPage />} />
 
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
