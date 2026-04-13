@@ -99,7 +99,7 @@ jobs:
               "$IMAGE_NAME:latest"
 
             echo "==> Cleaning old images..."
-            docker image prune -f
+            docker image prune -f || true
 
             echo "==> Verifying container health..."
             sleep 5
