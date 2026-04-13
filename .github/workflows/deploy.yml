@@ -24,48 +24,37 @@ jobs:
           script: |
             set -e
 
-            # Clean up any orphaned standalone containers from previous CI/CD attempts
-            docker stop olivebaby-web-app 2>/dev/null || true
-            docker rm olivebaby-web-app 2>/dev/null || true
+            docker stop olivebaby-web-app 2>/dev/null && docker rm olivebaby-web-app 2>/dev/null || true
 
-            echo "==> Restarting olivebaby-web compose project..."
+            echo "==> Restarting olivebaby-web..."
             cd /docker/olivebaby-web
-
             docker compose down --timeout 30
             docker compose up -d
 
-            echo "==> Waiting for builder to finish (npm install + build)..."
-            docker compose logs -f builder &
-            LOGS_PID=$!
-
-            # Wait for builder to complete (up to 5 minutes)
+            echo "==> Waiting for web to become healthy (build + start)..."
             for i in $(seq 1 60); do
-              STATUS=$(docker compose ps builder --format '{{.State}}' 2>/dev/null || echo "unknown")
-              if [ "$STATUS" = "exited" ]; then
-                EXIT_CODE=$(docker compose ps builder --format '{{.ExitCode}}' 2>/dev/null || echo "1")
-                kill $LOGS_PID 2>/dev/null || true
-                if [ "$EXIT_CODE" = "0" ]; then
-                  echo "  Builder completed successfully!"
-                  break
-                else
-                  echo "  Builder failed with exit code $EXIT_CODE"
-                  docker compose logs builder --tail 30
-                  exit 1
-                fi
+              HEALTH=$(docker inspect olivebaby-web-server --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' 2>/dev/null || echo "waiting")
+              STATE=$(docker inspect olivebaby-web-server --format='{{.State.Status}}' 2>/dev/null || echo "absent")
+
+              if [ "$HEALTH" = "healthy" ]; then
+                echo "  Web is healthy!"
+                break
               fi
+
+              echo "  [$i/60] State: $STATE, Health: $HEALTH"
               sleep 5
             done
 
-            echo "==> Checking web server health..."
-            sleep 5
-            docker compose exec web wget -q --spider http://localhost/ || \
-              (echo "Web health check failed!" && docker compose logs web --tail 20 && exit 1)
+            if [ "$HEALTH" != "healthy" ]; then
+              echo "Timeout waiting for healthy state!"
+              docker compose logs --tail 30
+              exit 1
+            fi
 
             echo "==> Deploy successful!"
 
       - name: Production health check
         run: |
-          sleep 10
-          curl -sf --retry 5 --retry-delay 10 --retry-all-errors \
+          curl -sf --retry 5 --retry-delay 15 --retry-all-errors \
             https://oliecare.cloud/ -o /dev/null
           echo "Production health check passed!"
