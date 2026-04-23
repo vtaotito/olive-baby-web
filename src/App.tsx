@@ -37,6 +37,13 @@ const AdminAiAssistantPage = lazy(() => import('./pages/admin/AdminAiAssistantPa
 const AdminAdsPage = lazy(() => import('./pages/admin/AdminAdsPage').then(m => ({ default: m.AdminAdsPage })));
 const AdminAdsCampaignsPage = lazy(() => import('./pages/admin/AdminAdsCampaignsPage').then(m => ({ default: m.AdminAdsCampaignsPage })));
 const AdminAdsAgentPage = lazy(() => import('./pages/admin/AdminAdsAgentPage').then(m => ({ default: m.AdminAdsAgentPage })));
+const AdminBlogPage = lazy(() => import('./pages/admin/AdminBlogPage').then(m => ({ default: m.AdminBlogPage })));
+const AdminBlogPostEditorPage = lazy(() => import('./pages/admin/AdminBlogPostEditorPage').then(m => ({ default: m.AdminBlogPostEditorPage })));
+const AdminBlogCategoriesPage = lazy(() => import('./pages/admin/AdminBlogCategoriesPage').then(m => ({ default: m.AdminBlogCategoriesPage })));
+
+// Lazy-loaded: Public Blog Pages
+const BlogListPage = lazy(() => import('./pages/blog/BlogListPage').then(m => ({ default: m.BlogListPage })));
+const BlogPostPage = lazy(() => import('./pages/blog/BlogPostPage').then(m => ({ default: m.BlogPostPage })));
 
 // Lazy-loaded: Protected feature pages
 const GrowthPage = lazy(() => import('./pages/growth').then(m => ({ default: m.GrowthPage })));
@@ -58,6 +65,9 @@ const ShareBabyPage = lazy(() => import('./pages/settings').then(m => ({ default
 const PrivacyPage = lazy(() => import('./pages/settings').then(m => ({ default: m.PrivacyPage })));
 const AppearancePage = lazy(() => import('./pages/settings').then(m => ({ default: m.AppearancePage })));
 const HelpPage = lazy(() => import('./pages/settings').then(m => ({ default: m.HelpPage })));
+
+// Lazy-loaded: Onboarding
+const OnboardingPage = lazy(() => import('./pages/onboarding').then(m => ({ default: m.OnboardingPage })));
 
 // Lazy-loaded: Professional Portal
 const ProfDashboardPage = lazy(() => import('./pages/prof').then(m => ({ default: m.ProfDashboardPage })));
@@ -175,11 +185,26 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/activate-professional" element={<ActivateProfessionalPage />} />
             <Route path="/invite/accept" element={<AcceptInvitePage />} />
+
+            {/* Onboarding (protected, first-time user wizard) */}
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Legal Pages (public, SEO-indexed) */}
             <Route path="/privacidade" element={<PublicPrivacyPage />} />
             <Route path="/termos" element={<PublicTermsPage />} />
+
+            {/* Public Blog (SEO-indexed) */}
+            <Route path="/blog" element={<BlogListPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
 
             {/* Protected Routes */}
             <Route
@@ -525,6 +550,38 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAdsAgentPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/blog"
+              element={
+                <AdminRoute>
+                  <AdminBlogPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/blog/new"
+              element={
+                <AdminRoute>
+                  <AdminBlogPostEditorPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/blog/:id/edit"
+              element={
+                <AdminRoute>
+                  <AdminBlogPostEditorPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/blog/categories"
+              element={
+                <AdminRoute>
+                  <AdminBlogCategoriesPage />
                 </AdminRoute>
               }
             />

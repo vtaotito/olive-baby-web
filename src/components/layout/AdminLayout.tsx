@@ -22,6 +22,7 @@ import {
   Mail,
   Route,
   Megaphone,
+  FileText,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -64,6 +65,12 @@ const adminNavSections = [
     items: [
       { path: '/admin/alerts', icon: AlertTriangle, label: 'Alertas', badge: true },
       { path: '/admin/errors', icon: TrendingUp, label: 'Erros & Fricção' },
+    ],
+  },
+  {
+    title: 'Conteúdo',
+    items: [
+      { path: '/admin/blog', icon: FileText, label: 'Blog' },
     ],
   },
   {

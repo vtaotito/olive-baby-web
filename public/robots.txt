@@ -27,6 +27,9 @@ Allow: /register
 Allow: /privacidade
 Allow: /termos
 Allow: /para-profissionais
+Allow: /blog
+Allow: /blog/
 
-# Sitemap
+# Sitemaps
 Sitemap: https://oliecare.cloud/sitemap.xml
+Sitemap: https://oliecare.cloud/api/v1/blog/sitemap

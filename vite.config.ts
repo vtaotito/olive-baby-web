@@ -121,6 +121,21 @@ export default defineConfig({
             },
           },
           {
+            // Cache de Blog API - Stale While Revalidate (fast loads + fresh data)
+            urlPattern: /\/api\/v1\/blog\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'blog-api-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24, // 24 horas
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
             // Cache de API - Network First (dados sempre frescos, com fallback offline)
             urlPattern: /\/api\/v1\/(stats|babies|routines|growth|milestones|vaccines).*/i,
             handler: 'NetworkFirst',
