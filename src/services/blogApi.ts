@@ -160,4 +160,9 @@ export const adminBlogService = {
     const response = await api.post<{ success: boolean; data: { optimization: unknown; post: BlogPost } }>('/admin/blog/ai/optimize-seo', { postId });
     return response.data;
   },
+
+  generateImage: async (data: { title: string; excerpt?: string; customPrompt?: string; postId?: number }) => {
+    const response = await api.post<{ success: boolean; data: { imageUrl: string; prompt: string } }>('/admin/blog/ai/generate-image', data);
+    return response.data;
+  },
 };

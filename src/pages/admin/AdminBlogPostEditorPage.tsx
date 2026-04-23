@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Save, Send, Eye, Sparkles, Search as SearchIcon,
-  CheckCircle, XCircle, Archive, Bot, RefreshCw, Tag as TagIcon,
+  ArrowLeft, Save, Send, Eye, Sparkles,
+  CheckCircle, XCircle, Archive, Bot, Tag as TagIcon, ImageIcon,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
@@ -426,12 +426,37 @@ export function AdminBlogPostEditorPage() {
 
               {/* Cover Image */}
               <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Imagem de Capa (URL)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700">Imagem de Capa</label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      if (!title) return;
+                      try {
+                        setCoverImageUrl('');
+                        const result = await adminBlogService.generateImage({
+                          title,
+                          excerpt: excerpt || undefined,
+                          postId: isEditing ? parseInt(id!) : undefined,
+                        });
+                        if (result.data?.imageUrl) {
+                          setCoverImageUrl(result.data.imageUrl);
+                        }
+                      } catch {}
+                    }}
+                    disabled={!title}
+                    leftIcon={<ImageIcon className="w-4 h-4" />}
+                    className="text-purple-600 hover:bg-purple-50"
+                  >
+                    Gerar com IA
+                  </Button>
+                </div>
                 <input
                   type="url"
                   value={coverImageUrl}
                   onChange={(e) => setCoverImageUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://... ou gere automaticamente com IA"
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-olive-200"
                 />
                 {coverImageUrl && (
