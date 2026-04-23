@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Calendar, Tag, Share2 } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Tag } from 'lucide-react';
 import { BlogSEOHead } from '../../components/blog/BlogSEOHead';
 import { blogService } from '../../services/blogApi';
 
@@ -11,7 +11,7 @@ function renderMarkdown(content: string): string {
     .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-gray-900 mt-12 mb-5">$1</h1>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^\- (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
     .replace(/(<li.*<\/li>\n?)+/g, (match) => `<ul class="list-disc pl-5 mb-4 space-y-1">${match}</ul>`)
     .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-olive-600 hover:text-olive-700 underline">$1</a>')
