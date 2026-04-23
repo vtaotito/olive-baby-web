@@ -1,6 +1,12 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
+export interface ResponsiveSource {
+  srcSet: string;
+  type: string;
+  sizes?: string;
+}
+
 interface HumanizedImageProps {
   src: string;
   alt: string;
@@ -9,6 +15,9 @@ interface HumanizedImageProps {
   priority?: boolean;
   /** Use 'hero' variant for full-bleed background images without rounded corners */
   variant?: 'default' | 'hero';
+  /** <source> entries for <picture> (WebP srcset, sizes, etc.) */
+  sources?: ResponsiveSource[];
+  sizes?: string;
 }
 
 export function HumanizedImage({ 
@@ -17,7 +26,9 @@ export function HumanizedImage({
   className = '', 
   caption,
   priority = false,
-  variant = 'default'
+  variant = 'default',
+  sources,
+  sizes,
 }: HumanizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -26,23 +37,38 @@ export function HumanizedImage({
     ? `group relative overflow-hidden bg-stone-100 ${className}` 
     : `group relative overflow-hidden rounded-3xl bg-stone-100 ${className}`;
 
+  const imgElement = (
+    <motion.img
+      initial={{ opacity: 0, scale: 1.05 }}
+      animate={{ 
+        opacity: isLoaded && !hasError ? 1 : 0.6, 
+        scale: isLoaded && !hasError ? 1 : 1.05 
+      }}
+      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      src={src}
+      alt={alt}
+      sizes={sizes}
+      onLoad={() => setIsLoaded(true)}
+      onError={() => setHasError(true)}
+      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      {...(priority ? { fetchPriority: 'high' as const } : {})}
+    />
+  );
+
   return (
     <div className={containerClasses}>
-      <motion.img
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ 
-          opacity: isLoaded && !hasError ? 1 : 0.6, 
-          scale: isLoaded && !hasError ? 1 : 1.05 
-        }}
-        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-        src={src}
-        alt={alt}
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setHasError(true)}
-        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-      />
+      {sources && sources.length > 0 ? (
+        <picture>
+          {sources.map((s, i) => (
+            <source key={i} srcSet={s.srcSet} type={s.type} sizes={s.sizes || sizes} />
+          ))}
+          {imgElement}
+        </picture>
+      ) : (
+        imgElement
+      )}
       
       {/* Overlay gradient sutil para legendas */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

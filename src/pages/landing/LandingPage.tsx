@@ -22,34 +22,76 @@ import { LandingHeader } from './components/LandingHeader';
 import { LandingFooter } from './components/LandingFooter';
 import { ScrollReveal, StaggerReveal, StaggerItem } from '../../components/animations/ScrollReveal';
 import { DailyRhythmTimeline } from '../../components/animations/DailyRhythmTimeline';
-import { HumanizedImage } from '../../components/ui/HumanizedImage';
+import { HumanizedImage, type ResponsiveSource } from '../../components/ui/HumanizedImage';
 import { OliveAssistantSection } from './components/OliveAssistantSection';
 
 const sectionPadding = 'py-28 sm:py-36';
 
-const ASSETS = {
-  hero: '/assets/hero-mother-baby-app.jpg',
-  family: '/assets/family-sharing-app.jpg',
-  babyHand: '/assets/baby-sleeping-hand.jpg',
-  tiredMom: '/assets/tired-mom-relieved-app.jpg',
-  dashboard: '/assets/app-dashboard-mockup.png',
-  feeding: '/assets/app-feeding-mockup.png',
-  sleepChart: '/assets/app-sleep-chart-mockup.png',
+interface OptimizedAsset {
+  src: string;
+  sources: ResponsiveSource[];
+  sizes: string;
+}
+
+function webpSrcSet(base: string, widths: number[]): string {
+  return widths.map(w => `/assets/${base}-${w}w.webp ${w}w`).join(', ');
+}
+
+const ASSETS: Record<string, OptimizedAsset> = {
+  hero: {
+    src: '/assets/hero-mother-baby-app.jpg',
+    sources: [{ srcSet: webpSrcSet('hero-mother-baby-app', [640, 1024, 1920]), type: 'image/webp' }],
+    sizes: '100vw',
+  },
+  family: {
+    src: '/assets/family-sharing-app.jpg',
+    sources: [{ srcSet: webpSrcSet('family-sharing-app', [480, 856, 1024]), type: 'image/webp' }],
+    sizes: '(max-width: 1024px) 100vw, 58vw',
+  },
+  babyHand: {
+    src: '/assets/baby-sleeping-hand.jpg',
+    sources: [{ srcSet: webpSrcSet('baby-sleeping-hand', [480, 768, 1024]), type: 'image/webp' }],
+    sizes: '(max-width: 1024px) 100vw, 42vw',
+  },
+  tiredMom: {
+    src: '/assets/tired-mom-relieved-app.jpg',
+    sources: [{ srcSet: webpSrcSet('tired-mom-relieved-app', [480, 856, 1024]), type: 'image/webp' }],
+    sizes: '(max-width: 1024px) 100vw, 58vw',
+  },
+  dashboard: {
+    src: '/assets/app-dashboard-mockup.png',
+    sources: [{ srcSet: webpSrcSet('app-dashboard-mockup', [480, 642, 768]), type: 'image/webp' }],
+    sizes: '(max-width: 1024px) 100vw, 33vw',
+  },
+  feeding: {
+    src: '/assets/app-feeding-mockup.png',
+    sources: [{ srcSet: webpSrcSet('app-feeding-mockup', [480, 642, 768]), type: 'image/webp' }],
+    sizes: '(max-width: 1024px) 100vw, 33vw',
+  },
+  sleepChart: {
+    src: '/assets/app-sleep-chart-mockup.png',
+    sources: [{ srcSet: webpSrcSet('app-sleep-chart-mockup', [480, 642, 768]), type: 'image/webp' }],
+    sizes: '(max-width: 1024px) 100vw, 33vw',
+  },
 };
 
 // ─── HERO ────────────────────────────────────────────────────────────────
 function HeroSection() {
   return (
     <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-stone-900">
-      {/* Background image — tag nativa para garantir fill correto */}
-      <img
-        src={ASSETS.hero}
-        alt="Mãe segurando bebê recém-nascido enquanto usa o app OlieCare"
-        className="absolute inset-0 w-full h-full object-cover object-top"
-        loading="eager"
-        decoding="async"
-        fetchPriority="high"
-      />
+      <picture>
+        {ASSETS.hero.sources.map((s, i) => (
+          <source key={i} srcSet={s.srcSet} type={s.type} sizes={ASSETS.hero.sizes} />
+        ))}
+        <img
+          src={ASSETS.hero.src}
+          alt="Mãe segurando bebê recém-nascido enquanto usa o app OlieCare"
+          className="absolute inset-0 w-full h-full object-cover object-top"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+        />
+      </picture>
 
       {/* Overlay escuro para legibilidade */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/65 to-black/85" />
@@ -131,7 +173,9 @@ function EmpathySection() {
         <div className="grid lg:grid-cols-12 gap-16 items-center">
           <div className="lg:col-span-7">
             <HumanizedImage
-              src={ASSETS.tiredMom}
+              src={ASSETS.tiredMom.src}
+              sources={ASSETS.tiredMom.sources}
+              sizes={ASSETS.tiredMom.sizes}
               alt="Mãe cansada à noite encontra alívio e clareza usando o OlieCare"
               caption="“Finalmente consigo ver o padrão no meio do caos. Me sinto mais confiante como mãe.”"
               className="aspect-[4/3] shadow-2xl"
@@ -184,19 +228,19 @@ function EmpathySection() {
 // ─── FUNCIONALIDADES COM MOCKUPS ───────────────────────────────────────
 const features = [
   {
-    mockup: ASSETS.dashboard,
+    asset: ASSETS.dashboard,
     title: 'Dashboard do Bebê',
     description: 'Visão completa do dia a dia com gráficos bonitos, resumo de sono, mamadas e fraldas. Tudo em um único lugar.',
     caption: 'Dashboard • Luna, 3 meses'
   },
   {
-    mockup: ASSETS.feeding,
+    asset: ASSETS.feeding,
     title: 'Registro de Mamadas',
     description: 'Timer integrado, escolha entre peito esquerdo/direito ou mamadeira. Registre em menos de 3 toques.',
     caption: 'Registro de Mamada • 14:20'
   },
   {
-    mockup: ASSETS.sleepChart,
+    asset: ASSETS.sleepChart,
     title: 'Gráficos de Sono',
     description: 'Padrões de sono noturno, ciclos de sono profundo e insights da IA sobre o desenvolvimento do seu bebê.',
     caption: 'Padrões de Sono • Últimas 7 noites'
@@ -225,7 +269,9 @@ function FeaturesSection() {
               <div className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
                 <div className="relative">
                   <HumanizedImage
-                    src={feature.mockup}
+                    src={feature.asset.src}
+                    sources={feature.asset.sources}
+                    sizes={feature.asset.sizes}
                     alt={`Mockup do app OlieCare - ${feature.title}`}
                     className="aspect-video w-full"
                     caption={feature.caption}
@@ -260,17 +306,17 @@ function HowItWorksSection() {
     { 
       title: 'Você chega. Sem pressa.', 
       description: 'Cadastro rápido e gratuito. Leva menos de 1 minuto.',
-      image: ASSETS.family
+      asset: ASSETS.family
     },
     { 
       title: 'Conta sobre o seu bebê.', 
       description: 'Adicione nome, data de nascimento e comece.',
-      image: ASSETS.babyHand
+      asset: ASSETS.babyHand
     },
     { 
       title: 'E o ritmo começa.', 
       description: 'Registre a rotina e receba insights personalizados.',
-      image: ASSETS.dashboard
+      asset: ASSETS.dashboard
     },
   ];
 
@@ -292,7 +338,9 @@ function HowItWorksSection() {
               <div className={`flex flex-col lg:flex-row gap-12 items-center ${i % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}>
                 <div className="lg:w-5/12">
                   <HumanizedImage
-                    src={step.image}
+                    src={step.asset.src}
+                    sources={step.asset.sources}
+                    sizes={step.asset.sizes}
                     alt={step.title}
                     className="rounded-3xl shadow-2xl"
                   />
@@ -347,7 +395,9 @@ function SocialProofSection() {
 
           <div className="lg:col-span-7">
             <HumanizedImage
-              src={ASSETS.family}
+              src={ASSETS.family.src}
+              sources={ASSETS.family.sources}
+              sizes={ASSETS.family.sizes}
               alt="Família usando o OlieCare juntos"
               className="shadow-2xl"
               caption="“O app nos ajudou a dividir as tarefas e a entender nosso bebê juntos. É como ter uma pediatra no bolso.” — Juliana & Pedro"

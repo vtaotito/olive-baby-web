@@ -16,6 +16,7 @@
     "test:e2e:debug": "playwright test --debug",
     "generate:cover": "node scripts/generate-blog-cover.mjs",
     "optimize:cover": "node scripts/optimize-covers.mjs",
+    "optimize:landing": "node scripts/optimize-landing-images.mjs",
     "deploy:blog-image": "npm run build && npm run optimize:cover && echo 'Ready for git push'"
   },
   "devDependencies": {
