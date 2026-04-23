@@ -14,7 +14,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "generate:cover": "echo 'Use: node scripts/generate-cover-prompt.js \"Título\"'",
+    "generate:cover": "node scripts/generate-blog-cover.mjs",
     "optimize:cover": "node scripts/optimize-covers.mjs",
     "deploy:blog-image": "npm run build && npm run optimize:cover && echo 'Ready for git push'"
   },
