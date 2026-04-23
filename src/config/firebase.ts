@@ -5,17 +5,17 @@ import { getAnalytics, isSupported as isAnalyticsSupported, type Analytics } fro
 import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported, type Messaging } from 'firebase/messaging';
 
 // ==========================================
-// Firebase Config (chaves publicas - seguro no client)
+// Firebase Config (via env vars para suportar ambientes distintos)
 // ==========================================
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyCT75Xwj8Xl2SO2n8shT6FRljKhYV3p4qE',
-  authDomain: 'oliecare-a517d.firebaseapp.com',
-  projectId: 'oliecare-a517d',
-  storageBucket: 'oliecare-a517d.firebasestorage.app',
-  messagingSenderId: '112847860266',
-  appId: '1:112847860266:web:de6a65eb5485613de28953',
-  measurementId: 'G-WK21EB621E',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // ==========================================

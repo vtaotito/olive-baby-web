@@ -56,7 +56,7 @@ ChartJS.register(
 );
 
 // Premium price (would come from config in production)
-const PREMIUM_PRICE = 39.90;
+const PREMIUM_PRICE = 29.99;
 
 export function AdminMonetizationPage() {
   const [range, setRange] = useState<'7d' | '30d'>('30d');
