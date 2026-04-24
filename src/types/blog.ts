@@ -80,12 +80,22 @@ export interface BlogStats {
   recentPosts: Array<{ id: number; title: string; slug: string; publishedAt: string | null }>;
 }
 
+export type ContentAudience = 'b2c_parents' | 'b2b_pediatricians' | 'b2b_lactation' | 'b2b_caregivers';
+
+export const AUDIENCE_LABELS: Record<ContentAudience, string> = {
+  b2c_parents: 'Pais & Famílias',
+  b2b_pediatricians: 'Pediatras',
+  b2b_lactation: 'Consultoras Amamentação',
+  b2b_caregivers: 'Cuidadores & Babás',
+};
+
 export interface TopicSuggestion {
   title: string;
   angle: string;
   targetKeywords: string[];
   category: string;
   estimatedSearchVolume: string;
+  audience: ContentAudience;
 }
 
 export interface GeneratedContent {

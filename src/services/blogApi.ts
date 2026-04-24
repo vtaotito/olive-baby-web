@@ -146,12 +146,12 @@ export const adminBlogService = {
   },
 
   // AI
-  generateTopics: async (data?: { count?: number; focus?: string }) => {
+  generateTopics: async (data?: { count?: number; focus?: string; audience?: string }) => {
     const response = await api.post<{ success: boolean; data: TopicSuggestion[] }>('/admin/blog/ai/generate-topics', data || {});
     return response.data;
   },
 
-  generateContent: async (data: { title: string; angle?: string; targetKeywords?: string[] }) => {
+  generateContent: async (data: { title: string; angle?: string; targetKeywords?: string[]; audience?: string }) => {
     const response = await api.post<{ success: boolean; data: GeneratedContent }>('/admin/blog/ai/generate-content', data);
     return response.data;
   },

@@ -9,7 +9,8 @@ import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
 import { adminBlogService } from '../../services/blogApi';
 import { cn } from '../../lib/utils';
-import type { BlogPostStatus, BlogPost, TopicSuggestion } from '../../types/blog';
+import type { BlogPostStatus, BlogPost, TopicSuggestion, ContentAudience } from '../../types/blog';
+import { AUDIENCE_LABELS } from '../../types/blog';
 
 const STATUS_CONFIG: Record<BlogPostStatus, { label: string; color: string; icon: typeof Clock }> = {
   IDEA: { label: 'Ideia', color: 'bg-purple-100 text-purple-700', icon: Sparkles },
@@ -28,6 +29,7 @@ export function AdminBlogPage() {
   const [page, setPage] = useState(1);
   const [showTopics, setShowTopics] = useState(false);
   const [generatedTopics, setGeneratedTopics] = useState<TopicSuggestion[]>([]);
+  const [audienceFilter, setAudienceFilter] = useState<ContentAudience | ''>('');
 
   const { data: statsData } = useQuery({
     queryKey: ['admin-blog-stats'],
@@ -67,7 +69,10 @@ export function AdminBlogPage() {
   });
 
   const topicsMutation = useMutation({
-    mutationFn: () => adminBlogService.generateTopics({ count: 5 }),
+    mutationFn: () => adminBlogService.generateTopics({
+      count: 5,
+      audience: audienceFilter || undefined,
+    }),
     onSuccess: (data) => {
       setGeneratedTopics(data.data || []);
       setShowTopics(true);
@@ -119,6 +124,17 @@ export function AdminBlogPage() {
           />
         </div>
 
+        <select
+          value={audienceFilter}
+          onChange={(e) => setAudienceFilter(e.target.value as ContentAudience | '')}
+          className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-olive-200"
+        >
+          <option value="">Todas audiências</option>
+          {Object.entries(AUDIENCE_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
+
         <Button
           onClick={() => topicsMutation.mutate()}
           variant="ghost"
@@ -159,7 +175,20 @@ export function AdminBlogPage() {
               <div key={idx} className="bg-white rounded-xl p-4 border border-purple-100">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{topic.title}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-gray-900">{topic.title}</h4>
+                      {topic.audience && (
+                        <span className={cn(
+                          'px-2 py-0.5 rounded-full text-xs font-medium shrink-0',
+                          topic.audience === 'b2c_parents' ? 'bg-blue-100 text-blue-700' :
+                          topic.audience === 'b2b_pediatricians' ? 'bg-emerald-100 text-emerald-700' :
+                          topic.audience === 'b2b_lactation' ? 'bg-pink-100 text-pink-700' :
+                          'bg-orange-100 text-orange-700'
+                        )}>
+                          {AUDIENCE_LABELS[topic.audience] || topic.audience}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600 mt-1">{topic.angle}</p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {topic.targetKeywords.map((kw, i) => (
@@ -178,7 +207,7 @@ export function AdminBlogPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => navigate('/admin/blog/new', { state: { topic } })}
+                    onClick={() => navigate('/admin/blog/new', { state: { topic, audience: topic.audience } })}
                     leftIcon={<Edit className="w-3.5 h-3.5" />}
                   >
                     Criar
