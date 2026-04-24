@@ -87,6 +87,13 @@ export default defineConfig({
       workbox: {
         // Importar handlers de push notification no Service Worker
         importScripts: ['/sw-push.js'],
+        // Ativa o SW novo imediatamente (sem esperar o usuário fechar todas as
+        // abas) e faz ele assumir os clients existentes. Necessário para que
+        // a correção do navigateFallbackDenylist atinja usuários que já têm
+        // uma versão antiga do SW cached — senão continuariam vendo /sitemap.xml
+        // redirecionando para /login até fechar/reabrir o navegador.
+        skipWaiting: true,
+        clientsClaim: true,
         // Estratégia de caching
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
         // Cache de runtime para API calls
@@ -169,9 +176,29 @@ export default defineConfig({
         ],
         // Limpar caches antigos
         cleanupOutdatedCaches: true,
-        // Navegação fallback para SPA
+        // Navegação fallback para SPA.
+        // IMPORTANTE: toda URL que NÃO deve cair no index.html tem que estar
+        // aqui, senão o Service Worker intercepta a navegação e o usuário
+        // acaba no SPA (ex.: /sitemap.xml era servido como index.html,
+        // React Router não reconhecia a rota e redirecionava para /login).
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/],
+        navigateFallbackDenylist: [
+          /^\/api/,
+          // Blog SSR (para crawlers)
+          /^\/blog\/ssr/,
+          // Sitemaps e robots
+          /^\/sitemap.*\.xml$/,
+          /^\/sitemap-blog\.xml$/,
+          /^\/robots\.txt$/,
+          // Certbot
+          /^\/\.well-known/,
+          // Arquivos XML / feeds / outros descobertos por ferramentas
+          /\.xml$/,
+          /\.txt$/,
+          /\/feed(\.xml)?$/,
+          /\/rss(\.xml)?$/,
+          /\/atom(\.xml)?$/,
+        ],
       },
       devOptions: {
         enabled: false, // Desabilitar no dev para evitar problemas
