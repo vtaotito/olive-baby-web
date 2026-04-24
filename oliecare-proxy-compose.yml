@@ -1,0 +1,185 @@
+services:
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    extra_hosts:
+      - "bhost:host-gateway"
+    volumes:
+      - /var/lib/docker/volumes/olivebaby-web_ssl_certs/_data:/etc/letsencrypt:ro
+      - /var/lib/docker/volumes/olivebaby-web_certbot_www/_data:/var/www/certbot
+    networks:
+      - olivebaby-network
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        cat > /etc/nginx/conf.d/default.conf <<'C1'
+        resolver 127.0.0.11 valid=30s ipv6=off;
+
+        # ---------------------------------------------------------------
+        # Bot detection (SEO): quando o user-agent for crawler, o nginx
+        # manda /blog e /blog/<slug> para o endpoint SSR da API em vez
+        # do SPA. Para humanos, continua servindo o SPA normalmente.
+        # ---------------------------------------------------------------
+        map $$http_user_agent $$oc_is_bot {
+          default 0;
+          "~*googlebot" 1;
+          "~*google-inspection-tool" 1;
+          "~*google-structured-data-testing-tool" 1;
+          "~*googleother" 1;
+          "~*adsbot-google" 1;
+          "~*apis-google" 1;
+          "~*mediapartners-google" 1;
+          "~*bingbot" 1;
+          "~*bingpreview" 1;
+          "~*msnbot" 1;
+          "~*duckduckbot" 1;
+          "~*yandex" 1;
+          "~*baiduspider" 1;
+          "~*applebot" 1;
+          "~*facebookexternalhit" 1;
+          "~*facebookcatalog" 1;
+          "~*meta-externalagent" 1;
+          "~*whatsapp" 1;
+          "~*twitterbot" 1;
+          "~*linkedinbot" 1;
+          "~*slackbot" 1;
+          "~*telegrambot" 1;
+          "~*discordbot" 1;
+          "~*pinterest" 1;
+          "~*redditbot" 1;
+          "~*embedly" 1;
+          "~*vkshare" 1;
+          "~*w3c_validator" 1;
+          "~*ia_archiver" 1;
+          "~*archive.org_bot" 1;
+          "~*ahrefsbot" 1;
+          "~*semrushbot" 1;
+          "~*mj12bot" 1;
+          "~*lighthouse" 1;
+          "~*chrome-lighthouse" 1;
+          "~*petalbot" 1;
+          "~*screaming frog" 1;
+        }
+
+        server { listen 80 default_server; server_name oliecare.cloud www.oliecare.cloud adm.oliecare.cloud prof.oliecare.cloud _;
+          set $$upstream_web http://olivebaby-web-server:80;
+          location /.well-known/acme-challenge/ { root /var/www/certbot; }
+          location = /sitemap-blog.xml { proxy_pass http://bhost:4000/api/v1/blog/sitemap; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-Proto $$scheme; }
+          location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $$scheme; proxy_read_timeout 90s; }
+          location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-Proto $$scheme; }
+          location ~ ^/blog/(?<oc_slug>[A-Za-z0-9][A-Za-z0-9_\-]*)/?$$ {
+            if ($$oc_is_bot = 1) { rewrite ^ /__blog-ssr-post/$$oc_slug last; }
+            proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr;
+          }
+          location ~ ^/__blog-ssr-post/(?<oc_ssr_slug>.+)$$ {
+            internal;
+            proxy_pass http://bhost:4000/api/v1/blog/ssr/$$oc_ssr_slug; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-Proto $$scheme;
+          }
+          location ~ ^/blog/?$$ {
+            if ($$oc_is_bot = 1) { rewrite ^ /__blog-ssr-list last; }
+            proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr;
+          }
+          location = /__blog-ssr-list {
+            internal;
+            proxy_pass http://bhost:4000/api/v1/blog/ssr$$is_args$$args; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-Proto $$scheme;
+          }
+          location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
+        }
+        server { listen 80; server_name n8n.oliecare.cloud;
+          location /.well-known/acme-challenge/ { root /var/www/certbot; }
+          location / { proxy_pass http://bhost:5678; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header Upgrade $$http_upgrade; proxy_set_header Connection "upgrade"; }
+        }
+        server { listen 80; server_name peladapro.cloud www.peladapro.cloud;
+          location /.well-known/acme-challenge/ { root /var/www/certbot; }
+          location /api/ { proxy_pass http://bhost:3001/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-Proto $$scheme; }
+          location / { proxy_pass http://bhost:3000; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header Upgrade $$http_upgrade; proxy_set_header Connection "upgrade"; }
+        }
+        C1
+        if [ -f /etc/letsencrypt/live/oliecare.cloud/fullchain.pem ]; then
+        cat >> /etc/nginx/conf.d/default.conf <<'S1'
+        server { listen 443 ssl; http2 on; server_name oliecare.cloud www.oliecare.cloud;
+          resolver 127.0.0.11 valid=30s ipv6=off;
+          set $$upstream_web http://olivebaby-web-server:80;
+          ssl_certificate /etc/letsencrypt/live/oliecare.cloud/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/oliecare.cloud/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
+          location = /sitemap-blog.xml { proxy_pass http://bhost:4000/api/v1/blog/sitemap; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; proxy_read_timeout 90s; }
+          location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location ~ ^/blog/(?<oc_slug>[A-Za-z0-9][A-Za-z0-9_\-]*)/?$$ {
+            if ($$oc_is_bot = 1) { rewrite ^ /__blog-ssr-post/$$oc_slug last; }
+            proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr;
+          }
+          location ~ ^/__blog-ssr-post/(?<oc_ssr_slug>.+)$$ {
+            internal;
+            proxy_pass http://bhost:4000/api/v1/blog/ssr/$$oc_ssr_slug; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https;
+          }
+          location ~ ^/blog/?$$ {
+            if ($$oc_is_bot = 1) { rewrite ^ /__blog-ssr-list last; }
+            proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr;
+          }
+          location = /__blog-ssr-list {
+            internal;
+            proxy_pass http://bhost:4000/api/v1/blog/ssr$$is_args$$args; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https;
+          }
+          location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
+          add_header Strict-Transport-Security "max-age=31536000" always;
+        }
+        S1
+        fi
+        if [ -f /etc/letsencrypt/live/adm.oliecare.cloud/fullchain.pem ]; then
+        cat >> /etc/nginx/conf.d/default.conf <<'S2'
+        server { listen 443 ssl; http2 on; server_name adm.oliecare.cloud;
+          resolver 127.0.0.11 valid=30s ipv6=off;
+          set $$upstream_web http://olivebaby-web-server:80;
+          ssl_certificate /etc/letsencrypt/live/adm.oliecare.cloud/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/adm.oliecare.cloud/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
+          location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
+          add_header Strict-Transport-Security "max-age=31536000" always;
+        }
+        S2
+        fi
+        if [ -f /etc/letsencrypt/live/prof.oliecare.cloud/fullchain.pem ]; then
+        cat >> /etc/nginx/conf.d/default.conf <<'S3'
+        server { listen 443 ssl; http2 on; server_name prof.oliecare.cloud;
+          resolver 127.0.0.11 valid=30s ipv6=off;
+          set $$upstream_web http://olivebaby-web-server:80;
+          ssl_certificate /etc/letsencrypt/live/prof.oliecare.cloud/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/prof.oliecare.cloud/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
+          location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
+          add_header Strict-Transport-Security "max-age=31536000" always;
+        }
+        S3
+        fi
+        if [ -f /etc/letsencrypt/live/n8n.oliecare.cloud/fullchain.pem ]; then
+        cat >> /etc/nginx/conf.d/default.conf <<'S4'
+        server { listen 443 ssl; http2 on; server_name n8n.oliecare.cloud;
+          ssl_certificate /etc/letsencrypt/live/n8n.oliecare.cloud/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/n8n.oliecare.cloud/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
+          location / { proxy_pass http://bhost:5678; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header Upgrade $$http_upgrade; proxy_set_header Connection "upgrade"; proxy_buffering off; proxy_read_timeout 86400s; }
+          add_header Strict-Transport-Security "max-age=31536000" always;
+        }
+        S4
+        fi
+        if [ -f /etc/letsencrypt/live/peladapro.cloud/fullchain.pem ]; then
+        cat >> /etc/nginx/conf.d/default.conf <<'S5'
+        server { listen 443 ssl; http2 on; server_name peladapro.cloud www.peladapro.cloud;
+          ssl_certificate /etc/letsencrypt/live/peladapro.cloud/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/peladapro.cloud/privkey.pem;
+          ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
+          location /api/ { proxy_pass http://bhost:3001/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
+          location / { proxy_pass http://bhost:3000; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header Upgrade $$http_upgrade; proxy_set_header Connection "upgrade"; }
+          add_header Strict-Transport-Security "max-age=31536000" always;
+        }
+        S5
+        fi
+        nginx -g 'daemon off;'
+networks:
+  olivebaby-network:
+    external: true
