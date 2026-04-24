@@ -41,6 +41,10 @@ const AdminBlogPage = lazy(() => import('./pages/admin/AdminBlogPage').then(m =>
 const AdminBlogPostEditorPage = lazy(() => import('./pages/admin/AdminBlogPostEditorPage').then(m => ({ default: m.AdminBlogPostEditorPage })));
 const AdminBlogCategoriesPage = lazy(() => import('./pages/admin/AdminBlogCategoriesPage').then(m => ({ default: m.AdminBlogCategoriesPage })));
 
+const AdminSocialPage = lazy(() => import('./pages/admin/AdminSocialPage').then(m => ({ default: m.AdminSocialPage })));
+const AdminSocialPostEditorPage = lazy(() => import('./pages/admin/AdminSocialPostEditorPage').then(m => ({ default: m.AdminSocialPostEditorPage })));
+const AdminSocialAccountsPage = lazy(() => import('./pages/admin/AdminSocialAccountsPage').then(m => ({ default: m.AdminSocialAccountsPage })));
+
 // Lazy-loaded: Public Blog Pages
 const BlogListPage = lazy(() => import('./pages/blog/BlogListPage').then(m => ({ default: m.BlogListPage })));
 const BlogPostPage = lazy(() => import('./pages/blog/BlogPostPage').then(m => ({ default: m.BlogPostPage })));
@@ -582,6 +586,38 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminBlogCategoriesPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/social"
+              element={
+                <AdminRoute>
+                  <AdminSocialPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/social/new"
+              element={
+                <AdminRoute>
+                  <AdminSocialPostEditorPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/social/:id/edit"
+              element={
+                <AdminRoute>
+                  <AdminSocialPostEditorPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/social/accounts"
+              element={
+                <AdminRoute>
+                  <AdminSocialAccountsPage />
                 </AdminRoute>
               }
             />
