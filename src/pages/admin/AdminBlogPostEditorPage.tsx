@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Save, Send, Eye, Sparkles,
+  ArrowLeft, Save, Send, Eye, Sparkles, Upload,
   CheckCircle, XCircle, Archive, Bot, Tag as TagIcon, ImageIcon,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
@@ -426,42 +426,90 @@ export function AdminBlogPostEditorPage() {
 
               {/* Cover Image */}
               <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-3">
                   <label className="block text-sm font-medium text-gray-700">Imagem de Capa</label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      if (!title) return;
-                      try {
-                        setCoverImageUrl('');
-                        const result = await adminBlogService.generateImage({
-                          title,
-                          excerpt: excerpt || undefined,
-                          postId: isEditing ? parseInt(id!) : undefined,
-                        });
-                        if (result.data?.imageUrl) {
-                          setCoverImageUrl(result.data.imageUrl);
-                        }
-                      } catch {}
-                    }}
-                    disabled={!title}
-                    leftIcon={<ImageIcon className="w-4 h-4" />}
-                    className="text-purple-600 hover:bg-purple-50"
-                  >
-                    Gerar com IA
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const result = await adminBlogService.uploadImage(file);
+                            if (result.data?.imageUrl) setCoverImageUrl(result.data.imageUrl);
+                          } catch {}
+                          e.target.value = '';
+                        }}
+                      />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-olive-700 hover:bg-olive-50 rounded-lg transition-colors cursor-pointer">
+                        <Upload className="w-4 h-4" />
+                        Upload
+                      </span>
+                    </label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        if (!title) return;
+                        try {
+                          setCoverImageUrl('');
+                          const result = await adminBlogService.generateImage({
+                            title,
+                            excerpt: excerpt || undefined,
+                            postId: isEditing ? parseInt(id!) : undefined,
+                          });
+                          if (result.data?.imageUrl) setCoverImageUrl(result.data.imageUrl);
+                        } catch {}
+                      }}
+                      disabled={!title}
+                      leftIcon={<ImageIcon className="w-4 h-4" />}
+                      className="text-purple-600 hover:bg-purple-50"
+                    >
+                      Gerar com IA
+                    </Button>
+                  </div>
                 </div>
+
+                {coverImageUrl ? (
+                  <div className="relative group">
+                    <img src={coverImageUrl} alt="Preview" className="rounded-lg max-h-56 object-cover w-full" />
+                    <button
+                      onClick={() => setCoverImageUrl('')}
+                      className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >&times;</button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-olive-300 hover:bg-olive-50/30 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const result = await adminBlogService.uploadImage(file);
+                          if (result.data?.imageUrl) setCoverImageUrl(result.data.imageUrl);
+                        } catch {}
+                        e.target.value = '';
+                      }}
+                    />
+                    <Upload className="w-8 h-8 text-gray-300 mb-2" />
+                    <p className="text-sm text-gray-400">Clique para fazer upload ou arraste</p>
+                    <p className="text-xs text-gray-300 mt-1">JPG, PNG, GIF, WebP (max 10MB)</p>
+                  </label>
+                )}
+
                 <input
                   type="url"
                   value={coverImageUrl}
                   onChange={(e) => setCoverImageUrl(e.target.value)}
-                  placeholder="https://... ou gere automaticamente com IA"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-olive-200"
+                  placeholder="Ou cole a URL da imagem aqui..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-olive-200 mt-3"
                 />
-                {coverImageUrl && (
-                  <img src={coverImageUrl} alt="Preview" className="mt-3 rounded-lg max-h-48 object-cover w-full" />
-                )}
               </div>
             </>
           )}

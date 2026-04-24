@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, Save, Send, CheckCircle, XCircle, Archive, Bot, ImageIcon, Calendar,
+  ArrowLeft, Save, Send, CheckCircle, XCircle, Archive, Bot, ImageIcon, Calendar, Upload,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
@@ -211,20 +211,65 @@ export function AdminSocialPostEditorPage() {
 
           {/* Media */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-gray-700">Mídia</label>
-              <Button variant="ghost" size="sm" onClick={handleGenerateImage} disabled={!caption}
-                leftIcon={<ImageIcon className="w-3.5 h-3.5" />} className="text-purple-600 hover:bg-purple-50">Gerar com IA</Button>
+              <div className="flex items-center gap-2">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const result = await adminSocialService.uploadImage(file);
+                        if (result.data?.imageUrl) setMediaUrls([...mediaUrls, result.data.imageUrl]);
+                      } catch {}
+                      e.target.value = '';
+                    }}
+                  />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-olive-700 hover:bg-olive-50 rounded-lg transition-colors cursor-pointer">
+                    <Upload className="w-3.5 h-3.5" />
+                    Upload
+                  </span>
+                </label>
+                <Button variant="ghost" size="sm" onClick={handleGenerateImage} disabled={!caption}
+                  leftIcon={<ImageIcon className="w-3.5 h-3.5" />} className="text-purple-600 hover:bg-purple-50">Gerar com IA</Button>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {mediaUrls.map((url, i) => (
-                <div key={i} className="relative group">
-                  <img src={url} alt="" className="w-full aspect-square rounded-lg object-cover" />
-                  <button onClick={() => setMediaUrls(mediaUrls.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
-                </div>
-              ))}
-            </div>
+
+            {mediaUrls.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {mediaUrls.map((url, i) => (
+                  <div key={i} className="relative group">
+                    <img src={url} alt="" className="w-full aspect-square rounded-lg object-cover" />
+                    <button onClick={() => setMediaUrls(mediaUrls.filter((_, idx) => idx !== i))}
+                      className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-olive-300 hover:bg-olive-50/30 transition-colors">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const result = await adminSocialService.uploadImage(file);
+                      if (result.data?.imageUrl) setMediaUrls([...mediaUrls, result.data.imageUrl]);
+                    } catch {}
+                    e.target.value = '';
+                  }}
+                />
+                <Upload className="w-8 h-8 text-gray-300 mb-2" />
+                <p className="text-sm text-gray-400">Clique para fazer upload</p>
+                <p className="text-xs text-gray-300 mt-1">JPG, PNG, GIF, WebP (max 10MB)</p>
+              </label>
+            )}
           </div>
         </div>
 

@@ -75,4 +75,13 @@ export const adminSocialService = {
     const response = await api.post<{ success: boolean; data: { imageUrl: string; prompt: string } }>('/admin/social/ai/generate-image', data);
     return response.data;
   },
+
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post<{ success: boolean; data: { imageUrl: string; filename: string } }>(
+      '/admin/social/upload-image', formData, { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return response.data;
+  },
 };
