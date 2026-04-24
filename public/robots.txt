@@ -3,10 +3,11 @@
 
 User-agent: *
 Allow: /
+
+# Áreas privadas / autenticadas
 Disallow: /admin/
 Disallow: /prof/
 Disallow: /settings/
-Disallow: /api/
 Disallow: /dashboard
 Disallow: /routines/
 Disallow: /growth
@@ -20,6 +21,14 @@ Disallow: /invite/
 Disallow: /reset-password
 Disallow: /forgot-password
 
+# API interna - bloqueada por padrão...
+Disallow: /api/
+# ...mas liberamos imagens públicas do blog (capas dos posts) e o sitemap dinâmico,
+# para que o Googlebot-Image consiga indexar as capas e o crawler descubra os posts.
+Allow: /api/v1/blog/images/
+Allow: /api/v1/blog/ssr
+Allow: /api/v1/blog/sitemap
+
 # Allow crawling of public pages
 Allow: /$
 Allow: /login
@@ -32,4 +41,3 @@ Allow: /blog/
 
 # Sitemaps
 Sitemap: https://oliecare.cloud/sitemap.xml
-Sitemap: https://oliecare.cloud/api/v1/blog/sitemap

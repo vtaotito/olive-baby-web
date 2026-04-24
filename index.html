@@ -39,9 +39,8 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="mobile-web-app-capable" content="yes" />
     
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook (defaults - páginas específicas sobrescrevem via Helmet/SSR) -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://oliecare.cloud/" />
     <meta property="og:title" content="OlieCare - Acompanhe a Rotina do Bebê com Tranquilidade" />
     <meta property="og:description" content="App gratuito para registrar alimentação, sono, fraldas e banho do bebê. Insights com IA, gráficos de crescimento e compartilhamento com cuidadores." />
     <meta property="og:image" content="https://oliecare.cloud/og-image.png" />
@@ -51,9 +50,8 @@
     <meta property="og:site_name" content="OlieCare" />
     <meta property="og:locale" content="pt_BR" />
     
-    <!-- Twitter -->
+    <!-- Twitter (defaults - páginas específicas sobrescrevem via Helmet/SSR) -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://oliecare.cloud/" />
     <meta name="twitter:title" content="OlieCare - Acompanhe a Rotina do Bebê com Tranquilidade" />
     <meta name="twitter:description" content="App gratuito para registrar alimentação, sono, fraldas e banho do bebê. Insights com IA e mais tranquilidade para sua família." />
     <meta name="twitter:image" content="https://oliecare.cloud/og-image.png" />
@@ -67,12 +65,12 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://oliecare.cloud/" />
-    
-    <!-- Alternate language -->
-    <link rel="alternate" hreflang="pt-BR" href="https://oliecare.cloud/" />
-    <link rel="alternate" hreflang="x-default" href="https://oliecare.cloud/" />
+    <!--
+      IMPORTANTE: canonical e og:url NÃO são definidos aqui no index.html base.
+      Eles são injetados dinamicamente pelo react-helmet-async em cada página,
+      ou pelo SSR-for-bots (nginx redireciona crawlers para /api/v1/blog/ssr/*).
+      Definir canonical="/" aqui fazia o Google tratar TODAS as URLs como duplicatas da home.
+    -->
     
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
