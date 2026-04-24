@@ -24,6 +24,7 @@ import {
   Megaphone,
   FileText,
   Share2,
+  Palette,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../stores/authStore';
@@ -73,6 +74,7 @@ const adminNavSections = [
     items: [
       { path: '/admin/blog', icon: FileText, label: 'Blog' },
       { path: '/admin/social', icon: Share2, label: 'Redes Sociais' },
+      { path: '/admin/brand', icon: Palette, label: 'Identidade Visual' },
     ],
   },
   {

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OlieCare - Manual da Marca</title>
+    <link rel="icon" type="image/svg+xml" href="brand/oliecare-logo-icon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #f7f8f3;
+            color: #1f2937;
+        }
+        
+        .logo-text {
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .brand-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .brand-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .swatch {
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .swatch:hover {
+            transform: scale(1.05);
+        }
+
+        .phone-mockup {
+            border: 10px solid #1f2937;
+            border-radius: 2rem;
+            background: linear-gradient(135deg, #738251 0%, #5a6641 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .phone-mockup::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: #374151;
+            border-radius: 2px;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="brand/oliecare-logo-icon.svg" alt="OlieCare" class="w-11 h-11">
+                <div>
+                    <h1 class="text-xl font-bold logo-text tracking-tight text-[#5a6641]">OlieCare</h1>
+                    <p class="text-[10px] text-gray-500 tracking-widest -mt-0.5 font-medium">MANUAL DA MARCA v1.1</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-6 text-sm">
+                <a href="#logos" class="hover:text-[#738251] transition-colors font-medium">Logos</a>
+                <a href="#cores" class="hover:text-[#738251] transition-colors font-medium">Cores</a>
+                <a href="#tipografia" class="hover:text-[#738251] transition-colors font-medium">Tipografia</a>
+                <a href="#aplicacoes" class="hover:text-[#738251] transition-colors font-medium">Aplicações</a>
+                <a href="#downloads" class="hover:text-[#738251] transition-colors font-medium">Downloads</a>
+                <button onclick="window.print()" class="bg-[#738251] text-white px-5 py-2 rounded-xl font-semibold hover:bg-[#5a6641] transition-all text-sm">
+                    Salvar PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="max-w-7xl mx-auto px-6 py-16">
+        <div class="text-center">
+            <div class="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 mb-6 shadow-sm border border-gray-100">
+                <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span class="text-emerald-700 text-xs font-medium">Versão 1.1 • Abril 2026</span>
+            </div>
+            <h2 class="text-5xl md:text-6xl font-bold logo-text tracking-tighter text-[#3f4730] mb-4">
+                Manual da Marca
+            </h2>
+            <p class="max-w-xl mx-auto text-lg text-gray-600">
+                Guia completo de uso da identidade visual da OlieCare para garantir consistência em todas as plataformas.
+            </p>
+        </div>
+    </section>
+
+    <!-- Logos -->
+    <section id="logos" class="max-w-7xl mx-auto px-6 py-12">
+        <div class="mb-8">
+            <p class="text-sm font-medium text-[#738251] tracking-wider uppercase mb-2">01</p>
+            <h3 class="text-3xl font-bold logo-text tracking-tight">Variações da Logo</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Icon -->
+            <div class="brand-card bg-white rounded-3xl p-8 border border-gray-100">
+                <div class="flex justify-center items-center py-12 bg-[#f7f8f3] rounded-2xl mb-6 h-48">
+                    <img src="brand/oliecare-logo-icon.svg" alt="Logo Icon" class="w-32 h-32">
+                </div>
+                <div class="text-xs uppercase tracking-widest text-gray-400 mb-2">Principal</div>
+                <h4 class="font-bold mb-1">Logo Icon</h4>
+                <p class="text-sm text-gray-500">App icons, favicons e destaques. Quadrada com fundo olive.</p>
+                <div class="mt-4 flex gap-2">
+                    <a href="brand/oliecare-logo-icon.svg" download class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">SVG</a>
+                    <a href="brand/png/oliecare-logo-icon-512.png" download class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">PNG 512px</a>
+                </div>
+            </div>
+
+            <!-- Mark -->
+            <div class="brand-card bg-white rounded-3xl p-8 border border-gray-100">
+                <div class="flex justify-center items-center py-12 bg-[#f7f8f3] rounded-2xl mb-6 h-48">
+                    <img src="brand/oliecare-logo-mark.svg" alt="Logo Mark" class="w-24 h-28">
+                </div>
+                <div class="text-xs uppercase tracking-widest text-gray-400 mb-2">Símbolo</div>
+                <h4 class="font-bold mb-1">Logo Mark</h4>
+                <p class="text-sm text-gray-500">Versão minimalista da folha. Ideal para espaços reduzidos.</p>
+                <div class="mt-4 flex gap-2">
+                    <a href="brand/oliecare-logo-mark.svg" download class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">SVG</a>
+                    <a href="brand/png/oliecare-logo-mark-512.png" download class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">PNG 512px</a>
+                </div>
+            </div>
+
+            <!-- Horizontal -->
+            <div class="brand-card bg-white rounded-3xl p-8 border border-gray-100">
+                <div class="flex justify-center items-center py-12 bg-white rounded-2xl border border-gray-100 mb-6 h-48">
+                    <img src="brand/oliecare-logo-horizontal.svg" alt="Logo Horizontal" class="w-full max-w-[250px]">
+                </div>
+                <div class="text-xs uppercase tracking-widest text-gray-400 mb-2">Completa</div>
+                <h4 class="font-bold mb-1">Versão Horizontal</h4>
+                <p class="text-sm text-gray-500">Com símbolo + nome. Para headers, emails e materiais impressos.</p>
+                <div class="mt-4 flex gap-2">
+                    <a href="brand/oliecare-logo-horizontal.svg" download class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">SVG</a>
+                    <a href="brand/png/oliecare-logo-horizontal-512.png" download class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg font-medium">PNG 512px</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dark version -->
+        <div class="mt-6 bg-[#1f2937] rounded-3xl p-8 flex items-center justify-center border border-gray-800">
+            <img src="brand/oliecare-logo-horizontal-dark.svg" alt="Logo Dark" class="w-full max-w-[300px]">
+        </div>
+        <p class="text-center text-xs text-gray-500 mt-3">Versão Dark: para fundos escuros e modo noturno</p>
+    </section>
+
+    <!-- Cores -->
+    <section id="cores" class="max-w-7xl mx-auto px-6 py-16">
+        <div class="mb-8">
+            <p class="text-sm font-medium text-[#738251] tracking-wider uppercase mb-2">02</p>
+            <h3 class="text-3xl font-bold logo-text tracking-tight">Paleta Oficial</h3>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div class="swatch">
+                <div class="bg-[#738251] h-32 rounded-2xl shadow-inner"></div>
+                <div class="mt-3 text-sm font-semibold">Olive Primary</div>
+                <div class="text-xs text-gray-500 font-mono">#738251</div>
+            </div>
+            <div class="swatch">
+                <div class="bg-[#5a6641] h-32 rounded-2xl shadow-inner"></div>
+                <div class="mt-3 text-sm font-semibold">Olive Dark</div>
+                <div class="text-xs text-gray-500 font-mono">#5a6641</div>
+            </div>
+            <div class="swatch">
+                <div class="bg-[#a8b683] h-32 rounded-2xl shadow-inner"></div>
+                <div class="mt-3 text-sm font-semibold">Olive 400</div>
+                <div class="text-xs text-gray-500 font-mono">#a8b683</div>
+            </div>
+            <div class="swatch">
+                <div class="bg-[#f7f8f3] h-32 rounded-2xl border border-gray-200"></div>
+                <div class="mt-3 text-sm font-semibold">Olive Light</div>
+                <div class="text-xs text-gray-500 font-mono">#f7f8f3</div>
+            </div>
+            <div class="swatch">
+                <div class="bg-[#f9f6f1] h-32 rounded-2xl border border-gray-200"></div>
+                <div class="mt-3 text-sm font-semibold">Sand</div>
+                <div class="text-xs text-gray-500 font-mono">#f9f6f1</div>
+            </div>
+            <div class="swatch">
+                <div class="bg-[#f26d3d] h-32 rounded-2xl shadow-inner"></div>
+                <div class="mt-3 text-sm font-semibold">Peach Accent</div>
+                <div class="text-xs text-gray-500 font-mono">#f26d3d</div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white rounded-3xl p-8 border border-gray-100">
+            <h4 class="font-bold mb-4">Regras de Cor</h4>
+            <ul class="space-y-2 text-sm text-gray-700">
+                <li><span class="text-[#738251] font-bold">•</span> Cor primária: <strong>#738251</strong> (Olive 600) - use 60% do tempo</li>
+                <li><span class="text-[#738251] font-bold">•</span> Cor secundária: <strong>#5a6641</strong> (Olive Dark) para textos e hover states</li>
+                <li><span class="text-[#738251] font-bold">•</span> Cor de destaque: <strong>#f26d3d</strong> (Peach) apenas para CTAs importantes - máximo 10%</li>
+                <li><span class="text-[#738251] font-bold">•</span> Fundos: <strong>#f7f8f3</strong> (Olive Light) e <strong>#f9f6f1</strong> (Sand) para áreas suaves</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Tipografia -->
+    <section id="tipografia" class="max-w-7xl mx-auto px-6 py-16">
+        <div class="mb-8">
+            <p class="text-sm font-medium text-[#738251] tracking-wider uppercase mb-2">03</p>
+            <h3 class="text-3xl font-bold logo-text tracking-tight">Tipografia</h3>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-3xl p-8 border border-gray-100">
+                <p class="text-xs uppercase tracking-widest text-gray-400 mb-4">Primária • Headings</p>
+                <p class="logo-text text-6xl font-bold text-[#5a6641] mb-4 tracking-tighter">DM Sans</p>
+                <p class="text-sm text-gray-600">Usada para logo, títulos e destaques.</p>
+                <div class="mt-6 flex gap-2 flex-wrap">
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg">700 Bold</span>
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg">500 Medium</span>
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg">tracking: -0.02em</span>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-3xl p-8 border border-gray-100">
+                <p class="text-xs uppercase tracking-widest text-gray-400 mb-4">Secundária • Corpo</p>
+                <p class="text-6xl font-semibold text-[#5a6641] mb-4" style="font-family: Inter, sans-serif;">Inter</p>
+                <p class="text-sm text-gray-600">Texto corrido, body e detalhes de interface.</p>
+                <div class="mt-6 flex gap-2 flex-wrap">
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg">400 Regular</span>
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg">500 Medium</span>
+                    <span class="text-xs bg-gray-100 px-3 py-1 rounded-lg">600 SemiBold</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Aplicações -->
+    <section id="aplicacoes" class="max-w-7xl mx-auto px-6 py-16">
+        <div class="mb-8">
+            <p class="text-sm font-medium text-[#738251] tracking-wider uppercase mb-2">04</p>
+            <h3 class="text-3xl font-bold logo-text tracking-tight">Exemplos de Aplicação</h3>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Instagram Story -->
+            <div>
+                <div class="phone-mockup w-56 h-[420px] mx-auto flex items-center justify-center p-6 relative">
+                    <div class="text-center">
+                        <img src="brand/oliecare-logo-mark.svg" alt="Logo" class="w-24 h-28 mx-auto mb-6" style="filter: brightness(0) invert(1)">
+                        <div class="text-white logo-text font-bold text-3xl mb-2">OlieCare</div>
+                        <div class="text-white/80 text-xs tracking-widest">ROTINA - SAUDE - CRESCIMENTO</div>
+                        <div class="mt-12 text-white/90 text-sm italic">"Acompanhe cada momento do seu bebê"</div>
+                    </div>
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-[10px]">@oliecare</div>
+                </div>
+                <p class="text-center text-sm mt-4 font-medium text-gray-600">Instagram Story / Reels</p>
+                <p class="text-center text-xs text-gray-400 mt-1">1080×1920px</p>
+            </div>
+
+            <!-- LinkedIn Banner -->
+            <div>
+                <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div class="h-32 bg-gradient-to-br from-[#5a6641] to-[#738251] relative flex items-center justify-center">
+                        <img src="brand/oliecare-logo-horizontal-dark.svg" alt="Logo" class="h-12">
+                    </div>
+                    <div class="p-4 -mt-8 relative">
+                        <div class="w-16 h-16 bg-white rounded-full border-4 border-white flex items-center justify-center">
+                            <img src="brand/oliecare-logo-icon.svg" alt="Logo" class="w-12 h-12 rounded-xl">
+                        </div>
+                        <h4 class="font-bold text-lg mt-2">OlieCare</h4>
+                        <p class="text-xs text-gray-500">Saúde Infantil • Tecnologia</p>
+                        <p class="text-xs text-gray-600 mt-2">Plataforma de acompanhamento de rotina e saúde do bebê.</p>
+                    </div>
+                </div>
+                <p class="text-center text-sm mt-4 font-medium text-gray-600">LinkedIn Company Page</p>
+                <p class="text-center text-xs text-gray-400 mt-1">Banner: 1584×396px</p>
+            </div>
+
+            <!-- Email Signature -->
+            <div>
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <div class="text-xs text-gray-400 mb-4 font-mono">De: suporte@oliecare.cloud</div>
+                    <div class="border-b border-gray-100 pb-4 mb-4">
+                        <p class="text-sm text-gray-700">Olá! Estamos aqui para ajudar. Qualquer dúvida sobre o app, é só responder este e-mail.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="brand/oliecare-logo-icon.svg" alt="Logo" class="w-12 h-12 rounded-xl">
+                        <div>
+                            <div class="font-bold text-[#5a6641]">Equipe OlieCare</div>
+                            <div class="text-xs text-gray-500">suporte@oliecare.cloud</div>
+                            <div class="text-[10px] text-gray-400 tracking-wider mt-1">ROTINA - SAUDE - CRESCIMENTO</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-sm mt-4 font-medium text-gray-600">Assinatura de Email</p>
+                <p class="text-center text-xs text-gray-400 mt-1">Altura recomendada: 80px</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Downloads -->
+    <section id="downloads" class="max-w-7xl mx-auto px-6 py-16">
+        <div class="mb-8">
+            <p class="text-sm font-medium text-[#738251] tracking-wider uppercase mb-2">05</p>
+            <h3 class="text-3xl font-bold logo-text tracking-tight">Downloads</h3>
+            <p class="text-gray-500 mt-2">Clique para baixar os arquivos individualmente.</p>
+        </div>
+        
+        <div class="bg-white rounded-3xl p-8 border border-gray-100">
+            <h4 class="font-bold mb-4">SVGs (Vetores)</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                <a href="brand/oliecare-logo-icon.svg" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-4 py-3 rounded-xl text-sm font-medium transition-colors">📦 Logo Icon</a>
+                <a href="brand/oliecare-logo-mark.svg" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-4 py-3 rounded-xl text-sm font-medium transition-colors">📦 Logo Mark</a>
+                <a href="brand/oliecare-logo-horizontal.svg" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-4 py-3 rounded-xl text-sm font-medium transition-colors">📦 Horizontal</a>
+                <a href="brand/oliecare-logo-horizontal-dark.svg" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-4 py-3 rounded-xl text-sm font-medium transition-colors">📦 Horizontal Dark</a>
+            </div>
+
+            <h4 class="font-bold mb-4">PNGs • Logo Icon</h4>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-3 mb-8">
+                <a href="brand/png/oliecare-logo-icon-16.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">16×16</a>
+                <a href="brand/png/oliecare-logo-icon-32.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">32×32</a>
+                <a href="brand/png/oliecare-logo-icon-48.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">48×48</a>
+                <a href="brand/png/oliecare-logo-icon-64.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">64×64</a>
+                <a href="brand/png/oliecare-logo-icon-128.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">128×128</a>
+                <a href="brand/png/oliecare-logo-icon-180.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">180×180</a>
+                <a href="brand/png/oliecare-logo-icon-192.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">192×192</a>
+                <a href="brand/png/oliecare-logo-icon-256.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">256×256</a>
+                <a href="brand/png/oliecare-logo-icon-512.png" download class="bg-[#738251] text-white hover:bg-[#5a6641] px-3 py-2 rounded-lg text-xs font-medium text-center">512×512</a>
+                <a href="brand/png/favicon.ico" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">favicon.ico</a>
+            </div>
+
+            <h4 class="font-bold mb-4">PNGs • Logo Mark</h4>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-3 mb-8">
+                <a href="brand/png/oliecare-logo-mark-16.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">16×16</a>
+                <a href="brand/png/oliecare-logo-mark-32.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">32×32</a>
+                <a href="brand/png/oliecare-logo-mark-48.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">48×48</a>
+                <a href="brand/png/oliecare-logo-mark-64.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">64×64</a>
+                <a href="brand/png/oliecare-logo-mark-128.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">128×128</a>
+                <a href="brand/png/oliecare-logo-mark-180.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">180×180</a>
+                <a href="brand/png/oliecare-logo-mark-192.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">192×192</a>
+                <a href="brand/png/oliecare-logo-mark-256.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">256×256</a>
+                <a href="brand/png/oliecare-logo-mark-512.png" download class="bg-[#738251] text-white hover:bg-[#5a6641] px-3 py-2 rounded-lg text-xs font-medium text-center">512×512</a>
+            </div>
+
+            <h4 class="font-bold mb-4">PNGs • Logo Horizontal</h4>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-3">
+                <a href="brand/png/oliecare-logo-horizontal-128.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">128px</a>
+                <a href="brand/png/oliecare-logo-horizontal-180.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">180px</a>
+                <a href="brand/png/oliecare-logo-horizontal-192.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">192px</a>
+                <a href="brand/png/oliecare-logo-horizontal-256.png" download class="bg-[#f7f8f3] hover:bg-[#eef0e6] px-3 py-2 rounded-lg text-xs font-medium text-center">256px</a>
+                <a href="brand/png/oliecare-logo-horizontal-512.png" download class="bg-[#738251] text-white hover:bg-[#5a6641] px-3 py-2 rounded-lg text-xs font-medium text-center">512px</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Regras -->
+    <section class="max-w-7xl mx-auto px-6 py-16">
+        <div class="mb-8">
+            <p class="text-sm font-medium text-[#738251] tracking-wider uppercase mb-2">06</p>
+            <h3 class="text-3xl font-bold logo-text tracking-tight">Regras de Uso</h3>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-3xl p-8 border-2 border-emerald-100">
+                <h4 class="text-emerald-700 font-bold mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">✓</span>
+                    Faça
+                </h4>
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li>• Manter proporções originais (1:1 para ícones)</li>
+                    <li>• Respeitar espaço mínimo (25% da altura da logo)</li>
+                    <li>• Usar SVG sempre que possível (escalável)</li>
+                    <li>• Usar versão dark em fundos escuros</li>
+                    <li>• Manter cor primária #738251 como padrão</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded-3xl p-8 border-2 border-red-100">
+                <h4 class="text-red-700 font-bold mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">✗</span>
+                    Não Faça
+                </h4>
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li>• Não distorcer ou inclinar a logo</li>
+                    <li>• Não adicionar sombras, gradientes ou brilhos</li>
+                    <li>• Não alterar as cores oficiais</li>
+                    <li>• Não usar em fundos de baixo contraste</li>
+                    <li>• Não reduzir abaixo de 32px (digital) ou 15mm (impresso)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#5a6641] text-white py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <img src="brand/oliecare-logo-icon.svg" alt="OlieCare" class="w-12 h-12 mx-auto mb-4 opacity-90">
+            <p class="text-sm opacity-75">© 2026 OlieCare • Todos os direitos reservados</p>
+            <p class="text-xs opacity-50 mt-2">Manual da Marca v1.1 • Abril 2026</p>
+            <div class="mt-6 flex justify-center gap-6 text-xs opacity-70 flex-wrap">
+                <a href="https://oliecare.cloud" class="hover:text-white hover:opacity-100 transition-all">oliecare.cloud</a>
+                <a href="mailto:design@oliecare.cloud" class="hover:text-white hover:opacity-100 transition-all">design@oliecare.cloud</a>
+                <button onclick="window.print()" class="hover:text-white hover:opacity-100 transition-all no-print">Salvar como PDF</button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+        
+        console.log('%cOlieCare Brand Manual v1.1', 'color:#738251;font-family:monospace;font-size:14px;font-weight:bold');
+    </script>
+</body>
+</html>

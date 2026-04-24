@@ -94,3 +94,54 @@ export function LogoMark({ className = '', size = 32, color = '#738251' }: LogoM
     </svg>
   );
 }
+
+interface OlieCareLogoProps {
+  className?: string;
+  size?: number;
+  variant?: 'icon' | 'mark' | 'full' | 'horizontal';
+  withTagline?: boolean;
+}
+
+export function OlieCareLogo({ 
+  className = '', 
+  size = 180, 
+  variant = 'horizontal',
+  withTagline = true 
+}: OlieCareLogoProps) {
+  if (variant === 'icon') {
+    return <LogoIcon className={className} size={size} />;
+  }
+  
+  if (variant === 'mark') {
+    return <LogoMark className={className} size={Math.round(size * 0.7)} />;
+  }
+
+  // Horizontal full logo
+  const iconSize = Math.round(size * 0.55);
+  const textSize = Math.round(size * 0.42);
+  
+  return (
+    <div className={`inline-flex items-center gap-4 ${className}`}>
+      <LogoIcon size={iconSize} />
+      <div className="flex flex-col justify-center">
+        <div 
+          className="font-display font-bold tracking-[-0.02em] text-olive-700"
+          style={{ fontSize: `${textSize}px` }}
+        >
+          OlieCare
+        </div>
+        {withTagline && (
+          <div 
+            className="text-[9px] font-medium tracking-[0.5px] text-stone-500 -mt-0.5"
+            style={{ fontSize: Math.max(9, Math.round(textSize * 0.22)) }}
+          >
+            ROTINA • SAÚDE • CRESCIMENTO
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// All components are already exported above.
+// Use: import { LogoIcon, LogoMark, OlieCareLogo } from '@/components/brand/OlieCareLogo';
