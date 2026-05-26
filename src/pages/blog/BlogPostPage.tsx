@@ -2,22 +2,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Calendar, Tag } from 'lucide-react';
 import { BlogSEOHead } from '../../components/blog/BlogSEOHead';
+import { BlogMarkdown } from '../../components/blog/BlogMarkdown';
 import { blogService } from '../../services/blogApi';
-
-function renderMarkdown(content: string): string {
-  return content
-    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-gray-900 mt-8 mb-3">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-gray-900 mt-10 mb-4">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-gray-900 mt-12 mb-5">$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^- (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
-    .replace(/(<li.*<\/li>\n?)+/g, (match) => `<ul class="list-disc pl-5 mb-4 space-y-1">${match}</ul>`)
-    .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-olive-600 hover:text-olive-700 underline">$1</a>')
-    .replace(/^(?!<[hulo])((?!<).+)$/gm, '<p class="mb-4 leading-relaxed">$1</p>')
-    .replace(/<p class="mb-4 leading-relaxed"><\/p>/g, '');
-}
 
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -151,9 +137,9 @@ export function BlogPostPage() {
           </div>
 
           {/* Content */}
-          <div
-            className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-olive-600 hover:prose-a:text-olive-700 prose-strong:text-gray-900 prose-li:text-gray-700 mb-12"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+          <BlogMarkdown
+            content={post.content}
+            className="prose prose-lg max-w-none mb-12"
           />
 
           {/* Tags */}

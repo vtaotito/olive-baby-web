@@ -9,6 +9,7 @@ import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
 import { adminBlogService } from '../../services/blogApi';
 import { cn } from '../../lib/utils';
+import { invalidateBlogCaches } from '../../lib/blogCache';
 import type { BlogPost, BlogPostStatus, TopicSuggestion } from '../../types/blog';
 
 const STATUS_LABELS: Record<BlogPostStatus, string> = {
@@ -97,7 +98,7 @@ export function AdminBlogPostEditorPage() {
       return adminBlogService.createPost(data);
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
       if (!isEditing && result.data) {
         navigate(`/admin/blog/${result.data.id}/edit`, { replace: true });
       }
@@ -108,21 +109,21 @@ export function AdminBlogPostEditorPage() {
     mutationFn: ({ approved, notes }: { approved: boolean; notes?: string }) =>
       adminBlogService.reviewPost(parseInt(id!), { approved, reviewNotes: notes }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
     },
   });
 
   const publishMutation = useMutation({
     mutationFn: () => adminBlogService.publishPost(parseInt(id!)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
     },
   });
 
   const archiveMutation = useMutation({
     mutationFn: () => adminBlogService.archivePost(parseInt(id!)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
       navigate('/admin/blog');
     },
   });
@@ -136,7 +137,7 @@ export function AdminBlogPostEditorPage() {
         setSeoDescription(updated.seoDescription || '');
         setSeoKeywords(updated.seoKeywords || []);
       }
-      queryClient.invalidateQueries({ queryKey: ['admin-blog-post', id] });
+      void invalidateBlogCaches(queryClient);
     },
   });
 

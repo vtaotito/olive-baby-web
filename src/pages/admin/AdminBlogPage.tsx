@@ -9,6 +9,7 @@ import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
 import { adminBlogService } from '../../services/blogApi';
 import { cn } from '../../lib/utils';
+import { invalidateBlogCaches } from '../../lib/blogCache';
 import type { BlogPostStatus, BlogPost, TopicSuggestion, ContentAudience } from '../../types/blog';
 import { AUDIENCE_LABELS } from '../../types/blog';
 
@@ -50,21 +51,21 @@ export function AdminBlogPage() {
     mutationFn: ({ id, approved, reviewNotes }: { id: number; approved: boolean; reviewNotes?: string }) =>
       adminBlogService.reviewPost(id, { approved, reviewNotes }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
     },
   });
 
   const publishMutation = useMutation({
     mutationFn: (id: number) => adminBlogService.publishPost(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => adminBlogService.deletePost(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+      void invalidateBlogCaches(queryClient);
     },
   });
 
