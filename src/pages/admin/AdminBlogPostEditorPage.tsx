@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, Save, Send, Eye, Sparkles, Upload,
@@ -27,7 +27,13 @@ export function AdminBlogPostEditorPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isEditing = !!id;
-  const topicFromNav = (location.state as { topic?: TopicSuggestion })?.topic;
+  const navState = location.state as {
+    topic?: TopicSuggestion;
+    coverImageUrl?: string;
+    title?: string;
+    excerpt?: string;
+  } | null;
+  const topicFromNav = navState?.topic;
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -76,6 +82,14 @@ export function AdminBlogPostEditorPage() {
       if (topicFromNav.targetKeywords) setSeoKeywords(topicFromNav.targetKeywords);
     }
   }, [topicFromNav, isEditing]);
+
+  useEffect(() => {
+    if (!isEditing && navState) {
+      if (navState.coverImageUrl) setCoverImageUrl(navState.coverImageUrl);
+      if (navState.title) setTitle(navState.title);
+      if (navState.excerpt) setExcerpt(navState.excerpt);
+    }
+  }, [navState, isEditing]);
 
   const saveMutation = useMutation({
     mutationFn: async (status?: 'DRAFT' | 'IN_REVIEW') => {
@@ -429,7 +443,14 @@ export function AdminBlogPostEditorPage() {
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-center justify-between mb-3">
                   <label className="block text-sm font-medium text-gray-700">Imagem de Capa</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    <Link
+                      to={`/admin/image-agent?format=blog&topico=${encodeURIComponent(title || '')}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-olive-700 hover:bg-olive-50 rounded-lg transition-colors"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      Agente de Imagens
+                    </Link>
                     <label className="cursor-pointer">
                       <input
                         type="file"

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, Search, Edit, Trash2, CheckCircle, XCircle, Send, Bot,
-  Clock, Archive, Share2, Sparkles, Settings,
+  Clock, Archive, Share2, Sparkles, Settings, ImageIcon,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
@@ -118,6 +118,12 @@ export function AdminSocialPage() {
 
         <Link to="/admin/social/new">
           <Button size="sm" leftIcon={<Plus className="w-4 h-4" />}>Novo Post</Button>
+        </Link>
+
+        <Link to="/admin/image-agent?format=instagram">
+          <Button variant="ghost" size="sm" leftIcon={<ImageIcon className="w-4 h-4" />}>
+            Agente de Imagens
+          </Button>
         </Link>
 
         <Link to="/admin/social/accounts">
