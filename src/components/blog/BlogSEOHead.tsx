@@ -4,23 +4,57 @@ import type { BlogPost } from '../../types/blog';
 interface BlogSEOHeadProps {
   post?: BlogPost;
   listPage?: boolean;
+  notFound?: boolean;
+  notFoundSlug?: string;
+  noIndex?: boolean;
+  canonicalUrl?: string;
 }
 
 const SITE_NAME = 'OlieCare';
 const SITE_URL = 'https://oliecare.cloud';
 
-export function BlogSEOHead({ post, listPage }: BlogSEOHeadProps) {
+export function BlogSEOHead({
+  post,
+  listPage,
+  notFound,
+  notFoundSlug,
+  noIndex,
+  canonicalUrl,
+}: BlogSEOHeadProps) {
+  if (notFound) {
+    return (
+      <Helmet>
+        <title>Artigo não encontrado | {SITE_NAME}</title>
+        <meta
+          name="description"
+          content={
+            notFoundSlug
+              ? `Não encontramos um artigo publicado com o slug "${notFoundSlug}".`
+              : 'Artigo não encontrado no blog OlieCare.'
+          }
+        />
+        <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href={`${SITE_URL}/blog`} />
+      </Helmet>
+    );
+  }
+
   if (listPage) {
+    const robots = noIndex
+      ? 'noindex, follow'
+      : 'index, follow, max-snippet:-1, max-image-preview:large';
+    const canonical = canonicalUrl || `${SITE_URL}/blog`;
+
     return (
       <Helmet>
         <title>Blog | {SITE_NAME} - Cuidados com Bebê</title>
         <meta name="description" content="Artigos sobre cuidados com bebês, amamentação, sono infantil, desenvolvimento e dicas para pais. Conteúdo baseado em evidências." />
-        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
-        <link rel="canonical" href={`${SITE_URL}/blog`} />
+        <meta name="robots" content={robots} />
+        <link rel="canonical" href={canonical} />
         <meta property="og:title" content={`Blog | ${SITE_NAME}`} />
         <meta property="og:description" content="Artigos sobre cuidados com bebês, amamentação, sono infantil, desenvolvimento e dicas para pais." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${SITE_URL}/blog`} />
+        <meta property="og:url" content={canonical} />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`Blog | ${SITE_NAME}`} />

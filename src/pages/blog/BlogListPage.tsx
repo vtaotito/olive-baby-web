@@ -33,6 +33,17 @@ export function BlogListPage() {
   const posts = postsData?.data || [];
   const pagination = postsData?.pagination;
   const categories = categoriesData?.data || [];
+  const hasActiveFilter = !!(category || tag || search);
+  const isEmptyFiltered = !isLoading && posts.length === 0 && hasActiveFilter;
+  const listCanonical = (() => {
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (tag) params.set('tag', tag);
+    if (search) params.set('q', search);
+    if (page > 1) params.set('page', String(page));
+    const qs = params.toString();
+    return `https://oliecare.cloud/blog${qs ? `?${qs}` : ''}`;
+  })();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +70,11 @@ export function BlogListPage() {
 
   return (
     <>
-      <BlogSEOHead listPage />
+      <BlogSEOHead
+        listPage
+        noIndex={isEmptyFiltered}
+        canonicalUrl={listCanonical}
+      />
 
       <div className="min-h-screen bg-sand-50">
         {/* Header */}

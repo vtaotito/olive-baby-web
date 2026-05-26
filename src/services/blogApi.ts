@@ -34,6 +34,12 @@ export const blogService = {
 
   getPostBySlug: async (slug: string) => {
     const response = await api.get<{ success: boolean; data: BlogPost }>(`/blog/posts/${slug}`);
+    if (response.status === 404) {
+      throw Object.assign(new Error('Artigo não encontrado'), { status: 404 });
+    }
+    if (!response.data?.success || !response.data?.data) {
+      throw Object.assign(new Error('Artigo não encontrado'), { status: 404 });
+    }
     return response.data;
   },
 

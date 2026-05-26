@@ -157,12 +157,14 @@ function ProfLandingRoute() {
 /**
  * Componente para rota "*" - redirect inteligente baseado na role
  */
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+
 function CatchAllRoute() {
   const { isAuthenticated, user } = useAuthStore();
   if (isAuthenticated && user) {
     return <Navigate to={getHomeForRole(user.role)} replace />;
   }
-  return <Navigate to="/login" replace />;
+  return <NotFoundPage />;
 }
 
 function App() {

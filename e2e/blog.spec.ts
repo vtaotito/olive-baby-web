@@ -42,6 +42,13 @@ test.describe('Blog OlieCare — público (humano)', () => {
     await expect(page).toHaveURL(/category=bebes/);
   });
 
+  test('post inexistente no SPA usa noindex (evita soft 404 no head)', async ({ page }) => {
+    await page.goto('/blog/slug-inexistente-spa-xyz', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { name: /não encontrado/i })).toBeVisible({ timeout: 20000 });
+    const robots = page.locator('head meta[name="robots"]');
+    await expect(robots).toHaveAttribute('content', /noindex/i);
+  });
+
   test('post individual renderiza título, conteúdo e meta tags via Helmet', async ({ page }) => {
     const slug = await getFirstPublishedSlug(page);
     test.skip(!slug, 'Sem posts publicados em produção.');
@@ -51,16 +58,14 @@ test.describe('Blog OlieCare — público (humano)', () => {
     // H1 do post
     await expect(page.locator('h1').first()).toBeVisible({ timeout: 15000 });
 
-    // Helmet deve injetar canonical no <head>
-    const canonical = page.locator('head > link[rel="canonical"]').last();
+    // Canonical e OG (SSR ou Helmet após hidratação)
+    const canonical = page.locator('head link[rel="canonical"]').first();
     await expect(canonical).toHaveAttribute('href', new RegExp(`/blog/${slug}$`));
 
-    // OG type article (Helmet pode injetar além do og:type=website do index.html base)
-    const ogArticle = page.locator('head > meta[property="og:type"][content="article"]');
-    await expect(ogArticle).toHaveCount(1);
+    const ogArticle = page.locator('head meta[property="og:type"][content="article"]');
+    await expect(ogArticle.first()).toBeAttached();
 
-    // Deve haver pelo menos um script JSON-LD do tipo BlogPosting
-    const jsonLd = page.locator('head > script[type="application/ld+json"]');
+    const jsonLd = page.locator('head script[type="application/ld+json"]');
     const count = await jsonLd.count();
     expect(count).toBeGreaterThanOrEqual(1);
   });
@@ -116,6 +121,23 @@ test.describe('Blog OlieCare — SEO server-side (Googlebot)', () => {
 
   test('SSR de slug inexistente devolve 404', async ({ request }) => {
     const res = await request.get(SSR_POST_API('slug-que-nao-existe-12345'), {
+      headers: { 'User-Agent': GOOGLEBOT_UA },
+    });
+    expect(res.status()).toBe(404);
+  });
+
+  test('URL pública /blog/slug-inexistente devolve 404 (não soft 404)', async ({ request }) => {
+    const res = await request.get('/blog/slug-que-nao-existe-12345', {
+      headers: { 'User-Agent': GOOGLEBOT_UA },
+    });
+    expect(res.status()).toBe(404);
+    const html = await res.text();
+    expect(html).toMatch(/nao encontrado|não encontrado/i);
+    expect(html).toMatch(/noindex/i);
+  });
+
+  test('listagem filtrada vazia devolve 404 no SSR', async ({ request }) => {
+    const res = await request.get(`${SSR_LIST_API}?category=categoria-inexistente-xyz`, {
       headers: { 'User-Agent': GOOGLEBOT_UA },
     });
     expect(res.status()).toBe(404);

@@ -77,6 +77,9 @@ services:
           "~*chrome-lighthouse" 1;
           "~*petalbot" 1;
           "~*screaming frog" 1;
+          "~*feedfetcher-google" 1;
+          "~*google-read-aloud" 1;
+          "~*google-extended" 1;
         }
 
         server { listen 80 default_server; server_name oliecare.cloud www.oliecare.cloud adm.oliecare.cloud prof.oliecare.cloud _;
@@ -86,8 +89,7 @@ services:
           location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $$scheme; proxy_read_timeout 90s; }
           location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; proxy_set_header X-Forwarded-Proto $$scheme; }
           location ~ ^/blog/(?<oc_slug>[A-Za-z0-9][A-Za-z0-9_\-]*)/?$$ {
-            if ($$oc_is_bot = 1) { rewrite ^ /__blog-ssr-post/$$oc_slug last; }
-            proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr;
+            rewrite ^ /__blog-ssr-post/$$oc_slug last;
           }
           location ~ ^/__blog-ssr-post/(?<oc_ssr_slug>.+)$$ {
             internal;
@@ -124,8 +126,7 @@ services:
           location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; proxy_read_timeout 90s; }
           location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
           location ~ ^/blog/(?<oc_slug>[A-Za-z0-9][A-Za-z0-9_\-]*)/?$$ {
-            if ($$oc_is_bot = 1) { rewrite ^ /__blog-ssr-post/$$oc_slug last; }
-            proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr;
+            rewrite ^ /__blog-ssr-post/$$oc_slug last;
           }
           location ~ ^/__blog-ssr-post/(?<oc_ssr_slug>.+)$$ {
             internal;

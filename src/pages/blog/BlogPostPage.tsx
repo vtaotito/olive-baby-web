@@ -8,10 +8,11 @@ import { blogService } from '../../services/blogApi';
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: postData, isLoading, error } = useQuery({
+  const { data: postData, isLoading, isError } = useQuery({
     queryKey: ['blog-post', slug],
     queryFn: () => blogService.getPostBySlug(slug!),
     enabled: !!slug,
+    retry: false,
   });
 
   const post = postData?.data;
@@ -27,14 +28,20 @@ export function BlogPostPage() {
     );
   }
 
-  if (error || !post) {
+  if (isError || !post) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-        <p className="text-lg text-gray-500 mb-4">Artigo não encontrado</p>
-        <Link to="/blog" className="text-olive-600 hover:text-olive-700 font-medium">
-          Voltar ao Blog
-        </Link>
-      </div>
+      <>
+        <BlogSEOHead notFound notFoundSlug={slug} />
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Artigo não encontrado</h1>
+          <p className="text-gray-500 mb-4 text-center max-w-md">
+            Este artigo não existe, não está publicado ou foi removido.
+          </p>
+          <Link to="/blog" className="text-olive-600 hover:text-olive-700 font-medium">
+            Voltar ao Blog
+          </Link>
+        </div>
+      </>
     );
   }
 
