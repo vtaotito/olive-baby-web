@@ -16,7 +16,21 @@ services:
     command:
       - -c
       - |
+        mkdir -p /etc/nginx/snippets
+        cat > /etc/nginx/snippets/security-headers.conf <<'SH1'
+        # Security headers globais (aplicados via include em cada server block)
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=(self), usb=(), accelerometer=(), gyroscope=(), magnetometer=()" always;
+        add_header X-XSS-Protection "0" always;
+        add_header X-Permitted-Cross-Domain-Policies "none" always;
+        add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;
+        add_header Content-Security-Policy-Report-Only "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;" always;
+        SH1
         cat > /etc/nginx/conf.d/default.conf <<'C1'
+        server_tokens off;
         resolver 127.0.0.11 valid=30s ipv6=off;
 
         # ---------------------------------------------------------------
@@ -126,7 +140,7 @@ services:
             proxy_pass http://bhost:4000/api/v1/blog/ssr$$is_args$$args; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https;
           }
           location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
-          add_header Strict-Transport-Security "max-age=31536000" always;
+          include /etc/nginx/snippets/security-headers.conf;
         }
         S1
         fi
@@ -140,7 +154,7 @@ services:
           location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
           location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
           location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
-          add_header Strict-Transport-Security "max-age=31536000" always;
+          include /etc/nginx/snippets/security-headers.conf;
         }
         S2
         fi
@@ -154,7 +168,7 @@ services:
           location /api/ { proxy_pass http://bhost:4000/api/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
           location /ads-api/ { proxy_pass http://bhost:3002/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
           location / { proxy_pass $$upstream_web; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Real-IP $$remote_addr; }
-          add_header Strict-Transport-Security "max-age=31536000" always;
+          include /etc/nginx/snippets/security-headers.conf;
         }
         S3
         fi
@@ -164,7 +178,7 @@ services:
           ssl_certificate /etc/letsencrypt/live/n8n.oliecare.cloud/fullchain.pem; ssl_certificate_key /etc/letsencrypt/live/n8n.oliecare.cloud/privkey.pem;
           ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
           location / { proxy_pass http://bhost:5678; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header Upgrade $$http_upgrade; proxy_set_header Connection "upgrade"; proxy_buffering off; proxy_read_timeout 86400s; }
-          add_header Strict-Transport-Security "max-age=31536000" always;
+          include /etc/nginx/snippets/security-headers.conf;
         }
         S4
         fi
@@ -175,7 +189,7 @@ services:
           ssl_protocols TLSv1.2 TLSv1.3; ssl_ciphers HIGH:!aNULL:!MD5;
           location /api/ { proxy_pass http://bhost:3001/; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header X-Forwarded-Proto https; }
           location / { proxy_pass http://bhost:3000; proxy_http_version 1.1; proxy_set_header Host $$host; proxy_set_header Upgrade $$http_upgrade; proxy_set_header Connection "upgrade"; }
-          add_header Strict-Transport-Security "max-age=31536000" always;
+          include /etc/nginx/snippets/security-headers.conf;
         }
         S5
         fi
