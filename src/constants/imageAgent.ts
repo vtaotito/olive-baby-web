@@ -1,5 +1,13 @@
 export type ImageAgentFormat = 'blog' | 'instagram';
 
+export type ImageGenerationProvider = 'gemini' | 'openai' | 'pollinations';
+
+export const IMAGE_PROVIDER_LABELS: Record<ImageGenerationProvider, string> = {
+  gemini: 'Google Gemini',
+  openai: 'OpenAI',
+  pollinations: 'Pollinations (fallback)',
+};
+
 export type ImageAgentTemplateId = 'essencial' | 'jardim' | 'impulso' | 'afeto';
 
 export interface ImageAgentPostData {

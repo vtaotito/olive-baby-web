@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { Download, ImageIcon, Loader2, Sparkles, Wand2 } from 'lucide-react';
@@ -8,9 +8,11 @@ import { ImageAgentCanvas } from '../../components/admin/image-agent/ImageAgentC
 import {
   IMAGE_AGENT_FORMATS,
   IMAGE_AGENT_TEMPLATES,
+  IMAGE_PROVIDER_LABELS,
   type ImageAgentFormat,
   type ImageAgentPostData,
   type ImageAgentTemplateId,
+  type ImageGenerationProvider,
 } from '../../constants/imageAgent';
 import { imageAgentService } from '../../services/imageAgentApi';
 import { cn } from '../../lib/utils';
@@ -32,8 +34,26 @@ export function AdminImageAgentPage() {
   const [loadingCopy, setLoadingCopy] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [providers, setProviders] = useState<ImageGenerationProvider[]>([]);
+  const [imageProvider, setImageProvider] = useState<ImageGenerationProvider>('gemini');
+  const [lastGeneratedProvider, setLastGeneratedProvider] = useState<ImageGenerationProvider | null>(null);
 
   const previewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    imageAgentService
+      .getConfig()
+      .then(result => {
+        if (result.data) {
+          setProviders(result.data.providers);
+          setImageProvider(result.data.defaultProvider);
+        }
+      })
+      .catch(() => {
+        setProviders(['pollinations']);
+        setImageProvider('pollinations');
+      });
+  }, []);
 
   const postData: ImageAgentPostData = {
     destaque,
@@ -88,12 +108,14 @@ export function AdminImageAgentPage() {
         customPrompt: customPrompt || undefined,
         format,
         templateId,
+        provider: imageProvider,
       });
       if (result.data?.imageUrl) {
         setBackgroundImageUrl(result.data.imageUrl);
+        setLastGeneratedProvider(result.data.provider);
       }
     } catch {
-      setError('Erro ao gerar imagem com OpenAI. Verifique a API key.');
+      setError(`Erro ao gerar imagem (${IMAGE_PROVIDER_LABELS[imageProvider]}). Verifique a API key no servidor.`);
     } finally {
       setLoadingImage(false);
     }
@@ -126,7 +148,7 @@ export function AdminImageAgentPage() {
   return (
     <AdminLayout
       title="Agente de Imagens"
-      subtitle="Templates OlieCare com geração via OpenAI — blog e redes sociais"
+      subtitle="Templates OlieCare com geração via Gemini, OpenAI ou Pollinations — blog e redes sociais"
     >
       <div className="flex flex-col xl:flex-row gap-6">
         {/* Painel esquerdo */}
@@ -228,6 +250,36 @@ export function AdminImageAgentPage() {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Provedor de imagem
+              </label>
+              {providers.length === 0 ? (
+                <p className="text-sm text-gray-500">Carregando provedores...</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {providers.map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setImageProvider(p)}
+                      className={cn(
+                        'text-left px-3 py-2 rounded-lg border text-sm transition-colors',
+                        imageProvider === p
+                          ? 'border-olive-500 bg-olive-50 text-olive-800'
+                          : 'border-gray-200 hover:border-olive-200'
+                      )}
+                    >
+                      <span className="font-semibold">{IMAGE_PROVIDER_LABELS[p]}</span>
+                      {p === 'gemini' && (
+                        <span className="block text-xs text-gray-500 mt-0.5">Recomendado — gemini-2.5-flash-image</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Prompt extra (imagem IA)</label>
               <textarea
                 value={customPrompt}
@@ -242,11 +294,19 @@ export function AdminImageAgentPage() {
               fullWidth
               variant="secondary"
               onClick={generateImage}
-              disabled={loadingImage}
+              disabled={loadingImage || providers.length === 0}
               leftIcon={loadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
             >
-              {loadingImage ? 'Gerando imagem...' : 'Gerar foto de fundo (OpenAI)'}
+              {loadingImage
+                ? 'Gerando imagem...'
+                : `Gerar foto de fundo (${IMAGE_PROVIDER_LABELS[imageProvider]})`}
             </Button>
+
+            {lastGeneratedProvider && backgroundImageUrl && (
+              <p className="text-xs text-gray-500">
+                Última imagem gerada com {IMAGE_PROVIDER_LABELS[lastGeneratedProvider]}.
+              </p>
+            )}
 
             {error && (
               <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>
