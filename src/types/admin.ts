@@ -179,13 +179,16 @@ export interface AdminUserDetails extends AdminUser {
     id: number;
     name: string;
     birthDate: string;
+    gender?: string | null;
     role: string;
     status: string;
+    source?: string;
   }>;
   // Extended data for profile drawer
   routinesLast7d?: number;
   routinesLast30d?: number;
   paywallHits?: number;
+  lastLoginAt?: string | null;
   churnRiskScore?: number;
 }
 

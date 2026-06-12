@@ -43,18 +43,64 @@ const ROLE_OPTIONS = [
 ] as const;
 
 const AUDIT_LABELS: Record<string, { label: string; tone: 'info' | 'warning' | 'danger' | 'success' }> = {
+  // Usuário
   USER_LOGIN: { label: 'Login realizado', tone: 'info' },
-  ADMIN_PLAN_CHANGED: { label: 'Plano alterado', tone: 'warning' },
+  USER_LOGOUT: { label: 'Logout', tone: 'info' },
+  USER_REGISTERED: { label: 'Conta criada', tone: 'success' },
+  USER_PASSWORD_CHANGED: { label: 'Senha alterada', tone: 'warning' },
+  USER_PROFILE_UPDATED: { label: 'Perfil atualizado', tone: 'info' },
+  // Plano e billing
+  PAYWALL_HIT: { label: 'Paywall acionado', tone: 'warning' },
+  PLAN_UPGRADED: { label: 'Upgrade de plano', tone: 'success' },
+  PLAN_DOWNGRADED: { label: 'Downgrade de plano', tone: 'warning' },
+  SUBSCRIPTION_CREATED: { label: 'Assinatura criada', tone: 'success' },
+  SUBSCRIPTION_CANCELED: { label: 'Assinatura cancelada', tone: 'danger' },
+  // Ações administrativas
+  ADMIN_PLAN_CHANGED: { label: 'Plano alterado pelo admin', tone: 'warning' },
   ADMIN_USER_BLOCKED: { label: 'Usuário bloqueado', tone: 'danger' },
   ADMIN_USER_UNBLOCKED: { label: 'Usuário desbloqueado', tone: 'success' },
   ADMIN_USER_ROLE_CHANGED: { label: 'Role alterada', tone: 'warning' },
   ADMIN_IMPERSONATE_START: { label: 'Impersonação iniciada', tone: 'warning' },
-  PAYWALL_HIT: { label: 'Paywall acionado', tone: 'info' },
-  FEATURE_USAGE: { label: 'Feature usada', tone: 'info' },
-  ROUTINE_CREATED: { label: 'Rotina criada', tone: 'info' },
-  BABY_CREATED: { label: 'Bebê cadastrado', tone: 'success' },
-  BABY_SHARED: { label: 'Bebê compartilhado', tone: 'info' },
+  ADMIN_IMPERSONATE_END: { label: 'Impersonação encerrada', tone: 'info' },
+  // Uso de features
+  FEATURE_EXPORT_PDF: { label: 'Exportou PDF', tone: 'info' },
+  FEATURE_EXPORT_CSV: { label: 'Exportou CSV', tone: 'info' },
+  FEATURE_AI_CHAT: { label: 'Usou assistente IA', tone: 'info' },
+  FEATURE_BABY_CREATED: { label: 'Bebê cadastrado', tone: 'success' },
+  FEATURE_PROFESSIONAL_INVITED: { label: 'Profissional convidado', tone: 'info' },
 };
+
+const BABY_ROLE_LABELS: Record<string, string> = {
+  PRIMARY_CAREGIVER: 'Responsável principal',
+  MOTHER: 'Mãe',
+  FATHER: 'Pai',
+  PARENT: 'Pai/Mãe',
+  GUARDIAN: 'Guardião',
+  CAREGIVER: 'Cuidador',
+  GRANDPARENT: 'Avô/Avó',
+  FAMILY: 'Familiar',
+  VIEWER: 'Visualizador',
+  EDITOR: 'Editor',
+  OTHER: 'Outro',
+};
+
+const BABY_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Ativo',
+  PENDING: 'Pendente',
+  REVOKED: 'Revogado',
+  INACTIVE: 'Inativo',
+};
+
+function babyAge(birthDate: string): string {
+  const birth = new Date(birthDate);
+  const months =
+    (Date.now() - birth.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+  if (months < 0) return 'a nascer';
+  if (months < 1) return `${Math.max(1, Math.floor(months * 30.44))} dias`;
+  if (months < 24) return `${Math.floor(months)} ${Math.floor(months) === 1 ? 'mês' : 'meses'}`;
+  const years = Math.floor(months / 12);
+  return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+}
 
 function AuditToneDot({ tone }: { tone: string }) {
   const colors: Record<string, string> = {
@@ -82,8 +128,8 @@ function AuditTimeline({ events }: { events: AuditEvent[] }) {
         const meta = evt.metadata as Record<string, unknown> | null;
         const detail = meta
           ? Object.entries(meta)
-              .filter(([k]) => !['targetEmail', 'action'].includes(k))
-              .map(([k, v]) => `${k}: ${v}`)
+              .filter(([k, v]) => !['targetEmail', 'action'].includes(k) && v !== null && v !== undefined)
+              .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
               .join(' · ')
           : null;
 
@@ -248,6 +294,15 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
                   <h3 className="text-lg font-semibold text-gray-900 truncate">
                     {user.caregiver?.fullName || 'Sem nome'}
                   </h3>
+                  {user.status === 'BLOCKED' ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-100 text-rose-700 text-xs font-medium rounded-full">
+                      <Ban className="w-3 h-3" /> Bloqueado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
+                      <CheckCircle className="w-3 h-3" /> Ativo
+                    </span>
+                  )}
                   {user.role === 'ADMIN' && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
                       <Shield className="w-3 h-3" /> Admin
@@ -280,10 +335,10 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
                       {user.caregiver.city}{user.caregiver.state ? `, ${user.caregiver.state}` : ''}
                     </span>
                   )}
-                  {user.lastActivityAt && (
+                  {(user.lastActivityAt || user.lastLoginAt) && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      Último acesso: {new Date(user.lastActivityAt).toLocaleDateString('pt-BR')}
+                      Último acesso: {new Date(user.lastActivityAt || user.lastLoginAt!).toLocaleDateString('pt-BR')}
                     </span>
                   )}
                 </div>
@@ -319,8 +374,20 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-2.5">
             <div className="bg-gray-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">{user.babiesCount}</p>
+              <p className="text-2xl font-bold text-gray-900">{user.babiesCount ?? user.babies.length}</p>
               <p className="text-[11px] text-gray-500">Bebês</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-gray-900">{user.routinesLast7d ?? '—'}</p>
+              <p className="text-[11px] text-gray-500">Rotinas (7d)</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-gray-900">{user.routinesLast30d ?? '—'}</p>
+              <p className="text-[11px] text-gray-500">Rotinas (30d)</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-gray-900">{user.paywallHits ?? '—'}</p>
+              <p className="text-[11px] text-gray-500">Paywall</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-gray-900">
@@ -330,7 +397,7 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
               </p>
               <p className="text-[11px] text-gray-500">Inativo</p>
             </div>
-            <div className="bg-gray-50 rounded-xl p-3 text-center">
+            <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-center">
               <StatusBadge status={health.status} showIcon={false} size="sm" />
             </div>
           </div>
@@ -444,20 +511,29 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
                   <div className="space-y-2">
                     {user.babies.map((baby) => (
                       <div key={baby.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center">
-                          <Baby className="w-5 h-5 text-violet-600" />
+                        <div className={cn(
+                          'w-10 h-10 rounded-full flex items-center justify-center',
+                          baby.gender === 'MALE' ? 'bg-sky-100' : baby.gender === 'FEMALE' ? 'bg-pink-100' : 'bg-violet-100'
+                        )}>
+                          <Baby className={cn(
+                            'w-5 h-5',
+                            baby.gender === 'MALE' ? 'text-sky-600' : baby.gender === 'FEMALE' ? 'text-pink-600' : 'text-violet-600'
+                          )} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 text-sm truncate">{baby.name}</p>
+                          <p className="font-medium text-gray-900 text-sm truncate">
+                            {baby.name}
+                            <span className="ml-1.5 font-normal text-gray-400">· {babyAge(baby.birthDate)}</span>
+                          </p>
                           <p className="text-xs text-gray-500">
-                            {new Date(baby.birthDate).toLocaleDateString('pt-BR')} · {baby.role}
+                            Nasc. {new Date(baby.birthDate).toLocaleDateString('pt-BR')} · {BABY_ROLE_LABELS[baby.role] || baby.role}
                           </p>
                         </div>
                         <span className={cn(
                           'px-2 py-0.5 text-[11px] font-medium rounded-full',
                           baby.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
                         )}>
-                          {baby.status}
+                          {BABY_STATUS_LABELS[baby.status] || baby.status}
                         </span>
                       </div>
                     ))}
