@@ -6,15 +6,10 @@ import type {
 } from '../constants/imageAgent';
 
 export interface ImageAgentCopyResult {
-  destaque: string;
   titulo: string;
-  corpo: string;
+  cta: string;
+  legenda: string;
   hashtags: string[];
-}
-
-export interface ImageAgentConfig {
-  providers: ImageGenerationProvider[];
-  defaultProvider: ImageGenerationProvider;
 }
 
 export interface ImageAgentImageResult {
@@ -22,6 +17,12 @@ export interface ImageAgentImageResult {
   prompt: string;
   filename: string;
   provider: ImageGenerationProvider;
+  fallbackFrom?: ImageGenerationProvider;
+}
+
+export interface ImageAgentConfig {
+  providers: ImageGenerationProvider[];
+  defaultProvider: ImageGenerationProvider;
 }
 
 export const imageAgentService = {

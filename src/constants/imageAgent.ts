@@ -11,10 +11,8 @@ export const IMAGE_PROVIDER_LABELS: Record<ImageGenerationProvider, string> = {
 export type ImageAgentTemplateId = 'essencial' | 'jardim' | 'impulso' | 'afeto';
 
 export interface ImageAgentPostData {
-  destaque: string;
   titulo: string;
-  corpo: string;
-  hashtags: string[];
+  cta: string;
   backgroundImageUrl?: string;
 }
 

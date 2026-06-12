@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
+import axios from 'axios';
 import { Download, ImageIcon, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
@@ -17,6 +18,15 @@ import {
 import { imageAgentService } from '../../services/imageAgentApi';
 import { cn } from '../../lib/utils';
 
+const DEFAULT_CTA = 'Conheça o OlieCare';
+
+function extractApiError(err: unknown): string {
+  if (axios.isAxiosError(err)) {
+    return (err.response?.data as { message?: string })?.message || err.message;
+  }
+  return 'Erro inesperado. Tente novamente.';
+}
+
 export function AdminImageAgentPage() {
   const [searchParams] = useSearchParams();
   const initialFormat = (searchParams.get('format') === 'instagram' ? 'instagram' : 'blog') as ImageAgentFormat;
@@ -24,13 +34,14 @@ export function AdminImageAgentPage() {
   const [format, setFormat] = useState<ImageAgentFormat>(initialFormat);
   const [templateId, setTemplateId] = useState<ImageAgentTemplateId>('essencial');
   const [topico, setTopico] = useState(searchParams.get('topico') || '');
-  const [destaque, setDestaque] = useState('');
   const [titulo, setTitulo] = useState('');
-  const [corpo, setCorpo] = useState('');
+  const [cta, setCta] = useState(DEFAULT_CTA);
+  const [legenda, setLegenda] = useState('');
   const [hashtagsText, setHashtagsText] = useState('#oliecare #maternidade');
   const [backgroundImageUrl, setBackgroundImageUrl] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loadingCopy, setLoadingCopy] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -56,10 +67,8 @@ export function AdminImageAgentPage() {
   }, []);
 
   const postData: ImageAgentPostData = {
-    destaque,
     titulo,
-    corpo,
-    hashtags: hashtagsText.split(/[\s,]+/).filter(Boolean),
+    cta,
     backgroundImageUrl: backgroundImageUrl || undefined,
   };
 
@@ -77,17 +86,18 @@ export function AdminImageAgentPage() {
       return;
     }
     setError('');
+    setInfo('');
     setLoadingCopy(true);
     try {
       const result = await imageAgentService.generateCopy({ topico, format, templateId });
       if (result.data) {
-        setDestaque(result.data.destaque);
         setTitulo(result.data.titulo);
-        setCorpo(result.data.corpo);
+        setCta(result.data.cta || DEFAULT_CTA);
+        setLegenda(result.data.legenda);
         setHashtagsText(result.data.hashtags.join(' '));
       }
-    } catch {
-      setError('Erro ao gerar conteúdo. Tente novamente.');
+    } catch (err) {
+      setError(extractApiError(err));
     } finally {
       setLoadingCopy(false);
     }
@@ -100,11 +110,11 @@ export function AdminImageAgentPage() {
       return;
     }
     setError('');
+    setInfo('');
     setLoadingImage(true);
     try {
       const result = await imageAgentService.generateImage({
         topico: topic,
-        excerpt: corpo || destaque,
         customPrompt: customPrompt || undefined,
         format,
         templateId,
@@ -113,9 +123,14 @@ export function AdminImageAgentPage() {
       if (result.data?.imageUrl) {
         setBackgroundImageUrl(result.data.imageUrl);
         setLastGeneratedProvider(result.data.provider);
+        if (result.data.fallbackFrom) {
+          setInfo(
+            `Gemini indisponível (créditos/cota). Imagem gerada com ${IMAGE_PROVIDER_LABELS[result.data.provider]}. Recarregue créditos em ai.google.dev.`
+          );
+        }
       }
-    } catch {
-      setError(`Erro ao gerar imagem (${IMAGE_PROVIDER_LABELS[imageProvider]}). Verifique a API key no servidor.`);
+    } catch (err) {
+      setError(extractApiError(err));
     } finally {
       setLoadingImage(false);
     }
@@ -148,10 +163,9 @@ export function AdminImageAgentPage() {
   return (
     <AdminLayout
       title="Agente de Imagens"
-      subtitle="Templates OlieCare com geração via Gemini, OpenAI ou Pollinations — blog e redes sociais"
+      subtitle="Publicações humanizadas OlieCare — título + CTA sobre foto gerada por IA"
     >
       <div className="flex flex-col xl:flex-row gap-6">
-        {/* Painel esquerdo */}
         <div className="w-full xl:w-[380px] shrink-0 space-y-4">
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <div>
@@ -218,36 +232,43 @@ export function AdminImageAgentPage() {
               disabled={loadingCopy}
               leftIcon={loadingCopy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             >
-              {loadingCopy ? 'Gerando texto...' : 'Gerar texto com IA (OpenAI)'}
+              {loadingCopy ? 'Gerando...' : 'Gerar título e CTA com IA'}
             </Button>
 
             <div className="border-t border-gray-100 pt-4 space-y-3">
-              <input
-                value={destaque}
-                onChange={e => setDestaque(e.target.value)}
-                placeholder="Destaque"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Na imagem exportada</p>
               <input
                 value={titulo}
                 onChange={e => setTitulo(e.target.value)}
-                placeholder="Título"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-              <textarea
-                value={corpo}
-                onChange={e => setCorpo(e.target.value)}
-                placeholder="Corpo do post"
-                rows={3}
+                placeholder="Título principal"
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
               />
               <input
-                value={hashtagsText}
-                onChange={e => setHashtagsText(e.target.value)}
-                placeholder="#oliecare #maternidade"
+                value={cta}
+                onChange={e => setCta(e.target.value)}
+                placeholder="Call to action (ex: Saiba mais)"
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
               />
             </div>
+
+            <details className="text-sm">
+              <summary className="cursor-pointer text-gray-500 hover:text-gray-700">Legenda para o editor (não vai no PNG)</summary>
+              <div className="mt-2 space-y-2">
+                <textarea
+                  value={legenda}
+                  onChange={e => setLegenda(e.target.value)}
+                  placeholder="Legenda do post para blog/redes"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+                <input
+                  value={hashtagsText}
+                  onChange={e => setHashtagsText(e.target.value)}
+                  placeholder="#oliecare #maternidade"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              </div>
+            </details>
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -271,7 +292,7 @@ export function AdminImageAgentPage() {
                     >
                       <span className="font-semibold">{IMAGE_PROVIDER_LABELS[p]}</span>
                       {p === 'gemini' && (
-                        <span className="block text-xs text-gray-500 mt-0.5">Recomendado — gemini-2.5-flash-image</span>
+                        <span className="block text-xs text-gray-500 mt-0.5">Requer créditos em ai.google.dev</span>
                       )}
                     </button>
                   ))}
@@ -280,12 +301,12 @@ export function AdminImageAgentPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prompt extra (imagem IA)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Prompt extra (foto de fundo)</label>
               <textarea
                 value={customPrompt}
                 onChange={e => setCustomPrompt(e.target.value)}
                 rows={2}
-                placeholder="Opcional — refinamento do fundo fotográfico"
+                placeholder="Opcional — ex: mãe abraçando bebê em quarto iluminado"
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
               />
             </div>
@@ -298,14 +319,18 @@ export function AdminImageAgentPage() {
               leftIcon={loadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
             >
               {loadingImage
-                ? 'Gerando imagem...'
+                ? 'Gerando foto de fundo...'
                 : `Gerar foto de fundo (${IMAGE_PROVIDER_LABELS[imageProvider]})`}
             </Button>
 
-            {lastGeneratedProvider && backgroundImageUrl && (
+            {lastGeneratedProvider && backgroundImageUrl && !info && (
               <p className="text-xs text-gray-500">
-                Última imagem gerada com {IMAGE_PROVIDER_LABELS[lastGeneratedProvider]}.
+                Foto gerada com {IMAGE_PROVIDER_LABELS[lastGeneratedProvider]}.
               </p>
+            )}
+
+            {info && (
+              <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{info}</p>
             )}
 
             {error && (
@@ -328,7 +353,7 @@ export function AdminImageAgentPage() {
                 state={{
                   coverImageUrl: backgroundImageUrl,
                   title: titulo,
-                  excerpt: corpo,
+                  excerpt: legenda,
                 }}
                 className="text-center text-sm text-olive-600 hover:text-olive-700 font-medium py-2"
               >
@@ -338,11 +363,10 @@ export function AdminImageAgentPage() {
           </div>
         </div>
 
-        {/* Preview */}
         <div className="flex-1 flex flex-col items-center">
           <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
             <ImageIcon className="w-4 h-4" />
-            Preview — {dims.width}×{dims.height}
+            Preview — {dims.width}×{dims.height} · só título + CTA
           </div>
           <div
             ref={previewRef}
