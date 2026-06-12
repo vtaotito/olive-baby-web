@@ -234,9 +234,10 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
     const reasons: string[] = [];
     let status: HealthStatus = 'healthy';
 
-    if (user.lastActivityAt) {
+    const lastActivity = user.lastActivityAt || user.lastLoginAt;
+    if (lastActivity) {
       const daysSinceActivity = Math.floor(
-        (Date.now() - new Date(user.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24)
       );
       if (daysSinceActivity > 14) {
         status = 'critical';
@@ -391,8 +392,8 @@ export function UserProfileDrawer({ userId, isOpen, onClose }: UserProfileDrawer
             </div>
             <div className="bg-gray-50 rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-gray-900">
-                {user.lastActivityAt
-                  ? `${Math.floor((Date.now() - new Date(user.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24))}d`
+                {(user.lastActivityAt || user.lastLoginAt)
+                  ? `${Math.floor((Date.now() - new Date(user.lastActivityAt || user.lastLoginAt!).getTime()) / (1000 * 60 * 60 * 24))}d`
                   : '—'}
               </p>
               <p className="text-[11px] text-gray-500">Inativo</p>
