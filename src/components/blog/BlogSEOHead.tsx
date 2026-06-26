@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import type { BlogPost } from '../../types/blog';
+import { SITE_NAME, withBrand } from '../../lib/seo';
 
 interface BlogSEOHeadProps {
   post?: BlogPost;
@@ -8,10 +9,35 @@ interface BlogSEOHeadProps {
   notFoundSlug?: string;
   noIndex?: boolean;
   canonicalUrl?: string;
+  /** Nome legível da categoria filtrada (para compor o <title>). */
+  categoryName?: string;
+  /** Nome legível da tag filtrada (para compor o <title>). */
+  tagName?: string;
+  /** Termo de busca ativo (para compor o <title>). */
+  searchQuery?: string;
+  /** Página atual da listagem (>1 acrescenta sufixo). */
+  page?: number;
 }
 
-const SITE_NAME = 'OlieCare';
 const SITE_URL = 'https://oliecare.cloud';
+const BLOG_BASE_TITLE = 'Blog OlieCare — Cuidados com Bebê Baseados em Evidências';
+
+/** Compõe o título da listagem do blog (default, categoria, tag ou busca). */
+function buildListTitle(opts: {
+  categoryName?: string;
+  tagName?: string;
+  searchQuery?: string;
+  page?: number;
+}): string {
+  let title: string;
+  if (opts.categoryName) title = `${opts.categoryName} | Blog OlieCare`;
+  else if (opts.tagName) title = `${opts.tagName} | Blog OlieCare`;
+  else if (opts.searchQuery) title = `Busca por "${opts.searchQuery}" | Blog OlieCare`;
+  else title = BLOG_BASE_TITLE;
+
+  if (opts.page && opts.page > 1) title = `${title} — Página ${opts.page}`;
+  return title;
+}
 
 export function BlogSEOHead({
   post,
@@ -20,6 +46,10 @@ export function BlogSEOHead({
   notFoundSlug,
   noIndex,
   canonicalUrl,
+  categoryName,
+  tagName,
+  searchQuery,
+  page,
 }: BlogSEOHeadProps) {
   if (notFound) {
     return (
@@ -44,20 +74,21 @@ export function BlogSEOHead({
       ? 'noindex, follow'
       : 'index, follow, max-snippet:-1, max-image-preview:large';
     const canonical = canonicalUrl || `${SITE_URL}/blog`;
+    const listTitle = buildListTitle({ categoryName, tagName, searchQuery, page });
 
     return (
       <Helmet>
-        <title>Blog | {SITE_NAME} - Cuidados com Bebê</title>
+        <title>{listTitle}</title>
         <meta name="description" content="Artigos sobre cuidados com bebês, amamentação, sono infantil, desenvolvimento e dicas para pais. Conteúdo baseado em evidências." />
         <meta name="robots" content={robots} />
         <link rel="canonical" href={canonical} />
-        <meta property="og:title" content={`Blog | ${SITE_NAME}`} />
+        <meta property="og:title" content={listTitle} />
         <meta property="og:description" content="Artigos sobre cuidados com bebês, amamentação, sono infantil, desenvolvimento e dicas para pais." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonical} />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`Blog | ${SITE_NAME}`} />
+        <meta name="twitter:title" content={listTitle} />
         <meta name="twitter:description" content="Artigos sobre cuidados com bebês, amamentação, sono infantil, desenvolvimento e dicas para pais." />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -142,7 +173,7 @@ export function BlogSEOHead({
 
   return (
     <Helmet>
-      <title>{title} | {SITE_NAME}</title>
+      <title>{withBrand(title)}</title>
       <meta name="description" content={description} />
       {post.seoKeywords?.length > 0 && (
         <meta name="keywords" content={post.seoKeywords.join(', ')} />

@@ -6,6 +6,7 @@ import { BlogSEOHead } from '../../components/blog/BlogSEOHead';
 import { BlogCard } from '../../components/blog/BlogCard';
 import { blogService } from '../../services/blogApi';
 import { cn } from '../../lib/utils';
+import { prettifySlug } from '../../lib/seo';
 
 export function BlogListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,6 +34,10 @@ export function BlogListPage() {
   const posts = postsData?.data || [];
   const pagination = postsData?.pagination;
   const categories = categoriesData?.data || [];
+  const categoryName = category
+    ? categories.find((c) => c.slug === category)?.name || prettifySlug(category)
+    : undefined;
+  const tagName = tag ? prettifySlug(tag) : undefined;
   const hasActiveFilter = !!(category || tag || search);
   const isEmptyFiltered = !isLoading && posts.length === 0 && hasActiveFilter;
   const listCanonical = (() => {
@@ -74,6 +79,10 @@ export function BlogListPage() {
         listPage
         noIndex={isEmptyFiltered}
         canonicalUrl={listCanonical}
+        categoryName={categoryName}
+        tagName={tagName}
+        searchQuery={search || undefined}
+        page={page}
       />
 
       <div className="min-h-screen bg-sand-50">

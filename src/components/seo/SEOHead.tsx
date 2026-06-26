@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
+import { SITE_NAME, withBrand } from '../../lib/seo';
 
 const SITE_URL = 'https://oliecare.cloud';
-const SITE_NAME = 'OlieCare';
 const DEFAULT_TITLE = 'OlieCare - Acompanhe a Rotina do Bebê | Alimentação, Sono e Fraldas';
 const DEFAULT_DESCRIPTION = 'OlieCare é o app gratuito para acompanhar a rotina do seu bebê. Registre alimentação, sono, fraldas e banho. Receba insights com IA e tenha mais tranquilidade na maternidade e paternidade.';
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
@@ -25,7 +25,7 @@ export function SEOHead({
   type = 'website',
   jsonLd,
 }: SEOHeadProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE;
+  const fullTitle = title ? withBrand(title) : DEFAULT_TITLE;
   const canonicalUrl = canonical ? `${SITE_URL}${canonical}` : undefined;
 
   return (
