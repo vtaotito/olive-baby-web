@@ -14,7 +14,24 @@ import { BlogMarkdown } from '../../components/blog/BlogMarkdown';
 import { adminBlogService } from '../../services/blogApi';
 import { cn } from '../../lib/utils';
 import { invalidateBlogCaches } from '../../lib/blogCache';
-import type { BlogPostStatus, TopicSuggestion } from '../../types/blog';
+import type { BlogPostStatus, TopicSuggestion, ContentAudience } from '../../types/blog';
+import { AUDIENCE_LABELS } from '../../types/blog';
+import { IMAGE_AGENT_TEMPLATES, type ImageAgentTemplateId } from '../../constants/imageAgent';
+
+const AUDIENCE_ORDER: ContentAudience[] = [
+  'b2c_parents',
+  'b2b_pediatricians',
+  'b2b_lactation',
+  'b2b_caregivers',
+];
+
+/** Template visual padrão sugerido por audiência (alinhado ao agente do n8n). */
+const AUDIENCE_DEFAULT_TEMPLATE: Record<ContentAudience, ImageAgentTemplateId> = {
+  b2c_parents: 'jardim',
+  b2b_pediatricians: 'impulso',
+  b2b_lactation: 'afeto',
+  b2b_caregivers: 'essencial',
+};
 
 const STATUS_LABELS: Record<BlogPostStatus, string> = {
   IDEA: 'Ideia',
@@ -76,9 +93,18 @@ export function AdminBlogPostEditorPage() {
   const [seoKeywords, setSeoKeywords] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'content' | 'seo'>('content');
   const [contentView, setContentView] = useState<'write' | 'preview'>('write');
+  const [audience, setAudience] = useState<ContentAudience>(
+    topicFromNav?.audience || 'b2c_parents'
+  );
+  const [imageTemplate, setImageTemplate] = useState<ImageAgentTemplateId>(
+    AUDIENCE_DEFAULT_TEMPLATE[topicFromNav?.audience || 'b2c_parents']
+  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGeneratingInline, setIsGeneratingInline] = useState(false);
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+  const [generateAllStep, setGenerateAllStep] = useState('');
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -265,6 +291,16 @@ export function AdminBlogPostEditorPage() {
     if (file) void handleImageUpload(file);
   };
 
+  /** Tenta casar o nome de categoria sugerido pela IA com uma categoria existente. */
+  const resolveCategoryId = useCallback((name?: string): number | undefined => {
+    if (!name) return undefined;
+    const normalized = name.trim().toLowerCase();
+    const match = categories.find(
+      c => c.name.trim().toLowerCase() === normalized || c.slug === normalized
+    );
+    return match?.id;
+  }, [categories]);
+
   const handleGenerateImage = async () => {
     if (!title) {
       toastError('Preencha o título antes de gerar a imagem.');
@@ -275,7 +311,10 @@ export function AdminBlogPostEditorPage() {
       const result = await adminBlogService.generateImage({
         title,
         excerpt: excerpt || undefined,
+        content: content || undefined,
         postId: isEditing ? parseInt(id!) : undefined,
+        format: 'blog',
+        templateId: imageTemplate,
       });
       if (result.data?.imageUrl) {
         setCoverImageUrl(result.data.imageUrl);
@@ -289,12 +328,44 @@ export function AdminBlogPostEditorPage() {
     }
   };
 
+  /** Gera imagens de seção (inline) a partir dos subtítulos H2/H3 e insere no conteúdo. */
+  const handleGenerateInlineImages = async () => {
+    if (!isEditing) {
+      toastError('Salve o post antes de gerar imagens nas seções.');
+      return;
+    }
+    if (hasUnsavedChanges) {
+      toastError('Salve as alterações antes de gerar imagens nas seções.');
+      return;
+    }
+    setIsGeneratingInline(true);
+    try {
+      const result = await adminBlogService.generateInlineImages({
+        postId: parseInt(id!),
+        count: 2,
+        templateId: imageTemplate,
+      });
+      if (result.data?.inserted > 0) {
+        setContent(result.data.content);
+        void invalidateBlogCaches(queryClient);
+        success(`${result.data.inserted} imagem(ns) inserida(s) nas seções`);
+      } else {
+        toastError(result.message || 'Nenhuma seção (H2/H3) encontrada para gerar imagens.');
+      }
+    } catch {
+      toastError('Erro ao gerar imagens das seções.');
+    } finally {
+      setIsGeneratingInline(false);
+    }
+  };
+
   const handleGenerateContent = async () => {
     if (!title) return;
     setIsGenerating(true);
     try {
       const result = await adminBlogService.generateContent({
         title,
+        audience,
         targetKeywords: seoKeywords.length > 0 ? seoKeywords : undefined,
       });
       const gen = result.data;
@@ -305,13 +376,123 @@ export function AdminBlogPostEditorPage() {
         setSeoDescription(gen.seoDescription);
         setSeoKeywords(gen.seoKeywords);
         if (gen.suggestedTags) setTagNames(gen.suggestedTags);
+        const catId = resolveCategoryId(gen.suggestedCategory);
+        if (catId) setCategoryId(catId);
         setHasUnsavedChanges(true);
-        success('Conteúdo gerado com IA');
+        success(
+          gen.qualityScore != null
+            ? `Conteúdo gerado com IA (qualidade ${gen.qualityScore}/100)`
+            : 'Conteúdo gerado com IA'
+        );
       }
     } catch {
       toastError('Erro ao gerar conteúdo com IA');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  /**
+   * Fluxo "Gerar tudo": encadeia conteúdo -> salva (para obter postId) ->
+   * otimiza SEO (schemaMarkup/JSON-LD) -> gera capa, com feedback de progresso.
+   */
+  const handleGenerateAll = async () => {
+    if (!title) {
+      toastError('Preencha o título antes de gerar.');
+      return;
+    }
+    setIsGeneratingAll(true);
+    try {
+      // 1) Conteúdo
+      setGenerateAllStep('Gerando conteúdo...');
+      const contentResult = await adminBlogService.generateContent({
+        title,
+        audience,
+        targetKeywords: seoKeywords.length > 0 ? seoKeywords : undefined,
+      });
+      const gen = contentResult.data;
+      if (!gen) throw new Error('no-content');
+
+      const resolvedCategoryId = resolveCategoryId(gen.suggestedCategory) ?? categoryId;
+      const resolvedTags = gen.suggestedTags?.length ? gen.suggestedTags : tagNames;
+
+      setContent(gen.content);
+      setExcerpt(gen.excerpt);
+      setSeoTitle(gen.seoTitle);
+      setSeoDescription(gen.seoDescription);
+      setSeoKeywords(gen.seoKeywords);
+      setTagNames(resolvedTags);
+      if (resolvedCategoryId) setCategoryId(resolvedCategoryId);
+
+      // 2) Salvar para garantir um postId (necessário para SEO e capa vinculada)
+      setGenerateAllStep('Salvando rascunho...');
+      const savePayload = {
+        title,
+        content: gen.content,
+        excerpt: gen.excerpt || undefined,
+        coverImageUrl: coverImageUrl || undefined,
+        categoryId: resolvedCategoryId,
+        tagNames: resolvedTags,
+        seoTitle: gen.seoTitle || undefined,
+        seoDescription: gen.seoDescription || undefined,
+        seoKeywords: gen.seoKeywords,
+      };
+      let postId = isEditing ? parseInt(id!) : undefined;
+      if (postId) {
+        await adminBlogService.updatePost(postId, savePayload);
+      } else {
+        const created = await adminBlogService.createPost({ ...savePayload, status: 'DRAFT' });
+        postId = created.data?.id;
+      }
+
+      // 3) SEO (schemaMarkup/JSON-LD)
+      if (postId) {
+        setGenerateAllStep('Otimizando SEO...');
+        try {
+          const seoResult = await adminBlogService.optimizeSeo(postId);
+          const updated = seoResult.data?.post;
+          if (updated) {
+            setSeoTitle(updated.seoTitle || gen.seoTitle);
+            setSeoDescription(updated.seoDescription || gen.seoDescription);
+            setSeoKeywords(updated.seoKeywords || gen.seoKeywords);
+          }
+        } catch {
+          // SEO é complementar; não interrompe o fluxo
+        }
+      }
+
+      // 4) Capa
+      setGenerateAllStep('Gerando capa...');
+      try {
+        const imageResult = await adminBlogService.generateImage({
+          title,
+          excerpt: gen.excerpt || undefined,
+          content: gen.content,
+          postId,
+          format: 'blog',
+          templateId: imageTemplate,
+        });
+        if (imageResult.data?.imageUrl) setCoverImageUrl(imageResult.data.imageUrl);
+      } catch {
+        toastError('Conteúdo gerado, mas a capa falhou. Gere a imagem manualmente.');
+      }
+
+      void invalidateBlogCaches(queryClient);
+      setHasUnsavedChanges(false);
+      success(
+        gen.qualityScore != null
+          ? `Post completo gerado com IA (qualidade ${gen.qualityScore}/100)`
+          : 'Post completo gerado com IA'
+      );
+
+      if (!isEditing && postId) {
+        navigate(`/admin/blog/${postId}/edit`, { replace: true });
+      }
+    } catch {
+      toastError('Erro ao gerar o post completo com IA');
+    } finally {
+      setIsGeneratingAll(false);
+      setGenerateAllStep('');
     }
   };
 
@@ -338,6 +519,16 @@ export function AdminBlogPostEditorPage() {
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <label className="block text-sm font-medium text-gray-700">Imagem de Capa</label>
         <div className="flex items-center gap-1.5 flex-wrap justify-end">
+          <select
+            value={imageTemplate}
+            onChange={(e) => setImageTemplate(e.target.value as ImageAgentTemplateId)}
+            title="Estilo visual da capa"
+            className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-olive-200"
+          >
+            {IMAGE_AGENT_TEMPLATES.map(t => (
+              <option key={t.id} value={t.id}>{t.label}</option>
+            ))}
+          </select>
           <Link
             to={`/admin/image-agent?format=blog&topico=${encodeURIComponent(title || '')}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-olive-700 hover:bg-olive-50 rounded-lg transition-colors"
@@ -598,21 +789,50 @@ export function AdminBlogPostEditorPage() {
                 />
               </div>
 
-              {/* AI Generate Button */}
+              {/* AI Generate Panel */}
               {title && !content && (
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4">
-                  <p className="text-sm text-purple-800 mb-2">
-                    Quer gerar o conteúdo automaticamente com IA?
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 space-y-3">
+                  <p className="text-sm text-purple-800">
+                    Gere o post com IA. Escolha a audiência para ajustar tom, CTA e estilo da capa.
                   </p>
-                  <Button
-                    size="sm"
-                    onClick={handleGenerateContent}
-                    disabled={isGenerating}
-                    leftIcon={isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                  >
-                    {isGenerating ? 'Gerando conteúdo...' : 'Gerar com IA'}
-                  </Button>
+                  <div>
+                    <label className="block text-xs font-medium text-purple-900 mb-1">Audiência</label>
+                    <select
+                      value={audience}
+                      onChange={(e) => {
+                        const next = e.target.value as ContentAudience;
+                        setAudience(next);
+                        setImageTemplate(AUDIENCE_DEFAULT_TEMPLATE[next]);
+                      }}
+                      disabled={isGenerating || isGeneratingAll}
+                      className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200"
+                    >
+                      {AUDIENCE_ORDER.map(a => (
+                        <option key={a} value={a}>{AUDIENCE_LABELS[a]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={handleGenerateAll}
+                      disabled={isGenerating || isGeneratingAll}
+                      leftIcon={isGeneratingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      {isGeneratingAll ? (generateAllStep || 'Gerando...') : 'Gerar tudo (conteúdo + SEO + capa)'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateContent}
+                      disabled={isGenerating || isGeneratingAll}
+                      leftIcon={isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                      className="text-purple-700 hover:bg-purple-100"
+                    >
+                      {isGenerating ? 'Gerando conteúdo...' : 'Só conteúdo'}
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -635,9 +855,22 @@ export function AdminBlogPostEditorPage() {
 
               {/* Content: escrever / visualizar */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
                   <label className="block text-sm font-medium text-gray-700">Conteúdo (Markdown)</label>
-                  <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    {isEditing && content && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleGenerateInlineImages}
+                        disabled={isGeneratingInline}
+                        leftIcon={isGeneratingInline ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                        className="text-purple-600 hover:bg-purple-50"
+                      >
+                        {isGeneratingInline ? 'Gerando...' : 'Imagens nas seções'}
+                      </Button>
+                    )}
+                    <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg">
                     <button
                       type="button"
                       onClick={() => setContentView('write')}
@@ -658,6 +891,7 @@ export function AdminBlogPostEditorPage() {
                     >
                       <Eye className="w-3 h-3" /> Visualizar
                     </button>
+                    </div>
                   </div>
                 </div>
 

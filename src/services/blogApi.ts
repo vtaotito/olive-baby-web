@@ -157,7 +157,12 @@ export const adminBlogService = {
     return response.data;
   },
 
-  generateContent: async (data: { title: string; angle?: string; targetKeywords?: string[]; audience?: string }) => {
+  generateContent: async (data: {
+    title: string;
+    angle?: string;
+    targetKeywords?: string[];
+    audience?: string;
+  }) => {
     const response = await api.post<{ success: boolean; data: GeneratedContent }>('/admin/blog/ai/generate-content', data);
     return response.data;
   },
@@ -167,8 +172,31 @@ export const adminBlogService = {
     return response.data;
   },
 
-  generateImage: async (data: { title: string; excerpt?: string; customPrompt?: string; postId?: number }) => {
-    const response = await api.post<{ success: boolean; data: { imageUrl: string; prompt: string } }>('/admin/blog/ai/generate-image', data);
+  generateImage: async (data: {
+    title: string;
+    excerpt?: string;
+    customPrompt?: string;
+    content?: string;
+    postId?: number;
+    format?: 'blog' | 'instagram';
+    templateId?: 'essencial' | 'jardim' | 'impulso' | 'afeto';
+    provider?: 'gemini' | 'openai' | 'pollinations';
+  }) => {
+    const response = await api.post<{ success: boolean; data: { imageUrl: string; prompt: string; provider?: string; fallbackFrom?: string } }>('/admin/blog/ai/generate-image', data);
+    return response.data;
+  },
+
+  generateInlineImages: async (data: {
+    postId: number;
+    count?: number;
+    templateId?: 'essencial' | 'jardim' | 'impulso' | 'afeto';
+    provider?: 'gemini' | 'openai' | 'pollinations';
+  }) => {
+    const response = await api.post<{
+      success: boolean;
+      message?: string;
+      data: { images: Array<{ heading: string; imageUrl: string }>; content: string; inserted: number };
+    }>('/admin/blog/ai/generate-inline-images', data);
     return response.data;
   },
 

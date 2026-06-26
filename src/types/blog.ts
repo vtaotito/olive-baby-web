@@ -98,6 +98,12 @@ export interface TopicSuggestion {
   audience: ContentAudience;
 }
 
+export interface ContentSource {
+  title: string;
+  url: string;
+  publisher?: string;
+}
+
 export interface GeneratedContent {
   title: string;
   content: string;
@@ -107,6 +113,9 @@ export interface GeneratedContent {
   seoKeywords: string[];
   suggestedCategory: string;
   suggestedTags: string[];
+  sources?: ContentSource[];
+  qualityScore?: number;
+  reviewSummary?: string;
 }
 
 export interface CreatePostData {
