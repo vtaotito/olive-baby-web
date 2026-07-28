@@ -71,7 +71,14 @@ export const adminSocialService = {
     const response = await api.post<{ success: boolean; data: { caption: string; hashtags: string[]; platforms: string[] } }>('/admin/social/ai/generate-caption', data);
     return response.data;
   },
-  generateImage: async (data: { caption: string; postId?: number }) => {
+  generateImage: async (data: {
+    caption: string;
+    postId?: number;
+    format?: 'blog' | 'instagram';
+    templateId?: 'essencial' | 'jardim' | 'impulso' | 'afeto';
+    audience?: string;
+    customPrompt?: string;
+  }) => {
     const response = await api.post<{ success: boolean; data: { imageUrl: string; prompt: string } }>('/admin/social/ai/generate-image', data);
     return response.data;
   },

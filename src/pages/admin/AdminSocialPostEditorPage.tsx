@@ -10,6 +10,14 @@ import { adminSocialService } from '../../services/socialApi';
 import { cn } from '../../lib/utils';
 import type { SocialTopicSuggestion, SocialPlatform, ContentAudience } from '../../types/social';
 import { PLATFORM_CONFIG, AUDIENCE_LABELS } from '../../types/social';
+import { IMAGE_AGENT_TEMPLATES, type ImageAgentTemplateId } from '../../constants/imageAgent';
+
+const AUDIENCE_DEFAULT_TEMPLATE: Record<ContentAudience, ImageAgentTemplateId> = {
+  b2c_parents: 'jardim',
+  b2b_pediatricians: 'impulso',
+  b2b_lactation: 'afeto',
+  b2b_caregivers: 'essencial',
+};
 
 export function AdminSocialPostEditorPage() {
   const { id } = useParams();
@@ -33,6 +41,7 @@ export function AdminSocialPostEditorPage() {
   const [hashtagInput, setHashtagInput] = useState('');
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [audience, setAudience] = useState<ContentAudience | ''>('');
+  const [imageTemplate, setImageTemplate] = useState<ImageAgentTemplateId>('jardim');
   const [selectedAccounts, setSelectedAccounts] = useState<number[]>([]);
   const [scheduledAt, setScheduledAt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -56,7 +65,9 @@ export function AdminSocialPostEditorPage() {
       setCaption(post.caption);
       setHashtags(post.hashtags);
       setMediaUrls(post.mediaUrls);
-      setAudience((post.audience as ContentAudience) || '');
+      const aud = (post.audience as ContentAudience) || '';
+      setAudience(aud);
+      if (aud) setImageTemplate(AUDIENCE_DEFAULT_TEMPLATE[aud]);
       setSelectedAccounts(post.platforms.map(p => p.accountId));
       setScheduledAt(post.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : '');
     }
@@ -67,7 +78,9 @@ export function AdminSocialPostEditorPage() {
     if (topicFromNav) {
       setCaption(topicFromNav.caption);
       setHashtags(topicFromNav.hashtags || []);
-      setAudience(topicFromNav.audience || '');
+      const aud = topicFromNav.audience || '';
+      setAudience(aud);
+      if (aud) setImageTemplate(AUDIENCE_DEFAULT_TEMPLATE[aud as ContentAudience] || 'jardim');
     }
     // Hand-off do Image Agent / Content Studio
     if (navState.caption) setCaption(navState.caption);
@@ -133,8 +146,11 @@ export function AdminSocialPostEditorPage() {
   const handleGenerateImage = async () => {
     try {
       const result = await adminSocialService.generateImage({
-        caption: caption.substring(0, 200),
+        caption: caption.substring(0, 400),
         postId: isEditing ? parseInt(id!) : undefined,
+        format: 'instagram',
+        templateId: imageTemplate,
+        audience: audience || undefined,
       });
       if (result.data?.imageUrl) setMediaUrls([...mediaUrls, result.data.imageUrl]);
     } catch {}
@@ -329,13 +345,34 @@ export function AdminSocialPostEditorPage() {
           {/* Audience */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <label className="text-sm font-medium text-gray-700 mb-2 block">Audiência</label>
-            <select value={audience} onChange={(e) => setAudience(e.target.value as ContentAudience | '')}
+            <select
+              value={audience}
+              onChange={(e) => {
+                const next = e.target.value as ContentAudience | '';
+                setAudience(next);
+                if (next) setImageTemplate(AUDIENCE_DEFAULT_TEMPLATE[next]);
+              }}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-olive-200">
               <option value="">Geral</option>
               {Object.entries(AUDIENCE_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
+          </div>
+
+          {/* Image template */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Template da imagem</label>
+            <select
+              value={imageTemplate}
+              onChange={(e) => setImageTemplate(e.target.value as ImageAgentTemplateId)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-olive-200"
+            >
+              {IMAGE_AGENT_TEMPLATES.map(t => (
+                <option key={t.id} value={t.id}>{t.label} — {t.description}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1.5">Usado ao gerar mídia com IA (default por audiência).</p>
           </div>
 
           {/* Schedule */}
