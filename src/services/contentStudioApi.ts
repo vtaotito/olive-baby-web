@@ -53,11 +53,15 @@ export interface ContentQueueItem {
   editPath: string;
 }
 
+/** Content Studio LLM+image jobs regularly exceed the global 30s axios timeout. */
+const STUDIO_TIMEOUT_MS = 180_000;
+
 export const contentStudioApi = {
   generate: async (data: ContentGenerateInput) => {
     const response = await api.post<{ success: boolean; data: ContentGenerateResult }>(
       '/admin/content/generate',
-      data
+      data,
+      { timeout: STUDIO_TIMEOUT_MS }
     );
     return response.data;
   },
@@ -79,7 +83,8 @@ export const contentStudioApi = {
   }) => {
     const response = await api.post<{ success: boolean; data: unknown }>(
       '/admin/content/regenerate',
-      data
+      data,
+      { timeout: STUDIO_TIMEOUT_MS }
     );
     return response.data;
   },
@@ -87,7 +92,8 @@ export const contentStudioApi = {
   createSocialFromBlog: async (data: { blogPostId: number; accountIds?: number[] }) => {
     const response = await api.post<{ success: boolean; data: { id: number } }>(
       '/admin/content/from-blog',
-      data
+      data,
+      { timeout: STUDIO_TIMEOUT_MS }
     );
     return response.data;
   },
