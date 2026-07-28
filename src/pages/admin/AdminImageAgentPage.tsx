@@ -350,11 +350,25 @@ export function AdminImageAgentPage() {
             {backgroundImageUrl && (
               <Link
                 to={applyUrl}
-                state={{
-                  coverImageUrl: backgroundImageUrl,
-                  title: titulo,
-                  excerpt: legenda,
-                }}
+                state={
+                  format === 'blog'
+                    ? {
+                        coverImageUrl: backgroundImageUrl,
+                        title: titulo,
+                        excerpt: legenda,
+                      }
+                    : {
+                        mediaUrls: [backgroundImageUrl],
+                        caption: [titulo, legenda].filter(Boolean).join('\n\n'),
+                        hashtags: hashtagsText
+                          .split(/[\s,]+/)
+                          .map(h => h.replace(/^#/, '').trim())
+                          .filter(Boolean),
+                        title: titulo,
+                        coverImageUrl: backgroundImageUrl,
+                        excerpt: legenda,
+                      }
+                }
                 className="text-center text-sm text-olive-600 hover:text-olive-700 font-medium py-2"
               >
                 Usar no editor de {format === 'blog' ? 'blog' : 'redes sociais'} →

@@ -17,7 +17,16 @@ export function AdminSocialPostEditorPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const isEditing = !!id;
-  const topicFromNav = (location.state as { topic?: SocialTopicSuggestion })?.topic;
+  const navState = location.state as {
+    topic?: SocialTopicSuggestion;
+    mediaUrls?: string[];
+    caption?: string;
+    hashtags?: string[];
+    coverImageUrl?: string;
+    title?: string;
+    excerpt?: string;
+  } | null;
+  const topicFromNav = navState?.topic;
 
   const [caption, setCaption] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
@@ -54,12 +63,21 @@ export function AdminSocialPostEditorPage() {
   }, [post, isEditing]);
 
   useEffect(() => {
-    if (topicFromNav && !isEditing) {
+    if (isEditing || !navState) return;
+    if (topicFromNav) {
       setCaption(topicFromNav.caption);
       setHashtags(topicFromNav.hashtags || []);
       setAudience(topicFromNav.audience || '');
     }
-  }, [topicFromNav, isEditing]);
+    // Hand-off do Image Agent / Content Studio
+    if (navState.caption) setCaption(navState.caption);
+    else if (navState.title || navState.excerpt) {
+      setCaption([navState.title, navState.excerpt].filter(Boolean).join('\n\n'));
+    }
+    if (navState.hashtags?.length) setHashtags(navState.hashtags);
+    if (navState.mediaUrls?.length) setMediaUrls(navState.mediaUrls);
+    else if (navState.coverImageUrl) setMediaUrls([navState.coverImageUrl]);
+  }, [navState, topicFromNav, isEditing]);
 
   const saveMutation = useMutation({
     mutationFn: async (status?: 'DRAFT' | 'IN_REVIEW') => {

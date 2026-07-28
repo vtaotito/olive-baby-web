@@ -46,6 +46,7 @@ const AdminSocialPostEditorPage = lazy(() => import('./pages/admin/AdminSocialPo
 const AdminSocialAccountsPage = lazy(() => import('./pages/admin/AdminSocialAccountsPage').then(m => ({ default: m.AdminSocialAccountsPage })));
 const AdminBrandPage = lazy(() => import('./pages/admin/AdminBrandPage').then(m => ({ default: m.AdminBrandPage })));
 const AdminImageAgentPage = lazy(() => import('./pages/admin/AdminImageAgentPage').then(m => ({ default: m.AdminImageAgentPage })));
+const AdminContentStudioPage = lazy(() => import('./pages/admin/AdminContentStudioPage').then(m => ({ default: m.AdminContentStudioPage })));
 
 // Lazy-loaded: Public Blog Pages
 const BlogListPage = lazy(() => import('./pages/blog/BlogListPage').then(m => ({ default: m.BlogListPage })));
@@ -566,6 +567,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminImageAgentPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/content"
+              element={
+                <AdminRoute>
+                  <AdminContentStudioPage />
                 </AdminRoute>
               }
             />

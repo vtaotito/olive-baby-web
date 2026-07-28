@@ -25,6 +25,12 @@ export interface BlogPostAuthor {
   caregiver?: { fullName: string } | null;
 }
 
+export interface ContentSource {
+  title: string;
+  url: string;
+  publisher?: string;
+}
+
 export interface BlogPost {
   id: number;
   title: string;
@@ -41,6 +47,10 @@ export interface BlogPost {
   readingTimeMin?: number | null;
   aiGenerated: boolean;
   aiPromptUsed?: string | null;
+  audience?: string | null;
+  qualityScore?: number | null;
+  sources?: ContentSource[] | null;
+  reviewSummary?: string | null;
   publishedAt?: string | null;
   reviewedBy?: number | null;
   reviewedAt?: string | null;
@@ -98,12 +108,6 @@ export interface TopicSuggestion {
   audience: ContentAudience;
 }
 
-export interface ContentSource {
-  title: string;
-  url: string;
-  publisher?: string;
-}
-
 export interface GeneratedContent {
   title: string;
   content: string;
@@ -132,6 +136,10 @@ export interface CreatePostData {
   schemaMarkup?: Record<string, unknown>;
   aiGenerated?: boolean;
   aiPromptUsed?: string;
+  audience?: string;
+  qualityScore?: number;
+  sources?: ContentSource[];
+  reviewSummary?: string;
   status?: 'IDEA' | 'DRAFT' | 'IN_REVIEW';
 }
 
@@ -148,4 +156,9 @@ export interface UpdatePostData {
   ogImageUrl?: string | null;
   schemaMarkup?: Record<string, unknown>;
   status?: 'IDEA' | 'DRAFT' | 'IN_REVIEW';
+  aiGenerated?: boolean;
+  audience?: string | null;
+  qualityScore?: number | null;
+  sources?: ContentSource[];
+  reviewSummary?: string | null;
 }

@@ -5,13 +5,14 @@ import axios from 'axios';
 import {
   ArrowLeft, Save, Send, Eye, Sparkles, Upload, Loader2,
   CheckCircle, XCircle, Archive, Bot, Tag as TagIcon, ImageIcon,
-  ExternalLink, PenLine, Globe,
+  ExternalLink, PenLine, Globe, Share2,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/layout';
 import { Button } from '../../components/ui';
 import { useToast } from '../../components/ui/Toast';
 import { BlogMarkdown } from '../../components/blog/BlogMarkdown';
 import { adminBlogService } from '../../services/blogApi';
+import { contentStudioApi } from '../../services/contentStudioApi';
 import { cn } from '../../lib/utils';
 import { invalidateBlogCaches } from '../../lib/blogCache';
 import type { BlogPostStatus, TopicSuggestion, ContentAudience } from '../../types/blog';
@@ -107,6 +108,8 @@ export function AdminBlogPostEditorPage() {
   const [generateAllStep, setGenerateAllStep] = useState('');
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [aiGeneratedFlag, setAiGeneratedFlag] = useState(false);
+  const [isCreatingSocial, setIsCreatingSocial] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: postData } = useQuery({
@@ -135,6 +138,8 @@ export function AdminBlogPostEditorPage() {
       setSeoTitle(post.seoTitle || '');
       setSeoDescription(post.seoDescription || '');
       setSeoKeywords(post.seoKeywords || []);
+      setAiGeneratedFlag(!!post.aiGenerated);
+      if (post.audience) setAudience(post.audience as ContentAudience);
       setHasUnsavedChanges(false);
     }
   }, [post, isEditing]);
@@ -173,6 +178,8 @@ export function AdminBlogPostEditorPage() {
         seoTitle: seoTitle || undefined,
         seoDescription: seoDescription || undefined,
         seoKeywords,
+        audience,
+        ...(aiGeneratedFlag ? { aiGenerated: true } : {}),
         ...(status ? { status } : {}),
       };
 
@@ -378,6 +385,7 @@ export function AdminBlogPostEditorPage() {
         if (gen.suggestedTags) setTagNames(gen.suggestedTags);
         const catId = resolveCategoryId(gen.suggestedCategory);
         if (catId) setCategoryId(catId);
+        setAiGeneratedFlag(true);
         setHasUnsavedChanges(true);
         success(
           gen.qualityScore != null
@@ -423,6 +431,7 @@ export function AdminBlogPostEditorPage() {
       setSeoKeywords(gen.seoKeywords);
       setTagNames(resolvedTags);
       if (resolvedCategoryId) setCategoryId(resolvedCategoryId);
+      setAiGeneratedFlag(true);
 
       // 2) Salvar para garantir um postId (necessário para SEO e capa vinculada)
       setGenerateAllStep('Salvando rascunho...');
@@ -436,6 +445,11 @@ export function AdminBlogPostEditorPage() {
         seoTitle: gen.seoTitle || undefined,
         seoDescription: gen.seoDescription || undefined,
         seoKeywords: gen.seoKeywords,
+        audience,
+        aiGenerated: true,
+        qualityScore: gen.qualityScore,
+        sources: gen.sources,
+        reviewSummary: gen.reviewSummary,
       };
       let postId = isEditing ? parseInt(id!) : undefined;
       if (postId) {
@@ -789,11 +803,13 @@ export function AdminBlogPostEditorPage() {
                 />
               </div>
 
-              {/* AI Generate Panel */}
-              {title && !content && (
+              {/* AI panel — sempre visível com título (permite regenerar) */}
+              {title && (
                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 space-y-3">
                   <p className="text-sm text-purple-800">
-                    Gere o post com IA. Escolha a audiência para ajustar tom, CTA e estilo da capa.
+                    {content
+                      ? 'Regenere partes do post com IA ou ajuste a audiência.'
+                      : 'Gere o post com IA. Escolha a audiência para ajustar tom, CTA e estilo da capa.'}
                   </p>
                   <div>
                     <label className="block text-xs font-medium text-purple-900 mb-1">Audiência</label>
@@ -803,6 +819,7 @@ export function AdminBlogPostEditorPage() {
                         const next = e.target.value as ContentAudience;
                         setAudience(next);
                         setImageTemplate(AUDIENCE_DEFAULT_TEMPLATE[next]);
+                        markDirty();
                       }}
                       disabled={isGenerating || isGeneratingAll}
                       className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200"
@@ -813,15 +830,17 @@ export function AdminBlogPostEditorPage() {
                     </select>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleGenerateAll}
-                      disabled={isGenerating || isGeneratingAll}
-                      leftIcon={isGeneratingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      {isGeneratingAll ? (generateAllStep || 'Gerando...') : 'Gerar tudo (conteúdo + SEO + capa)'}
-                    </Button>
+                    {!content && (
+                      <Button
+                        size="sm"
+                        onClick={handleGenerateAll}
+                        disabled={isGenerating || isGeneratingAll}
+                        leftIcon={isGeneratingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        {isGeneratingAll ? (generateAllStep || 'Gerando...') : 'Gerar tudo (conteúdo + SEO + capa)'}
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -830,8 +849,33 @@ export function AdminBlogPostEditorPage() {
                       leftIcon={isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
                       className="text-purple-700 hover:bg-purple-100"
                     >
-                      {isGenerating ? 'Gerando conteúdo...' : 'Só conteúdo'}
+                      {isGenerating ? 'Gerando...' : content ? 'Regenerar conteúdo' : 'Só conteúdo'}
                     </Button>
+                    {isEditing && content && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isCreatingSocial}
+                        onClick={async () => {
+                          setIsCreatingSocial(true);
+                          try {
+                            const created = await contentStudioApi.createSocialFromBlog({
+                              blogPostId: parseInt(id!),
+                            });
+                            success('Post social criado a partir do blog');
+                            if (created.data?.id) navigate(`/admin/social/${created.data.id}/edit`);
+                          } catch {
+                            toastError('Erro ao criar post social');
+                          } finally {
+                            setIsCreatingSocial(false);
+                          }
+                        }}
+                        leftIcon={isCreatingSocial ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                        className="text-olive-700 hover:bg-olive-50"
+                      >
+                        Virar post social
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
